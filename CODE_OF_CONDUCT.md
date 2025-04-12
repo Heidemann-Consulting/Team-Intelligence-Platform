@@ -50,7 +50,7 @@ This Code of Conduct also applies when an individual is officially representing 
 
 ## Enforcement Process
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [conduct@tipproject.org](mailto:conduct@tipproject.org). All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [tip@heidemann-consulting.com](mailto:tip@heidemann-consulting.com). All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the reporter of any incident.
 
@@ -82,7 +82,7 @@ The TIP project team will follow these Community Impact Guidelines in determinin
 
 ## Reporting Guidelines
 
-If you are subject to or witness unacceptable behavior, or have any other concerns, please notify us as soon as possible by emailing [conduct@tipproject.org](mailto:conduct@tipproject.org).
+If you are subject to or witness unacceptable behavior, or have any other concerns, please notify us as soon as possible by emailing [tip@heidemann-consulting.com](mailto:tip@heidemann-consulting.com).
 
 Please include in your report:
 
