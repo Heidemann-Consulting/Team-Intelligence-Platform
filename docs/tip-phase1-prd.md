@@ -97,7 +97,7 @@ Phase 1 establishes the essential foundation for AI co-management through target
 * **Prompt Development Workshop:** Bi-weekly collaborative sessions to create, test, and refine team-specific AI prompts using tools like Open-webui and Ollama.  
 * **AI-Assisted Documentation:** Integration of AI into meeting workflows (using tools like HedgeDoc and AI models) to improve the quality and speed of documentation creation.
 
-*(Detailed descriptions are in the [Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) document)*
+*(Detailed descriptions are in the [Rituals and Practices](tip-phase1-rituals-and-practices.md) document)*
 
 ### **Key Outcomes**
 
@@ -119,7 +119,7 @@ Phase 1 implementation addresses the needs of diverse roles within a product dev
 * **Taylor \- UX Designer:** Needs preserved design rationale, requirement clarity, and shared context. Benefits from accessible decision history and context repository.  
 * **Chris \- IT Administrator:** Needs transparent, secure, and easily deployable solutions. Benefits from the open-source nature and simple deployment options.
 
-*(Detailed goals, frustrations, and usage patterns are elaborated in the [Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) document)*
+*(Detailed goals, frustrations, and usage patterns are elaborated in the [Rituals and Practices](tip-phase1-rituals-and-practices.md) document)*
 
 ## **5\. Key Features & Requirements (High-Level)**
 
@@ -144,7 +144,7 @@ Phase 1 focuses on establishing foundational capabilities:
   * Support for local or simple server-based deployment using open-source components.  
   * Minimal resource requirements.
 
-*(Detailed functional and non-functional requirements are specified in the [Software Requirements Specification (SRS)](docs/tip-phase1-srs.md))*
+*(Detailed functional and non-functional requirements are specified in the [Software Requirements Specification (SRS)](tip-phase1-srs.md))*
 
 ## **6\. Stakeholder Benefits**
 
@@ -175,7 +175,7 @@ Phase 1 success will be measured by improvements in key areas, demonstrating the
 * **Adoption:** Team participation levels in rituals, usage of shared prompts.  
 * **Onboarding:** Reduction in time required for new team members to become productive.
 
-*(Specific targets and measurement methods are detailed in the [Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) document)*
+*(Specific targets and measurement methods are detailed in the [Rituals and Practices](tip-phase1-rituals-and-practices.md) document)*
 
 ## **9\. Adoption Strategy Overview**
 
@@ -185,7 +185,7 @@ Successful adoption requires addressing different team types and user personas:
 * **User Personas:** Strategies to engage AI Enthusiasts, Practical Pragmatists, Skeptical Professionals, and Overwhelmed Adopters by highlighting relevant benefits and addressing concerns.  
 * **Common Challenges:** Proactive solutions for inconsistent participation, knowledge quality issues, tool fragmentation, unmet AI expectations, and reverting to old habits.
 
-*(Detailed adoption strategies and persona engagement plans are in the [Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) document)*
+*(Detailed adoption strategies and persona engagement plans are in the [Rituals and Practices](tip-phase1-rituals-and-practices.md) document)*
 
 ## **10\. Timeline and Roadmap Overview**
 
@@ -197,7 +197,7 @@ Successful adoption requires addressing different team types and user personas:
 * **Dependencies:** Team readiness, technical infrastructure availability, leadership support.  
 * **Progression to Phase 2:** Readiness criteria include a solid knowledge foundation, established team proficiency, realized benefits, and a stable technical base.
 
-*(Detailed implementation plan is in the [Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) document; technical setup is in the SRS)*
+*(Detailed implementation plan is in the [Rituals and Practices](tip-phase1-rituals-and-practices.md) document; technical setup is in the SRS)*
 
 ## **11\. Risk Assessment Overview**
 
@@ -207,7 +207,7 @@ Key risks for Phase 1 implementation include:
 * **Adoption:** Inconsistent team participation, knowledge quality degradation, resistance to change, time constraints.  
 * **Model-Related:** AI model limitations or unexpected outputs.
 
-*(Mitigation strategies are outlined in the [Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) and [Software Requirements Specification (SRS)](docs/tip-phase1-srs.md)s)*
+*(Mitigation strategies are outlined in the [Rituals and Practices](tip-phase1-rituals-and-practices.md) and [Software Requirements Specification (SRS)](tip-phase1-srs.md)s)*
 
 ## **12\. Contribution Guidelines Overview**
 
@@ -219,4 +219,4 @@ Contributions are welcome, focusing initially on:
 * Prompt templates  
 * Case studies
 
-*(Detailed contribution process and technical setup are in the [Software Requirements Specification (SRS)](docs/tip-phase1-srs.md))*
+*(Detailed contribution process and technical setup are in the [Software Requirements Specification (SRS)](tip-phase1-srs.md))*
