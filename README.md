@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="assets/images/tip-logo.png" alt="TIP Logo" style="width: 50%;" />
+<img src="assets/images/tip-logo-big.png" alt="TIP Logo" style="width: 50%;" />
 
 **Transform how teams work with AI: From individual productivity to collective intelligence.**
 
