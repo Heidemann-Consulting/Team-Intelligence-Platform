@@ -428,7 +428,7 @@ The TIP community is open to everyone interested in transforming how teams work 
 ### Getting Help
 
 If you need assistance:
-1. Check the [Troubleshooting Guide](docs/troubleshooting/README.md)
+1. Check the [Troubleshooting Guide](docs/tip-phase1-srs.md#115-troubleshooting-guide)
 2. Search existing [GitHub Issues](https://github.com/heidemann-consulting/team-intelligence-platform/issues) and [Discussions](https://github.com/heidemann-consulting/team-intelligence-platform/discussions)
 3. Create a new Discussion post with your question if it hasn't been addressed
 
