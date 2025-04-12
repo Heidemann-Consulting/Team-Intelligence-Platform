@@ -16,6 +16,9 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Rituals and Practices](#rituals-and-practices)
+- [Stakeholder Pitches](#stakeholder-pitches)
+- [Market Analysis and Strategic Context](#market-analysis-and-strategic-context)
 - [Key Concepts](#key-concepts)
 - [Project Status](#project-status)
 - [Documentation](#documentation)
@@ -29,7 +32,7 @@
 
 ## Overview
 
-The Team Intelligence Platform (TIP) is an innovative open-source solution designed to transform how product development teams integrate AI into their collaborative workflows. Unlike traditional approaches where AI is used as an individual productivity tool, TIP enables "AI Co-Management" – a paradigm where AI becomes an integrated team member contributing to collective intelligence.
+The Team Intelligence Platform (TIP) is an innovative open-source solution designed to transform how product development teams integrate AI into their collaborative workflows. Unlike traditional approaches where AI is used as an individual productivity tool, TIP enables "AI Co-Management" – a paradigm where AI becomes an integrated team member contributing to collective intelligence. The goal is to foster "AI Co-Management," creating a collective intelligence where the team's combined human-AI capability surpasses the sum of its individual parts.
 
 TIP provides:
 
@@ -38,6 +41,19 @@ TIP provides:
 - A **fully open-source component stack** for maximum accessibility and customization
 - **Knowledge management practices** that preserve and enhance team context
 - **Collaboration patterns** optimized for human-AI teamwork
+
+## Rituals and Practices
+
+TIP employs several core rituals and practices to achieve this goal:
+
+- **Collective Context Management:** Instead of individuals interacting with AI using only their personal context, TIP focuses on building and maintaining a shared, persistent team knowledge base accessible to both humans and AI. Rituals like *Context Curation* and *Enhanced/Networked Context Management* involve systematically capturing, organizing, and refining this collective knowledge.
+- **Explicit AI Roles:** AI is assigned specific roles within team processes (like Documentarian, Analyst, Facilitator, etc.) with defined responsibilities, rather than just being a general assistant.
+- **Integration into Core Ceremonies:** AI participation is explicitly structured into routine team activities such as meetings, planning sessions, and retrospectives, with defined touchpoints and expected contributions. Examples include *AI-Assisted Documentation* for meetings, *AI-Enhanced Retrospectives* for deeper learning, and *Context-Aware Planning* using historical data and context.
+- **Collaborative Prompt Development:** Teams work together in dedicated workshops to create, test, and refine prompts that effectively encode team processes and knowledge for AI interaction.
+- **AI Pair Working:** Patterns are established for individual team members to collaborate directly with AI in real-time on specific, often complex, tasks.
+- **AI-Supported Decision Making:** For significant decisions, a structured framework uses AI to help generate options, evaluate them against criteria, identify biases, and document the rationale.
+- **Cross-Team Intelligence Sharing:** Mechanisms and rituals are established to facilitate the flow of knowledge, insights, and practices across different team boundaries within an organization.
+- **Collective Evaluation and Continuous Learning:** Teams collectively assess the contributions of AI against shared standards and actively work to evolve and improve their human-AI collaboration patterns over time.
 
 ## Stakeholder Pitches
 
