@@ -1,22 +1,19 @@
 # TODOs
 
-J When Workflow Output Document (Name) exists, then the existing document shall be updated with a new version (no new name).
-J In RunWorkflowModal the Name of the output result shall be displayed.
-J When duplicating a document that it duplicates based on the currently selected version and not automatically uses the newest version.
-J the ollama model shall be configured via env file not via workflow definition - remove it everywhere it is not needed any longer.
-J The model output shall be stripped from everything starting with "<think>" and ending with "</think>", including these two tags. Also all linebreaks/newlines at the start and at the end of the document shall be removed after the "<think>" part has been removed.
+* ✅ When Workflow Output Document (Name) exists, then the existing document shall be updated with a new version (no new name).
+* ✅ In RunWorkflowModal the Name of the output result shall be displayed.
+* ✅ When duplicating a document that it duplicates based on the currently selected version and not automatically uses the newest version.
+* ✅ the ollama model shall be configured via env file not via workflow definition - remove it everywhere it is not needed any longer.
+* ✅ The model output shall be stripped from everything starting with "<think>" and ending with "</think>", including these two tags. Also all linebreaks/newlines at the start and at the end of the document shall be removed after the "<think>" part has been removed.
 
-J Templates and Workflows shall only visible & editable by Admins, not by teams anymore.
-J All Templates and Workflows shall automatically be usable by all teams.
-J Teams get a separate "Execute Workflow" view that does not show the workflow code/content itself, but allows execution of the workflow in the same manner as it was possible for users befor this change.
+* ✅ Templates and Workflows shall only visible & editable by Admins, not by teams anymore.
+* ✅ All Templates and Workflows shall automatically be usable by all teams.
+v Teams get a separate "Execute Workflow" view that does not show the workflow code/content itself, but allows execution of the workflow in the same manner as it was possible for users befor this change.
 
-J Rename to Team Intelligence Platform (TIP)
+* ✅ Rename to Team Intelligence Platform (TIP)
 * Add TIP Logo to Web-Pages (Dashboards & Logins) and to Website-Ico
 
 * Remove separate search view and integrate search in each document overview to select visible documents based on full text search
-
-* Remove Codebase and Prompt
-* Copy Codebase to TIP repo, remove former codebase, merge README.
 
 * Performance: Using ContentItemWithCurrentVersion for lists means that for every item, its current version's details (including potentially large markdown_content) are loaded and serialized. If your lists are very long or performance becomes an issue, you might consider creating a more lightweight schema specifically for list items that includes item_id, name, item_type, current_version_number, and other essential list view fields, but omits the full markdown_content.
 
