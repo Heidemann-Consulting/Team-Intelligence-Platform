@@ -1,0 +1,32 @@
+// File: ulacm_frontend/tsconfig.json
+// Purpose: TypeScript compiler options.
+
+{
+    "compilerOptions": {
+      "target": "ES2020", // Target modern ECMAScript version
+      "useDefineForClassFields": true,
+      "lib": ["ES2020", "DOM", "DOM.Iterable"], // Standard libraries to include
+      "module": "ESNext", // Use modern module system
+      "skipLibCheck": true, // Skip type checking of declaration files
+
+      /* Bundler mode */
+      "moduleResolution": "bundler", // How modules are resolved (Vite recommends 'bundler')
+      "allowImportingTsExtensions": true,
+      "resolveJsonModule": true, // Allow importing JSON files
+      "isolatedModules": true, // Ensure each file can be transpiled independently
+      "noEmit": true, // Vite handles emission, TypeScript only does type checking
+      "jsx": "react-jsx", // Use new JSX transform
+
+      /* Linting */
+      "strict": true, // Enable all strict type-checking options
+      "noUnusedLocals": true, // Report errors on unused local variables
+      "noUnusedParameters": true, // Report errors on unused parameters
+      "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statement
+      "baseUrl": ".", // Base directory for module resolution
+      "paths": { // Path aliases for easier imports
+        "@/*": ["src/*"]
+      }
+    },
+    "include": ["src"], // Files to include in compilation
+    // "references": [{ "path": "./tsconfig.node.json" }] // Reference for tsconfig used by Vite/ESLint config files
+}

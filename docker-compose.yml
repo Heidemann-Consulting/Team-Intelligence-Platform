@@ -1,0 +1,92 @@
+# File: docker-compose.yml
+# Purpose: Defines and orchestrates the ULACM multi-container application.
+# Based on SRS Section 6.4.
+# Added OLLAMA_MODEL and OLLAMA_TEMPERATURE examples.
+
+services:
+  frontend:
+    build:
+      context: ./ulacm_frontend
+      dockerfile: Dockerfile
+    container_name: ulacm_frontend
+    ports:
+      - "${FRONTEND_PORT:-4000}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - ulacm_network
+
+  backend:
+    build:
+      context: ./ulacm_backend
+      dockerfile: Dockerfile
+    container_name: ulacm_backend
+    env_file:
+      - ./ulacm_backend/.env
+    # environment:
+      # - POSTGRES_SERVER=db
+      # - POSTGRES_USER=${POSTGRES_USER:-ulacm_user}
+      # - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      # - POSTGRES_DB=${POSTGRES_DB:-ulacm_db}
+      # - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme}
+      # - SESSION_SECRET_KEY=${SESSION_SECRET_KEY:-pleasesetastrongsecretkey}
+      # - OLLAMA_API_URL=${OLLAMA_API_URL:-http://host.docker.internal:11434}
+      # - OLLAMA_MODEL=${OLLAMA_MODEL:-ollama/llama3:latest} # Example model
+      # - OLLAMA_TEMPERATURE=${OLLAMA_TEMPERATURE:-0.7} # Example temperature
+      # - BACKEND_CORS_ORIGINS=["http://localhost:4000", "http://127.0.0.1:4000"]
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./ulacm_backend/.env:/app/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      # ollama: # Optional dependency
+      #   condition: service_started
+    restart: unless-stopped
+    networks:
+      - ulacm_network
+
+  db:
+    image: postgres:15-alpine
+    container_name: ulacm_db
+    env_file:
+      - ./ulacm_backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./ulacm_backend/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ulacm_user} -d ${POSTGRES_DB:-ulacm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - ulacm_network
+
+  # Optional Ollama Service
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ulacm_ollama
+  #   ports:
+  #     - "${OLLAMA_HOST_PORT:-11434}:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   tty: true
+  #   restart: unless-stopped
+  #   networks:
+  #     - ulacm_network
+
+volumes:
+  postgres_data:
+    driver: local
+  # ollama_data:
+  #   driver: local
+
+networks:
+  ulacm_network:
+    driver: bridge

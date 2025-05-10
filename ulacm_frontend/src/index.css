@@ -1,0 +1,94 @@
+/* File: ULACM2/ulacm_frontend/src/index.css */
+/* Purpose: Global styles and Tailwind CSS directives. */
+/* Added styles for ReactSimpleMDEEditor (EasyMDE) */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+body {
+  @apply font-sans antialiased text-ulacm-gray-900 bg-ulacm-gray-50;
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom scrollbar styles (optional) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-ulacm-gray-100;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-ulacm-gray-400;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-ulacm-gray-500;
+}
+
+/* Base heading and link styles */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-semibold text-ulacm-gray-800;
+}
+
+a {
+  @apply text-ulacm-primary hover:text-ulacm-primary-dark transition-colors duration-150;
+}
+
+/* Styles for ReactSimpleMDEEditor (EasyMDE) - Moved from ReactSimpleMDEEditor.tsx */
+.ulacm-simplemde-editor-wrapper .EasyMDEContainer .CodeMirror {
+  min-height: 300px; /* Or your desired minimum height */
+  border-bottom-left-radius: 0.5rem; /* Tailwind's rounded-lg */
+  border-bottom-right-radius: 0.5rem;
+  border: none !important; /* Remove CodeMirror's default border if wrapper has one */
+  flex-grow: 1; /* Allow editor to grow if in a flex container */
+}
+
+.ulacm-simplemde-editor-wrapper .editor-toolbar {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  border-bottom: 1px solid #d1d5db; /* ulacm-gray-300 */
+  background-color: #f9fafb; /* ulacm-gray-50 */
+}
+
+.ulacm-simplemde-editor-wrapper .editor-toolbar button.active,
+.ulacm-simplemde-editor-wrapper .editor-toolbar button:hover {
+  background-color: #e5e7eb; /* ulacm-gray-200 */
+  border-color: #9ca3af; /* ulacm-gray-400 */
+}
+
+.ulacm-simplemde-editor-wrapper .editor-toolbar i.separator {
+  border-left: 1px solid #d1d5db; /* ulacm-gray-300 */
+  border-right: 1px solid #d1d5db; /* ulacm-gray-300 */
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview,
+.ulacm-simplemde-editor-wrapper .editor-preview-side {
+  background-color: white;
+  padding: 1rem; /* Tailwind's p-4 */
+}
+
+.ulacm-simplemde-editor-wrapper.readonly-editor-wrapper .editor-toolbar {
+  display: none;
+}
+
+.ulacm-simplemde-editor-wrapper.readonly-editor-wrapper .EasyMDEContainer .CodeMirror-scroll {
+  cursor: default !important;
+}

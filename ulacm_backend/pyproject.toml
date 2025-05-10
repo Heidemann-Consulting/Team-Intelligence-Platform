@@ -1,0 +1,73 @@
+# File: ulacm_backend/pyproject.toml
+# Purpose: Project metadata and dependencies using Poetry.
+# Added slowapi, httpx, freezegun, pytest, pytest-asyncio dependencies.
+
+[tool.poetry]
+name = "ulacm-backend"
+version = "2.0.0"
+description = "Backend API for the Universal Lean AI-Co-Management (ULACM) Service"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "app", from = "."}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+# FastAPI and related
+fastapi = "^0.111.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+pydantic = {extras = ["email"], version = "^2.7.1"}
+pydantic-settings = "^2.2.1"
+
+# Database (PostgreSQL with SQLAlchemy async)
+sqlalchemy = {version = "^2.0.29", extras = ["asyncio"]}
+asyncpg = "^0.29.0"
+psycopg2-binary = "^2.9.9"
+alembic = "^1.13.1"
+greenlet = "^3.0.3"
+
+# Security
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+bcrypt = "4.0.1" # Add this line
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+
+# HTTP client for Ollama and Integration Tests
+httpx = "^0.27.0" # Also needed for integration tests
+
+# Utilities
+python-multipart = "^0.0.9"
+PyYAML = "^6.0.1"
+
+# Rate Limiting
+slowapi = "^0.1.9"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+pytest-asyncio = "^0.23.6" # For testing async code with pytest
+black = "^24.4.0" # Code formatter
+ruff = "^0.4.1" # Linter
+mypy = "^1.9.0" # Static type checker
+pre-commit = "^3.7.0" # For running linters/formatters before commit
+freezegun = "^1.5.1" # For mocking datetime in tests
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "W", "F", "I", "UP", "PL", "PTH"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 88
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+# [[tool.mypy.overrides]]
+# module = "some_library_without_stubs.*"
+# ignore_missing_imports = true
