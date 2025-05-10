@@ -298,12 +298,15 @@ This application consists of:
 
 1.  **Clone the Repository (if applicable):**
     ```bash
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/Heidemann-Consulting/Team-Intelligence-Platform.git
+    cd Team-Intelligence-Platform
     ```
 
 2.  **Configure Backend Environment Variables:**
     * Navigate to the `ulacm_backend/` directory.
+        ```bash
+        cd ./ulacm_backend
+        ```
     * Copy the example environment file:
         ```bash
         cp .env.example .env
