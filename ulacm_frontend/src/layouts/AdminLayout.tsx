@@ -4,7 +4,7 @@
 
 import React, { ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Users, Shield, FileCode2, FolderGit2 } from 'lucide-react'; // Added FileCode2, FolderGit2
+import { LogOut, LayoutDashboard, Users, Shield, NotepadTextDashed, Workflow } from 'lucide-react'; // Added FileCode2, FolderGit2
 import { useAuth } from '@/contexts/AuthContext';
 
 interface AdminLayoutProps {
@@ -38,8 +38,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     <div className="flex h-screen bg-ulacm-gray-50">
       <aside className="w-64 flex-shrink-0 bg-white border-r border-ulacm-gray-200 flex flex-col shadow-sm">
         <div className="h-16 flex items-center justify-center px-4 border-b border-ulacm-gray-200">
-          <Link to="/admin/dashboard" className="text-xl font-bold text-ulacm-secondary hover:opacity-80 transition-opacity">
-            TIP Admin
+          <Link to="/admin/dashboard" className="flex items-center text-xl font-bold text-ulacm-secondary hover:opacity-80 transition-opacity">
+            <img src="../tip-logo-only-32-transparent.png" alt="TIP Logo"/>Team Intelligence Platform Admin
           </Link>
         </div>
         <nav className="flex-grow p-3 space-y-1 overflow-y-auto">
@@ -51,10 +51,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </NavLink>
           {/* New Links for Admin to manage Templates and Workflows */}
           <NavLink to="/admin/templates" className={navLinkClass}>
-            <FileCode2 className={iconClass} /> Template Management
+            <NotepadTextDashed className={iconClass} /> Template Management
           </NavLink>
           <NavLink to="/admin/workflows" className={navLinkClass}>
-            <FolderGit2 className={iconClass} /> Workflow Management
+            <Workflow className={iconClass} /> Workflow Management
           </NavLink>
         </nav>
         <div className="p-4 border-t border-ulacm-gray-200 mt-auto">
@@ -64,7 +64,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center px-3 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition-colors duration-150 ease-in-out shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+            className="w-full flex items-center justify-center px-3 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors duration-150 ease-in-out shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
           >
             <LogOut className="mr-2 h-5 w-5" /> Logout Admin
           </button>

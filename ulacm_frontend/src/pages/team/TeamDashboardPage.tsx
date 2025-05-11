@@ -6,7 +6,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 // import { FileText, FileCode2, FolderGit2, Search, PlusCircle, Activity } from 'lucide-react';
-import { FileText, Search, FolderGit2, Activity } from 'lucide-react';
+import { FileText, FolderGit2, Activity } from 'lucide-react';
 
 const TeamDashboardPage: React.FC = () => {
   const { currentTeam } = useAuth();
@@ -14,7 +14,7 @@ const TeamDashboardPage: React.FC = () => {
   const quickLinkCards = [
     { title: 'View Documents', icon: FileText, path: '/app/documents', description: 'Access and manage your team documents.' },
     { title: 'Run Workflows', icon: FolderGit2, path: '/app/execute-workflow', description: 'Automate tasks with AI workflows.' },
-    { title: 'Search Documents', icon: Search, path: '/app/search', description: 'Search for specific documents.' },
+    // { title: 'Search Documents', icon: Search, path: '/app/search', description: 'Search for specific documents.' },
   ];
 
   return (

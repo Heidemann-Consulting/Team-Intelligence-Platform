@@ -10,14 +10,14 @@
 
 * ✅ Templates and Workflows shall only visible & editable by Admins, not by teams anymore.
 * ✅ All Templates and Workflows shall automatically be usable by all teams.
-v Teams get a separate "Execute Workflow" view that does not show the workflow code/content itself, but allows execution of the workflow in the same manner as it was possible for users befor this change.
+* ✅ Teams get a separate "Execute Workflow" view that does not show the workflow code/content itself, but allows execution of the workflow in the same manner as it was possible for users befor this change.
 
 * ✅ Rework README.md, PITCH.md and CONTRIBUTING.md
 
 * ✅ Rename to Team Intelligence Platform (TIP)
-* Add TIP Logo to Web-Pages (Dashboards & Logins) and to Website-Icon
+* ✅ Add TIP Logo to Web-Pages (Dashboards & Logins) and to Website-Favicon
 
-* Remove separate search view
+* ✅ Remove separate search view
 * In Listview behind each version tag display the creation date of that version
 * Integrate search in each element overview list to select visible documents based on full text search
 * Integrate sort in each element overview list so that users can sort ascending and descending for name and for latest version creation date
