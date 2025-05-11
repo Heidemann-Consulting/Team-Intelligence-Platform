@@ -2,7 +2,7 @@
 # Purpose: API endpoints for managing ContentItems.
 # Updated: Handles parsing of workflow definitions within endpoint handlers.
 # Updated: Refined _convert_orm_to_schema_with_parsed_workflow to prevent MissingGreenlet error.
-# Updated: List endpoint now uses ContentItemListItem and supports new filters.
+# Updated: List endpoint now uses ContentItemListItem and supports new filters including content_query.
 # Corrected: Changed ContentItemSchema import to ContentItem.
 # Fixed: Added missing 'created_at' field to list_item_data for ContentItemListItem.
 
@@ -79,6 +79,7 @@ def _convert_orm_to_detail_schema(
         "updated_at": item_db.updated_at,
         "current_version": item_db.current_version if hasattr(item_db, 'current_version') else None,
     }
+
     if schema_class == ContentItemSearchResult:
         item_dict["snippet"] = getattr(item_db, 'snippet', None)
         if item_db.current_version:
@@ -155,12 +156,13 @@ async def list_content_items_endpoint(
     db: AsyncSession = Depends(get_db),
     item_type: Optional[ContentItemTypeEnum] = Query(None, description="Filter by item type (DOCUMENT, TEMPLATE, WORKFLOW)"),
     name_query: Optional[str] = Query(None, description="Filter by item name (case-insensitive, partial match)"),
+    content_query: Optional[str] = Query(None, description="Filter by item content (full-text search, case-insensitive)"), # New
     created_after: Optional[DateObject] = Query(None, description="Filter by creation date (YYYY-MM-DD format, inclusive start)"),
     created_before: Optional[DateObject] = Query(None, description="Filter by creation date (YYYY-MM-DD format, inclusive end)"),
     is_globally_visible_filter: Optional[bool] = Query(None, alias="is_globally_visible", description="Filter by global visibility status"),
     offset: int = Query(0, ge=0),
     limit: int = Query(15, ge=1, le=100),
-    sort_by: str = Query("updated_at", enum=["name", "created_at", "updated_at", "item_type"]),
+    sort_by: str = Query("updated_at", enum=["name", "created_at", "updated_at", "item_type", "rank"]), # Added rank for FTS
     sort_order: str = Query("desc", enum=["asc", "desc"]),
     current_user_session: Union[TeamModel, TokenPayload, None] = Depends(get_current_user_or_admin_marker),
     is_admin_actor: bool = Depends(get_requesting_user_is_admin),
@@ -172,7 +174,7 @@ async def list_content_items_endpoint(
     requesting_actor_team_id = current_user_session.team_id if isinstance(current_user_session, TeamModel) else None
     log_actor = "Admin" if is_admin_actor else f"Team {requesting_actor_team_id}"
     log.info(
-        f"{log_actor} listing items: Type={item_type}, NameQuery='{name_query}', "
+        f"{log_actor} listing items: Type={item_type}, NameQuery='{name_query}', ContentQuery='{content_query}', " # Log new query
         f"CreatedAfter={created_after}, CreatedBefore={created_before}, "
         f"GlobalFilter={is_globally_visible_filter}, ForUsage={for_usage}, "
         f"Offset={offset}, Limit={limit}, SortBy={sort_by}, SortOrder={sort_order}"
@@ -192,6 +194,7 @@ async def list_content_items_endpoint(
         is_admin_actor=is_admin_actor,
         item_type_filter=item_type,
         name_query=name_query,
+        content_query=content_query, # Pass content_query
         created_after=created_after_dt,
         created_before=created_before_dt,
         is_globally_visible_filter=is_globally_visible_filter,
@@ -208,7 +211,7 @@ async def list_content_items_endpoint(
             "name": item_db_obj.name,
             "is_globally_visible": item_db_obj.is_globally_visible,
             "current_version_id": item_db_obj.current_version_id,
-            "created_at": item_db_obj.created_at, # Ensure this is included
+            "created_at": item_db_obj.created_at,
             "updated_at": item_db_obj.updated_at,
             "current_version_number": item_db_obj.current_version.version_number if item_db_obj.current_version else None,
             "workflow_input_document_selectors": None,

@@ -1,17 +1,14 @@
 // File: ulacm_frontend/src/pages/team/SearchPage.tsx
 // Purpose: Page for searching content items.
 // Updated to render the snippet using dangerouslySetInnerHTML and add basic highlight styling.
-
+// Refined useEffect and performSearch to ensure pagination resets correctly for new searches.
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, X, FileText, FileCode2, FolderGit2, AlertCircle, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 // import toast from 'react-hot-toast';
-
-// Assuming the API types are correctly defined to include the snippet
-// import { ContentItemSearchResult, ContentItemType, PaginatedResponse } from '@/types/api';
-import { ContentItemSearchResult, ContentItemType } from '@/types/api';
-import contentService, { SearchParams } from '@/services/contentService'; // Assuming SearchParams is exported
+import { ContentItemSearchResult, ContentItemType, PaginatedResponse } from '@/types/api';
+import contentService, { SearchParams } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 // Add basic CSS for highlighting - this should ideally be in a global CSS file or styled component
@@ -34,100 +31,107 @@ const SearchPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     offset: 0,
-    limit: 10, // Keep a reasonable limit for search
+    limit: 10,
     total_count: 0,
   });
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false); // Track if a search has been performed
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Debounce search query
   useEffect(() => {
     setIsTyping(true);
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
-      setPagination(prev => ({ ...prev, offset: 0 })); // Reset page on new query
+      // When debouncedQuery changes, it will trigger the main search useEffect,
+      // which should handle resetting pagination offset for a *new* search.
       setIsTyping(false);
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => {
       clearTimeout(handler);
     };
   }, [searchQuery]);
 
-  // Perform Search Logic (modified slightly for clarity)
-  const performSearch = useCallback(async (offset = 0) => {
-    const currentQuery = debouncedQuery.trim(); // Use debounced query for search
+  const performSearch = useCallback(async (fetchOffset = 0) => {
+    const currentQuery = debouncedQuery.trim();
     const currentTypes = itemTypes;
 
-    // Avoid searching if nothing is specified
     if (!currentQuery && currentTypes.length === 0) {
       setResults([]);
       setPagination(prev => ({ ...prev, total_count: 0, offset: 0 }));
-      setHasSearched(false); // Reset search status
+      setHasSearched(false);
       setIsLoading(false);
       return;
     }
 
-    setHasSearched(true); // Mark that a search attempt is being made
+    setHasSearched(true);
     setIsLoading(true);
     setError(null);
 
     try {
       const params: SearchParams = {
-        query: currentQuery || undefined, // Send query only if it exists
+        query: currentQuery || undefined,
         item_types: currentTypes.length > 0 ? currentTypes.join(',') : undefined,
-        offset,
+        offset: fetchOffset,
         limit: pagination.limit,
-        // Add date filters here if implemented later
       };
-      // Assuming contentService.searchItems returns PaginatedResponse<ContentItemSearchResult>
-      const data = await contentService.searchItems(params);
+      const data: PaginatedResponse<ContentItemSearchResult> = await contentService.searchItems(params);
       setResults(data.items);
-      setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
+      // Update pagination state with the offset used for this fetch and the new total_count
+      setPagination(prev => ({ ...prev, offset: fetchOffset, total_count: data.total_count }));
     } catch (err: any) {
       console.error("Search failed:", err);
-      const errorMessage = err.message || 'Failed to perform search.'; // Using structured error message
+      const errorMessage = err.message || 'Failed to perform search.';
       setError(errorMessage);
+      setResults([]); // Clear results on error
+      setPagination(prev => ({ ...prev, total_count: 0, offset: fetchOffset })); // Reset total_count but keep offset
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedQuery, itemTypes, pagination.limit]);
+  }, [debouncedQuery, itemTypes, pagination.limit]); // pagination.limit is a stable dependency for performSearch
 
-  // Trigger search when debounced query or filters change, and user stopped typing
+  // Effect to trigger new search when debouncedQuery or itemTypes change
   useEffect(() => {
+    // Only perform search if user is not typing and there's something to search for
+    // or if filters are applied.
+    // This always performs a new search from offset 0.
     if (!isTyping) {
-        performSearch(pagination.offset); // Perform search, possibly keeping current offset if only filters changed
+        if (debouncedQuery.trim() || itemTypes.length > 0) {
+            performSearch(0); // Perform new search from page 1 (offset 0)
+        } else {
+            // If query and types are cleared, reset everything
+            setResults([]);
+            setPagination(prev => ({ ...prev, total_count: 0, offset: 0 }));
+            setHasSearched(false);
+        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, itemTypes, isTyping]); // Dependencies for triggering search
+  }, [debouncedQuery, itemTypes, isTyping]); // performSearch is memoized, safe to include if its own deps are correct
 
-  // Filter Handling
+
   const handleItemTypeChange = (type: ContentItemType) => {
     setItemTypes(prev =>
       prev.includes(type)
         ? prev.filter(t => t !== type)
         : [...prev, type]
     );
-    setPagination(prev => ({ ...prev, offset: 0 })); // Reset page on filter change
-    // Search will be triggered by useEffect dependency change
+    // The change in itemTypes will trigger the useEffect above, which calls performSearch(0).
   };
 
   const clearFilters = () => {
     setItemTypes([]);
-    setPagination(prev => ({ ...prev, offset: 0 }));
-    // Search will be triggered by useEffect dependency change
+    // The change in itemTypes will trigger the useEffect above.
   };
 
-  // Pagination Handling
   const handlePageChange = (newOffset: number) => {
-    if (newOffset >= 0 && newOffset < pagination.total_count) {
-        setPagination(prev => ({ ...prev, offset: newOffset }));
-        performSearch(newOffset); // Perform search for the new page
+    // This is for navigating pages of an existing result set.
+    // The total_count for this check should be the one from the current result set.
+    if (newOffset >= 0 && (newOffset < pagination.total_count || pagination.total_count === 0)) {
+        performSearch(newOffset); // Fetch specific page
     }
   };
 
-  // Icon Helper
   const getItemIcon = (type: ContentItemType) => {
      switch (type) {
       case ContentItemType.DOCUMENT: return <FileText className="h-5 w-5 mr-2 text-ulacm-primary flex-shrink-0" />;
@@ -137,22 +141,18 @@ const SearchPage: React.FC = () => {
     }
   };
 
-  // Pagination Variables
-  const totalPages = Math.ceil(pagination.total_count / pagination.limit);
+  const totalPages = Math.max(1, Math.ceil(pagination.total_count / pagination.limit));
   const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
 
   return (
     <div className="space-y-6">
-       {/* Add highlight styles */}
        <style>{highlightStyle}</style>
 
       <h1 className="text-3xl font-bold text-ulacm-gray-800 flex items-center">
           <Search size={30} className="mr-3 text-ulacm-primary"/> Search Content
       </h1>
 
-      {/* Search Input and Filters */}
       <div className="bg-white p-4 rounded-xl shadow-lg border border-ulacm-gray-100 space-y-4">
-        {/* Input */}
         <div className="relative">
           <input
             type="search"
@@ -165,22 +165,21 @@ const SearchPage: React.FC = () => {
              {isTyping || isLoading ? <Loader size={20} className="animate-spin"/> : <Search size={20} />}
           </div>
         </div>
-        {/* Filters */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-sm font-medium text-ulacm-gray-600 flex items-center shrink-0"><Filter size={16} className="mr-1"/> Type:</span>
           <div className="flex flex-wrap gap-2">
             {Object.values(ContentItemType).map((type) => (
-                <button
+             <button
                 key={type}
                 onClick={() => handleItemTypeChange(type)}
                 className={`px-3 py-1 text-xs rounded-full border transition-colors duration-150 ${
                     itemTypes.includes(type)
-                      ? 'bg-ulacm-primary border-ulacm-primary text-white font-medium shadow-sm'
-                      : 'bg-white border-ulacm-gray-300 text-ulacm-gray-600 hover:bg-ulacm-gray-50 hover:border-ulacm-gray-400'
+                    ? 'bg-ulacm-primary border-ulacm-primary text-white font-medium shadow-sm'
+                    : 'bg-white border-ulacm-gray-300 text-ulacm-gray-600 hover:bg-ulacm-gray-50 hover:border-ulacm-gray-400'
                 }`}
                 >
                 {type}
-                </button>
+             </button>
              ))}
           </div>
           {itemTypes.length > 0 && (
@@ -195,10 +194,7 @@ const SearchPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Results Area */}
-      <div className="space-y-4 min-h-[300px]"> {/* Minimum height */}
-
-        {/* Loading State */}
+      <div className="space-y-4 min-h-[300px]">
         {isLoading && (
             <div className="flex flex-col items-center justify-center text-center py-16">
                 <LoadingSpinner size="md" />
@@ -206,7 +202,6 @@ const SearchPage: React.FC = () => {
             </div>
         )}
 
-        {/* Error State */}
         {error && !isLoading && (
            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md shadow">
               <div className="flex">
@@ -218,24 +213,20 @@ const SearchPage: React.FC = () => {
                   <p className="mt-1 text-sm text-yellow-700">{error}</p>
                 </div>
               </div>
-           </div>
+            </div>
         )}
 
-        {/* Results Display Area */}
         {!isLoading && !error && hasSearched && (
           <>
-            {/* Result Count */}
             <p className="text-sm text-ulacm-gray-600">
               Found {pagination.total_count} result{pagination.total_count !== 1 ? 's' : ''}.
             </p>
 
-            {/* Results List */}
             {results.length > 0 ? (
               <ul className="space-y-3">
                 {results.map((item) => (
                   <li key={item.item_id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-ulacm-gray-100">
                     <Link to={`/app/${item.item_type.toLowerCase()}s/${item.item_id}`} className="block group">
-                      {/* Header */}
                       <div className="flex items-center justify-between mb-1">
                          <div className="flex items-center min-w-0">
                              {getItemIcon(item.item_type)}
@@ -244,14 +235,12 @@ const SearchPage: React.FC = () => {
                          <span className="ml-3 text-xs px-2 py-0.5 bg-ulacm-gray-100 text-ulacm-gray-600 rounded-full shrink-0">{item.item_type}</span>
                       </div>
 
-                      {/* Snippet Display - Updated */}
                       {item.snippet && (
                           <p className="text-sm text-ulacm-gray-700 border-l-2 border-ulacm-primary/30 pl-2 ml-1 my-2 italic"
-                             dangerouslySetInnerHTML={{ __html: item.snippet }} // Use dangerouslySetInnerHTML for HTML highlights
+                             dangerouslySetInnerHTML={{ __html: item.snippet }}
                           />
                       )}
 
-                      {/* Metadata Footer */}
                        <p className="text-xs text-ulacm-gray-500 mt-1">
                           Updated: {formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })} | v{item.current_version_number ?? 0}
                        </p>
@@ -259,8 +248,7 @@ const SearchPage: React.FC = () => {
                   </li>
                 ))}
               </ul>
-             ) : (
-              // No results found state
+            ) : (
               <div className="text-center py-16 px-6 bg-white rounded-lg shadow border border-ulacm-gray-100">
                     <Search size={48} className="mx-auto text-ulacm-gray-300"/>
                     <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">No results found</h3>
@@ -268,14 +256,11 @@ const SearchPage: React.FC = () => {
               </div>
             )}
 
-            {/* Pagination Controls */}
             {pagination.total_count > pagination.limit && (
               <div className="mt-6 flex flex-col sm:flex-row items-center justify-between text-sm text-ulacm-gray-600">
-                  {/* Count Display */}
                   <div>
                     Showing <span className="font-semibold">{pagination.offset + 1}</span> to <span className="font-semibold">{Math.min(pagination.offset + pagination.limit, pagination.total_count)}</span> of <span className="font-semibold">{pagination.total_count}</span> results
                   </div>
-                  {/* Buttons */}
                   <div className="flex items-center space-x-2 mt-3 sm:mt-0">
                       <button
                         onClick={() => handlePageChange(pagination.offset - pagination.limit)}
@@ -298,13 +283,12 @@ const SearchPage: React.FC = () => {
           </>
         )}
 
-         {/* Initial State (before first search) */}
          {!isLoading && !error && !hasSearched && (
              <div className="text-center py-16 px-6 bg-white rounded-lg shadow border border-ulacm-gray-100">
                 <Search size={48} className="mx-auto text-ulacm-gray-300"/>
                 <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">Search for Content</h3>
                 <p className="mt-1 text-sm text-ulacm-gray-500">Enter keywords or filter by type to find documents, templates, and workflows.</p>
-             </div>
+            </div>
          )}
       </div>
     </div>

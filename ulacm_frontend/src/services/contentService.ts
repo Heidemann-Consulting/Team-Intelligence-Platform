@@ -1,7 +1,6 @@
 // File: ulacm_frontend/src/services/contentService.ts
 // Purpose: Service for API calls related to content items, versions, and workflow execution.
-// Updated: Modified runWorkflow to accept an optional payload with input_document_ids.
-// Updated: Modified getItems params to include new filtering options.
+// Updated: Modified GetItemsParams to include content_query.
 
 import apiClient from './apiClient';
 import {
@@ -42,19 +41,19 @@ export interface GetItemsParams {
   limit?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
-  for_usage?: boolean; // For teams listing Admin T/W
-  // New filter parameters
-  name_query?: string; // For filtering by name
-  created_after?: string; // YYYY-MM-DD
-  created_before?: string; // YYYY-MM-DD
-  is_globally_visible?: boolean; // For filtering by global visibility status
+  for_usage?: boolean;
+  name_query?: string;
+  content_query?: string; // New parameter for content search
+  created_after?: string;
+  created_before?: string;
+  is_globally_visible?: boolean;
 }
 
 export interface SearchParams {
     query?: string;
-    item_types?: string; // Comma-separated
-    created_after?: string; // YYYY-MM-DD
-    created_before?: string; // YYYY-MM-DD
+    item_types?: string;
+    created_after?: string;
+    created_before?: string;
     offset?: number;
     limit?: number;
     sort_by?: string;
@@ -66,15 +65,10 @@ export interface RunWorkflowPayload {
 }
 
 const contentService = {
-  // Updated getItems to accept new filter parameters
   getItems: async (params: GetItemsParams): Promise<PaginatedResponse<ContentItemListed>> => {
-    // Filter out undefined params before sending to ensure clean query string
     const filteredParams: Record<string, any> = {};
     for (const key in params) {
         if (params[key as keyof GetItemsParams] !== undefined && params[key as keyof GetItemsParams] !== null && params[key as keyof GetItemsParams] !== '') {
-            // Special handling for boolean is_globally_visible:
-            // If it's explicitly set (true or false), include it.
-            // If it's undefined/null, don't include the param (backend won't filter by it).
             if (key === 'is_globally_visible' && typeof params[key as keyof GetItemsParams] === 'boolean') {
                  filteredParams[key] = params[key as keyof GetItemsParams];
             } else if (key !== 'is_globally_visible') {
@@ -131,7 +125,7 @@ const contentService = {
      return {
          total_count: response.data.total_count,
          offset: params.offset ?? 0,
-         limit: params.limit ?? 20, // Default limit for search results if not provided
+         limit: params.limit ?? 20,
          items: response.data.items
      };
   },

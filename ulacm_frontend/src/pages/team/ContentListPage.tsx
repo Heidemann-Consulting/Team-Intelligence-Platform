@@ -1,8 +1,8 @@
 // File: ulacm_frontend/src/pages/team/ContentListPage.tsx
-// Purpose: Page for listing items with enhanced filtering.
+// Purpose: Page for listing items with enhanced filtering including content search.
 // - For Teams: Primarily lists their Documents.
 // - For Admins: Lists Templates or Workflows or Documents.
-// Updated: Integrated new filtering for name, creation date, and global visibility.
+// Updated: Integrated new filtering for name, content, creation date, and global visibility.
 // Fixed: Added robust date parsing and validation for display.
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -10,10 +10,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FileText, FileCode2, FolderGit2, PlusCircle, RefreshCw, AlertCircle,
   Eye, Globe, Edit3, Trash2, Copy, ChevronLeft, ChevronRight, Settings,
-  Search as SearchIcon, X as ClearSearchIcon, ArrowDownUp, SortAsc, SortDesc, Filter as FilterIcon
+  Search as SearchIcon, X as ClearSearchIcon, ArrowDownUp, SortAsc, SortDesc, Filter as FilterIcon, MessageSquareText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatDistanceToNow, format, isValid, parseISO } from 'date-fns'; // Added parseISO and isValid
+import { formatDistanceToNow, format, isValid, parseISO } from 'date-fns';
 
 import { ContentItemListed, ContentItemType, ContentItemDuplicatePayload } from '@/types/api';
 import contentService, { GetItemsParams } from '@/services/contentService';
@@ -23,7 +23,7 @@ import CreateDocumentModal from '@/components/content/CreateDocumentModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { ADMIN_SYSTEM_TEAM_ID_STRING } from '@/utils/constants';
 
-type SortOption = 'name' | 'updated_at' | 'created_at' | 'item_type';
+type SortOption = 'name' | 'updated_at' | 'created_at' | 'item_type' | 'rank'; // Added rank
 type SortOrder = 'asc' | 'desc';
 type VisibilityFilterOption = "all" | "global" | "private";
 
@@ -49,6 +49,12 @@ const ContentListPage: React.FC = () => {
   const [nameFilterInput, setNameFilterInput] = useState('');
   const [debouncedNameFilter, setDebouncedNameFilter] = useState('');
   const nameFilterInputRef = useRef<HTMLInputElement>(null);
+
+  const [contentFilterInput, setContentFilterInput] = useState(''); // New state for content filter
+  const [debouncedContentFilter, setDebouncedContentFilter] = useState(''); // New debounced state
+  const contentFilterInputRef = useRef<HTMLInputElement>(null);
+
+
   const [dateAfterFilter, setDateAfterFilter] = useState('');
   const [dateBeforeFilter, setDateBeforeFilter] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilterOption>("all");
@@ -56,7 +62,6 @@ const ContentListPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>('updated_at');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [showFilters, setShowFilters] = useState(false);
-
 
   useEffect(() => {
     const pathSegments = location.pathname.split('/');
@@ -73,20 +78,32 @@ const ContentListPage: React.FC = () => {
       setPagination(p => ({ ...p, offset: 0 }));
       setNameFilterInput('');
       setDebouncedNameFilter('');
+      setContentFilterInput(''); // Reset content filter
+      setDebouncedContentFilter(''); // Reset debounced content filter
       setDateAfterFilter('');
       setDateBeforeFilter('');
       setVisibilityFilter("all");
       setItems([]);
+      setSortBy('updated_at'); // Reset sort on type change
+      setSortOrder('desc');
     }
   }, [location.pathname, isAdminAuthenticated, itemTypeForPage]);
 
   useEffect(() => {
     const timerId = setTimeout(() => {
       setDebouncedNameFilter(nameFilterInput);
-      setPagination(p => ({ ...p, offset: 0 }));
+      setPagination(p => ({ ...p, offset: 0 })); // Reset pagination on filter change
     }, 500);
     return () => clearTimeout(timerId);
   }, [nameFilterInput]);
+
+  useEffect(() => { // Debouncer for content filter
+    const timerId = setTimeout(() => {
+      setDebouncedContentFilter(contentFilterInput);
+      setPagination(p => ({ ...p, offset: 0 })); // Reset pagination
+    }, 500);
+    return () => clearTimeout(timerId);
+  }, [contentFilterInput]);
 
 
   const fetchItems = useCallback(async (offset = 0, showLoadingIndicator = true) => {
@@ -103,14 +120,24 @@ const ContentListPage: React.FC = () => {
     if (showLoadingIndicator) setIsLoading(true);
     setError(null);
 
+    // If content_query is active, default sort to 'rank' unless already name/date
+    let currentSortBy = sortBy;
+    let currentSortOrder = sortOrder;
+    if (debouncedContentFilter.trim() && !['name', 'created_at', 'updated_at'].includes(sortBy)) {
+        currentSortBy = 'rank';
+        currentSortOrder = 'desc';
+    }
+
+
     try {
       const params: GetItemsParams = {
         item_type: itemTypeForPage ?? undefined,
         offset,
         limit: pagination.limit,
-        sort_by: sortBy,
-        sort_order: sortOrder,
+        sort_by: currentSortBy, // Use potentially adjusted sort
+        sort_order: currentSortOrder,
         name_query: debouncedNameFilter.trim() || undefined,
+        content_query: debouncedContentFilter.trim() || undefined, // Add content query
         created_after: dateAfterFilter || undefined,
         created_before: dateBeforeFilter || undefined,
         is_globally_visible: visibilityFilter === "global" ? true : visibilityFilter === "private" ? false : undefined,
@@ -126,15 +153,17 @@ const ContentListPage: React.FC = () => {
     } finally {
       if (showLoadingIndicator) setIsLoading(false);
     }
-  }, [itemTypeForPage, isAdminAuthenticated, location.pathname, pagination.limit, sortBy, sortOrder, debouncedNameFilter, dateAfterFilter, dateBeforeFilter, visibilityFilter]);
+  // }, [itemTypeForPage, isAdminAuthenticated, location.pathname, pagination.limit, sortBy, sortOrder, debouncedNameFilter, dateAfterFilter, dateBeforeFilter, visibilityFilter]);
+}, [itemTypeForPage, isAdminAuthenticated, location.pathname, pagination.limit, sortBy, sortOrder, debouncedNameFilter, debouncedContentFilter, dateAfterFilter, dateBeforeFilter, visibilityFilter]);
+
 
   useEffect(() => {
      if (itemTypeForPage || (isAdminAuthenticated && location.pathname.includes('/documents'))) {
         fetchItems(pagination.offset, true);
      }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.offset, itemTypeForPage, isAdminAuthenticated, location.pathname, debouncedNameFilter, sortBy, sortOrder, dateAfterFilter, dateBeforeFilter, visibilityFilter]);
-
+  }, [pagination.offset, itemTypeForPage, isAdminAuthenticated, location.pathname, debouncedNameFilter, debouncedContentFilter, sortBy, sortOrder, dateAfterFilter, dateBeforeFilter, visibilityFilter]);
+  // Removed fetchItems from dep array as it's memoized with all its own dependencies
 
   const handleNewItemClick = () => {
     if (isAdminAuthenticated) {
@@ -158,7 +187,7 @@ const ContentListPage: React.FC = () => {
         }
     } else {
         switch (itemTypeForPage) {
-            case ContentItemType.DOCUMENT: return { title: 'My Documents', icon: FileText };
+            case ContentItemType.DOCUMENT: return { title: 'View Documents', icon: FileText };
             default: return { title: 'Content', icon: FileText };
         }
     }
@@ -191,7 +220,7 @@ const ContentListPage: React.FC = () => {
      try {
        await contentService.deleteItem(itemToDelete.item_id);
        toast.success(`${itemToDelete.item_type} "${itemToDelete.name}" deleted.`, { id: toastId });
-       fetchItems(pagination.offset, false);
+       fetchItems(pagination.offset, false); // Refetch current page data
      } catch (err: any) {
        console.error(`Failed to delete ${itemToDelete.item_type}`, err);
        toast.error(err.message || `Failed to delete ${itemToDelete.item_type}.`);
@@ -230,25 +259,24 @@ const ContentListPage: React.FC = () => {
         if (item.item_type === ContentItemType.TEMPLATE || item.item_type === ContentItemType.WORKFLOW) {
             return `/admin/${typePath}/${item.item_id}`;
         } else if (item.item_type === ContentItemType.DOCUMENT) {
-            return `/app/${typePath}/${item.item_id}`;
+            return `/app/${typePath}/${item.item_id}`; // Admin might view/edit Documents via team path
         }
     } else {
         if (item.item_type === ContentItemType.DOCUMENT) {
             return `/app/${typePath}/${item.item_id}`;
         }
     }
-    return '#';
+    return '#'; // Fallback, should not happen for accessible items
   };
 
   const canEditItem = (item: ContentItemListed): boolean => {
     if (isAdminAuthenticated) {
         return (item.item_type === ContentItemType.TEMPLATE && item.team_id === ADMIN_SYSTEM_TEAM_ID_STRING) ||
                (item.item_type === ContentItemType.WORKFLOW && item.team_id === ADMIN_SYSTEM_TEAM_ID_STRING) ||
-               item.item_type === ContentItemType.DOCUMENT;
+               item.item_type === ContentItemType.DOCUMENT; // Admin can edit metadata of any doc
     }
     return item.item_type === ContentItemType.DOCUMENT && item.team_id === currentTeam?.team_id;
   };
-
   const canDeleteItem = (item: ContentItemListed): boolean => canEditItem(item);
 
   const handleSortChange = (newSortBy: SortOption) => {
@@ -256,7 +284,8 @@ const ContentListPage: React.FC = () => {
       setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortBy(newSortBy);
-      setSortOrder('asc');
+      setSortOrder('asc'); // Default to asc when changing column, or 'desc' if it's 'rank'
+      if (newSortBy === 'rank') setSortOrder('desc');
     }
     setPagination(p => ({ ...p, offset: 0 }));
   };
@@ -269,10 +298,14 @@ const ContentListPage: React.FC = () => {
   const handleClearFilters = () => {
     setNameFilterInput('');
     setDebouncedNameFilter('');
+    setContentFilterInput('');
+    setDebouncedContentFilter('');
     setDateAfterFilter('');
     setDateBeforeFilter('');
     setVisibilityFilter("all");
-    setPagination(p => ({ ...p, offset: 0 }));
+    setSortBy('updated_at'); // Reset sort
+    setSortOrder('desc');
+    setPagination(p => ({ ...p, offset: 0 })); // This will trigger fetchItems
   };
 
   const formatDateSafe = (dateString: string | undefined | null, formatToken: string): string => {
@@ -328,8 +361,8 @@ const ContentListPage: React.FC = () => {
         </h1>
         <div className="flex items-center space-x-2 md:space-x-3 flex-shrink-0">
           <button
-             onClick={() => fetchItems(pagination.offset)}
-             disabled={isLoading}
+            onClick={() => fetchItems(pagination.offset)}
+            disabled={isLoading}
             className="p-2.5 text-ulacm-gray-500 hover:text-ulacm-primary hover:bg-ulacm-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ulacm-primary/50"
             title="Refresh List"
           >
@@ -363,7 +396,7 @@ const ContentListPage: React.FC = () => {
         </div>
 
         {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-3 border-t border-ulacm-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-3 border-t border-ulacm-gray-200">
                 <div>
                     <label htmlFor="nameFilter" className="block text-xs font-medium text-ulacm-gray-600 mb-1">Filter by Name</label>
                     <div className="relative">
@@ -378,6 +411,23 @@ const ContentListPage: React.FC = () => {
                             onChange={(e) => setNameFilterInput(e.target.value)}
                             className="block w-full pl-9 pr-3 py-2 border border-ulacm-gray-300 rounded-md text-sm placeholder-ulacm-gray-400 focus:outline-none focus:ring-1 focus:ring-ulacm-primary focus:border-ulacm-primary"
                             placeholder="Enter name..."
+                        />
+                    </div>
+                </div>
+                 <div>
+                    <label htmlFor="contentFilter" className="block text-xs font-medium text-ulacm-gray-600 mb-1">Filter by Content</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <MessageSquareText className="h-4 w-4 text-ulacm-gray-400" />
+                        </div>
+                        <input
+                            ref={contentFilterInputRef}
+                            type="search"
+                            id="contentFilter"
+                            value={contentFilterInput}
+                            onChange={(e) => setContentFilterInput(e.target.value)}
+                            className="block w-full pl-9 pr-3 py-2 border border-ulacm-gray-300 rounded-md text-sm placeholder-ulacm-gray-400 focus:outline-none focus:ring-1 focus:ring-ulacm-primary focus:border-ulacm-primary"
+                            placeholder="Enter content keywords..."
                         />
                     </div>
                 </div>
@@ -414,8 +464,8 @@ const ContentListPage: React.FC = () => {
                         <option value="private">Private</option>
                     </select>
                 </div>
-                <div className="md:col-span-2 lg:col-span-1 flex items-end">
-                     <button
+                <div className="md:col-span-1 lg:col-span-1 flex items-end">
+                    <button
                         onClick={handleClearFilters}
                         className="w-full text-sm py-2 px-4 rounded-md border border-ulacm-gray-300 bg-white hover:bg-ulacm-gray-50 text-ulacm-gray-700 flex items-center justify-center"
                     >
@@ -427,7 +477,7 @@ const ContentListPage: React.FC = () => {
       </div>
 
       {isLoading && items.length === 0 && (
-           <div className="flex justify-center items-center py-20 bg-white rounded-xl shadow-md border border-ulacm-gray-100">
+            <div className="flex justify-center items-center py-20 bg-white rounded-xl shadow-md border border-ulacm-gray-100">
               <LoadingSpinner size="lg" color="text-ulacm-primary" />
               <p className="ml-3 text-ulacm-gray-600">Loading {pageTitle.toLowerCase()}...</p>
           </div>
@@ -435,7 +485,7 @@ const ContentListPage: React.FC = () => {
 
       {error && !isLoading && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow">
-          <div className="flex">
+           <div className="flex">
             <div className="flex-shrink-0"><AlertCircle className="h-5 w-5 text-red-400" /></div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Failed to Load {pageTitle}</h3>
@@ -472,7 +522,7 @@ const ContentListPage: React.FC = () => {
                      <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider">
                        <button onClick={() => handleSortChange('created_at')} className="flex items-center hover:text-ulacm-primary">
                         Created {renderSortIcon('created_at')}
-                      </button>
+                       </button>
                     </th>
                     <th scope="col" className="relative px-6 py-3.5"><span className="sr-only">Actions</span></th>
                   </tr>
@@ -489,14 +539,14 @@ const ContentListPage: React.FC = () => {
                     return (
                         <tr key={item.item_id} className={`hover:bg-ulacm-gray-50 transition-opacity duration-150 ${actionLoading[item.item_id] ? 'opacity-60' : ''}`}>
                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-ulacm-gray-900 max-w-xs truncate">
-                           <Link to={editPath} className="group inline-flex items-center hover:text-ulacm-primary" title={item.name}>
+                            <Link to={editPath} className="group inline-flex items-center hover:text-ulacm-primary" title={item.name}>
                             {getItemDisplayIcon(item.item_type)}
                             <span className="group-hover:underline truncate">{item.name}</span>
                             </Link>
-                          </td>
+                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-ulacm-gray-600">
                              {item.is_globally_visible ?
-                             (<span title="Globally Visible" className="inline-flex items-center text-blue-600"><Globe size={16} className="mr-1"/> Global</span>)
+                            (<span title="Globally Visible" className="inline-flex items-center text-blue-600"><Globe size={16} className="mr-1"/> Global</span>)
                             : (<span title="Private to Owner" className="inline-flex items-center text-ulacm-gray-500"><Eye size={16} className="mr-1"/> Private</span>)
                             }
                         </td>
@@ -542,7 +592,7 @@ const ContentListPage: React.FC = () => {
               </table>
               {items.length === 0 && !isLoading && (
                 <div className="text-center py-12 px-6">
-                    {debouncedNameFilter || dateAfterFilter || dateBeforeFilter || visibilityFilter !== "all" ? (
+                    {debouncedNameFilter || debouncedContentFilter || dateAfterFilter || dateBeforeFilter || visibilityFilter !== "all" ? (
                         <>
                             <SearchIcon size={48} className="mx-auto text-ulacm-gray-300"/>
                             <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">No items match your filters</h3>
@@ -556,7 +606,7 @@ const ContentListPage: React.FC = () => {
                         </>
                     )}
                     {((isAdminAuthenticated && (itemTypeForPage === ContentItemType.TEMPLATE || itemTypeForPage === ContentItemType.WORKFLOW)) ||
-                     (!isAdminAuthenticated && itemTypeForPage === ContentItemType.DOCUMENT)) && !(debouncedNameFilter || dateAfterFilter || dateBeforeFilter || visibilityFilter !== "all") && (
+                     (!isAdminAuthenticated && itemTypeForPage === ContentItemType.DOCUMENT)) && !(debouncedNameFilter || debouncedContentFilter || dateAfterFilter || dateBeforeFilter || visibilityFilter !== "all") && (
                         <div className="mt-6">
                             <button
                                 onClick={handleNewItemClick}

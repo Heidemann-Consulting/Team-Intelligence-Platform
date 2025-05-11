@@ -47,7 +47,7 @@ combin with:
 
 * ✅ Document default name (the prefilled entry for the document name) should always correspond to "Templatename_YYYY_MM_DD" with YYYY_MM_DD being the current date and "LACM ", "Phase 1 ", "Phase 2 " and "Phase 3 " prefixes shall be stripped from the Templatename.
 * ✅ Fix search api endpoint gives unauthorized for admin users.
-* Filtering via search should adjust amount of pages according to results.
+* ✅ Filtering via search should adjust amount of pages according to results (but not for workflows, which is ok)
 
 * The API endpoint (/run) would immediately acknowledge the request (e.g., HTTP 202 Accepted), possibly returning a task/job ID.
 The actual workflow processing would happen in the background (use a dedicated task queue like Celery for more robust needs).
