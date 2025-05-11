@@ -1,5 +1,6 @@
 # File: ulacm_backend/app/crud/crud_search.py
 # Purpose: CRUD operations for searching content items using PostgreSQL FTS.
+# Updated: search_content_items_complex now handles searches by admin users.
 
 from typing import List, Optional, Tuple
 from uuid import UUID as PyUUID
@@ -28,27 +29,26 @@ FTS_HIGHLIGHT_ALL = "TRUE" # PostgreSQL ts_headline option is boolean but passed
 async def search_content_items_complex(
     db: AsyncSession,
     *,
-    team_id: PyUUID,
+    requesting_team_id: Optional[PyUUID], # ID of the team if user is a team member
+    is_admin_actor: bool,                 # Flag indicating if the search is by an admin
     search_query_text: Optional[str] = None,
     item_types_filter: Optional[List[ContentItemTypeEnum]] = None,
     created_after_filter: Optional[date] = None,
     created_before_filter: Optional[date] = None,
     skip: int = 0,
     limit: int = 20,
-    sort_by: str = "updated_at",
+    sort_by: str = "updated_at", # Default sort, FTS rank overrides if query is present
     sort_order: str = "desc"
 ) -> Tuple[List[Tuple[ContentItem, Optional[str]]], int]:
     """
     Performs a complex search across content items using PostgreSQL Full-Text Search.
     Includes snippet generation using ts_headline.
+    Admins can search all items, team users search items visible to them.
     """
 
     CurrentVersion = aliased(ContentVersion)
 
-    # Base query structure
     base_select_entities = [ContentItem]
-    # Initial base_query setup
-    # The select entities will be re-defined later if FTS is active
     current_base_query = (
         select(*base_select_entities)
         .join(CurrentVersion, ContentItem.current_version_id == CurrentVersion.version_id)
@@ -59,7 +59,6 @@ async def search_content_items_complex(
         )
     )
 
-    # Initial count_query setup
     current_count_query = (
         select(func.count(ContentItem.item_id))
         .select_from(ContentItem)
@@ -68,69 +67,72 @@ async def search_content_items_complex(
 
     final_conditions = []
 
-    team_documents_condition = and_(
-        ContentItem.item_type == ContentItemTypeEnum.DOCUMENT, # Corrected here
-        ContentItem.team_id == team_id
-    )
-    global_documents_condition = and_(
-        ContentItem.item_type == ContentItemTypeEnum.DOCUMENT, # Corrected here
-        ContentItem.is_globally_visible == True,
-        ContentItem.team_id != settings.ADMIN_SYSTEM_TEAM_ID
-    )
-    admin_templates_condition = and_(
-        ContentItem.item_type == ContentItemTypeEnum.TEMPLATE, # Corrected here
-        ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID,
-        ContentItem.is_globally_visible == True
-    )
-    admin_workflows_condition = and_(
-        ContentItem.item_type == ContentItemTypeEnum.WORKFLOW, # Corrected here
-        ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID,
-        ContentItem.is_globally_visible == True
-    )
+    if not is_admin_actor:
+        if not requesting_team_id: # Should not happen if deps are correct
+            return [], 0
 
-    if item_types_filter:
-        type_specific_or_conditions = []
-        if ContentItemTypeEnum.DOCUMENT in item_types_filter: # Corrected here
-            type_specific_or_conditions.append(team_documents_condition)
-            type_specific_or_conditions.append(global_documents_condition)
-        if ContentItemTypeEnum.TEMPLATE in item_types_filter: # Corrected here
-            type_specific_or_conditions.append(admin_templates_condition)
-        if ContentItemTypeEnum.WORKFLOW in item_types_filter: # Corrected here
-            type_specific_or_conditions.append(admin_workflows_condition)
+        team_documents_condition = and_(
+            ContentItem.item_type == ContentItemTypeEnum.DOCUMENT,
+            ContentItem.team_id == requesting_team_id
+        )
+        global_documents_condition = and_(
+            ContentItem.item_type == ContentItemTypeEnum.DOCUMENT,
+            ContentItem.is_globally_visible == True,
+            ContentItem.team_id != settings.ADMIN_SYSTEM_TEAM_ID # Exclude admin system docs unless they own it
+        )
+        admin_templates_condition = and_(
+            ContentItem.item_type == ContentItemTypeEnum.TEMPLATE,
+            ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID,
+            ContentItem.is_globally_visible == True
+        )
+        admin_workflows_condition = and_(
+            ContentItem.item_type == ContentItemTypeEnum.WORKFLOW,
+            ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID,
+            ContentItem.is_globally_visible == True
+        )
 
-        if type_specific_or_conditions:
-            final_conditions.append(or_(*type_specific_or_conditions))
-        else:
+        team_visibility_or_conditions = []
+        if not item_types_filter or ContentItemTypeEnum.DOCUMENT in item_types_filter:
+            team_visibility_or_conditions.append(team_documents_condition)
+            team_visibility_or_conditions.append(global_documents_condition)
+        if not item_types_filter or ContentItemTypeEnum.TEMPLATE in item_types_filter:
+            team_visibility_or_conditions.append(admin_templates_condition)
+        if not item_types_filter or ContentItemTypeEnum.WORKFLOW in item_types_filter:
+            team_visibility_or_conditions.append(admin_workflows_condition)
+
+        if team_visibility_or_conditions:
+            final_conditions.append(or_(*team_visibility_or_conditions))
+        else: # If item_types_filter is specific and doesn't match any category above
             final_conditions.append(sql_false())
-    else:
-        final_conditions.append(or_(
-            team_documents_condition,
-            global_documents_condition,
-            admin_templates_condition,
-            admin_workflows_condition
-        ))
+
+    else: # Admin actor
+        if item_types_filter:
+            final_conditions.append(ContentItem.item_type.in_(item_types_filter))
+        # Admin sees all items if no item_type_filter, or specific types if filtered.
+
+    # Apply common filters
+    if created_after_filter:
+        start_dt = datetime.combine(created_after_filter, datetime.min.time())
+        final_conditions.append(ContentItem.created_at >= start_dt)
+
+    if created_before_filter:
+        end_dt = datetime.combine(created_before_filter + timedelta(days=1), datetime.min.time())
+        final_conditions.append(ContentItem.created_at < end_dt)
+
 
     if final_conditions:
         merged_conditions = and_(*final_conditions)
         current_base_query = current_base_query.where(merged_conditions)
         current_count_query = current_count_query.where(merged_conditions)
-    else:
+    elif not is_admin_actor: # If no conditions were built for a team user (e.g. invalid type filter combo)
         current_base_query = current_base_query.where(sql_false())
         current_count_query = current_count_query.where(sql_false())
 
-    if created_after_filter:
-        start_dt = datetime.combine(created_after_filter, datetime.min.time())
-        current_base_query = current_base_query.where(ContentItem.created_at >= start_dt)
-        current_count_query = current_count_query.where(ContentItem.created_at >= start_dt)
-
-    if created_before_filter:
-        end_dt = datetime.combine(created_before_filter + timedelta(days=1), datetime.min.time())
-        current_base_query = current_base_query.where(ContentItem.created_at < end_dt)
-        current_count_query = current_count_query.where(ContentItem.created_at < end_dt)
 
     fts_rank_column = None
     snippet_column = None
-    ts_query_obj = None
+    effective_sort_by = sort_by
+    effective_sort_order = sort_order
 
     if search_query_text and search_query_text.strip():
         ts_query_obj = func.plainto_tsquery(FTS_CONFIG, search_query_text)
@@ -157,17 +159,10 @@ async def search_content_items_complex(
             options_str_for_pg
         ).label("snippet")
 
-        # Reconstruct select to include ContentItem entity and the new FTS columns
-        # Start from the FROM clause of the current_base_query to keep joins
-        # and apply existing WHERE clauses before the match_condition for FTS
         select_from_target = current_base_query.froms[0]
-
-        # Get existing WHERE clause from current_base_query
-        existing_where_clause = current_base_query._whereclause # Accessing internal attribute, might need adjustment if API changes
+        existing_where_clause = current_base_query._whereclause
 
         reconstructed_query = select(ContentItem, fts_rank_column, snippet_column).select_from(select_from_target)
-
-        # Re-apply options
         reconstructed_query = reconstructed_query.options(
             contains_eager(ContentItem.current_version.of_type(CurrentVersion))
             .joinedload(CurrentVersion.saving_team),
@@ -177,24 +172,31 @@ async def search_content_items_complex(
         if existing_where_clause is not None:
             reconstructed_query = reconstructed_query.where(existing_where_clause)
 
-        current_base_query = reconstructed_query.where(match_condition) # Add FTS match condition
+        current_base_query = reconstructed_query.where(match_condition)
         current_count_query = current_count_query.where(match_condition)
 
+        # If there's a search query, default sort by rank unless explicitly overridden
+        if sort_by != "name" and sort_by != "created_at" and sort_by != "updated_at": # Allow explicit override of rank sort
+            effective_sort_by = "rank"
+            effective_sort_order = "desc" # Rank is usually descending
 
-    sort_field = None
-    if sort_by == "rank" and fts_rank_column is not None:
-        sort_field = fts_rank_column
-    elif sort_by == "name":
-        sort_field = ContentItem.name
-    else:
-        sort_field = ContentItem.updated_at
+    # Apply sorting
+    sort_field_map = {
+        "name": ContentItem.name,
+        "created_at": ContentItem.created_at,
+        "updated_at": ContentItem.updated_at,
+        "rank": fts_rank_column if fts_rank_column is not None else ContentItem.updated_at # fallback for rank if no FTS
+    }
+    sort_field = sort_field_map.get(effective_sort_by, ContentItem.updated_at)
 
-    order_expression = sort_field.asc() if sort_order.lower() == "asc" else sort_field.desc()
+    order_expression = sort_field.asc() if effective_sort_order.lower() == "asc" else sort_field.desc()
     current_base_query = current_base_query.order_by(order_expression)
 
+    # Execute count query
     total_count_result = await db.execute(current_count_query)
     total_count = total_count_result.scalar_one()
 
+    # Execute main query with pagination
     current_base_query = current_base_query.offset(skip).limit(limit)
     items_result = await db.execute(current_base_query)
 
@@ -202,10 +204,11 @@ async def search_content_items_complex(
     if fts_rank_column is not None and snippet_column is not None:
         for row_tuple in items_result.all():
             item_entity = row_tuple[0]
+            # rank_value = row_tuple[1] # Available if needed
             snippet_text = row_tuple[2]
             items_with_snippets.append((item_entity, snippet_text))
     else:
-        for item_entity in items_result.scalars().all():
+        for item_entity in items_result.scalars().all(): # If no FTS, result is just ContentItem
             items_with_snippets.append((item_entity, None))
 
     return items_with_snippets, total_count

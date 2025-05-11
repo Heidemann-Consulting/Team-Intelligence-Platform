@@ -2,20 +2,20 @@
 // Purpose: Modal for creating a new Document, requiring template selection.
 // Updated: Changed ContentItemBase to ContentItemBaseCore in props.
 // Updated: Added template preview functionality.
-
+// Updated: Implemented default document name "Templatename_YYYY_MM_DD" with prefix stripping.
 import React, { useState, useEffect, FormEvent, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { X, FilePlus, AlertCircle, Eye } from 'lucide-react';
-import { ContentItemBaseCore, ContentItemType, PaginatedResponse, ContentItemDetail, ContentItemListed } from '@/types/api'; // Changed ContentItemBase to ContentItemBaseCore
+import { ContentItemBaseCore, ContentItemType, PaginatedResponse, ContentItemDetail, ContentItemListed } from '@/types/api';
 import contentService, { ContentItemCreatePayload } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { marked } from 'marked';
-// For rendering Markdown preview
+import { format } from 'date-fns'; // Added for date formatting
 
 interface CreateDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newDocument: ContentItemBaseCore) => void; // Changed here
+  onSuccess: (newDocument: ContentItemBaseCore) => void;
 }
 
 const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
@@ -23,7 +23,7 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [templates, setTemplates] = useState<ContentItemListed[]>([]); // Use ContentItemListed for templates list
+  const [templates, setTemplates] = useState<ContentItemListed[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [newDocumentName, setNewDocumentName] = useState('');
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
@@ -69,6 +69,31 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
     fetchTemplates();
   }, [fetchTemplates]);
 
+  const generateDefaultDocumentName = (templateName: string | undefined): string => {
+    if (!templateName) return '';
+    let name = templateName;
+    const prefixesToStrip = ["LACM ", "Phase 1 ", "Phase 2 ", "Phase 3 "];
+    prefixesToStrip.forEach(prefix => {
+        if (name.startsWith(prefix)) {
+            name = name.substring(prefix.length);
+        }
+    });
+    const currentDate = format(new Date(), 'yyyy_MM_dd');
+    return `${name.trim()}_${currentDate}`;
+  };
+
+  useEffect(() => {
+    if (selectedTemplateId) {
+      const selectedTemplate = templates.find(t => t.item_id === selectedTemplateId);
+      setNewDocumentName(generateDefaultDocumentName(selectedTemplate?.name));
+      fetchTemplatePreview(selectedTemplateId);
+    } else {
+      setNewDocumentName(''); // Clear name if no template selected
+      setTemplatePreviewContent(null);
+    }
+  }, [selectedTemplateId, templates]);
+
+
   const fetchTemplatePreview = useCallback(async (templateId: string) => {
     if (!templateId) {
       setTemplatePreviewContent(null);
@@ -88,14 +113,6 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
       setIsLoadingPreview(false);
     }
   }, []);
-
-  useEffect(() => {
-    if (selectedTemplateId) {
-      fetchTemplatePreview(selectedTemplateId);
-    } else {
-      setTemplatePreviewContent(null);
-    }
-  }, [selectedTemplateId, fetchTemplatePreview]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -129,7 +146,7 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
     } catch (err: any) {
       console.error("Failed to create document:", err);
       const errorMessage = err.response?.data?.detail ||
-        err.message || 'Failed to create document.';
+      err.message || 'Failed to create document.';
       if (err.response?.status === 409 && errorMessage.toLowerCase().includes("name") && errorMessage.toLowerCase().includes("document")) {
         setCreateError(`A document with the name "${newDocumentName.trim()}" already exists. Please choose a different name.`);
       } else {
@@ -181,11 +198,13 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
                   <label htmlFor="templateSelect" className="block text-sm font-medium text-ulacm-gray-700 mb-1">
                     Select Template <span className="text-red-600">*</span>
                   </label>
-                  {isLoadingTemplates ? (
+                  {isLoadingTemplates ?
+                  (
                     <div className="flex items-center text-sm text-ulacm-gray-500 h-10">
                       <LoadingSpinner size="sm" className="mr-2" /> Loading templates...
                     </div>
-                  ) : error ? (
+                  ) : error ?
+                  (
                      <div className="bg-red-50 border border-red-300 text-red-700 px-3 py-2 rounded text-sm flex items-start">
                          <AlertCircle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
                          {error}
@@ -233,12 +252,14 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
                       <LoadingSpinner size="sm" />
                       <p className="mt-1 text-xs">Loading preview...</p>
                     </div>
-                  ) : previewError ? (
+                  ) : previewError ?
+                  (
                     <div className="flex flex-col items-center justify-center h-full text-red-500">
                        <AlertCircle size={20} className="mb-1"/>
                        <p className="text-xs">{previewError}</p>
                     </div>
-                  ) : templatePreviewContent ? (
+                  ) : templatePreviewContent ?
+                  (
                     <div dangerouslySetInnerHTML={renderPreviewHTML()} />
                   ) : (
                     <p className="text-ulacm-gray-400 italic text-xs text-center py-10">
@@ -250,7 +271,7 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
             </div>
 
             {createError && (
-              <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start mt-4" role="alert">
+               <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start mt-4" role="alert">
                 <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
                 <span className="block sm:inline text-sm">{createError}</span>
                </div>
