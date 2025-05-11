@@ -1,6 +1,6 @@
 # File: ulacm_backend/app/schemas/content_item.py
 # Purpose: Pydantic schemas for ContentItem data (Documents, Templates, Workflows).
-# Using absolute path for forward reference.
+# Updated: Relaxed template_id validation for DOCUMENT type to support programmatic creation.
 
 from pydantic import (
     BaseModel,
@@ -33,12 +33,11 @@ class ContentItemBase(BaseModel):
 class ContentItemCreate(ContentItemBase):
     template_id: Optional[Union[UUID4, str]] = Field(
         None,
-        description="For Documents: the template to use. For Admin T/W creation: not used here.",
+        description="For Documents created by users: the template to use. For Admin T/W creation or programmatic document creation (e.g., workflow output): not used or optional.",
     )
-    owner_team_id: Optional[UUID4] = Field(
-        None,
-        description="For Admin use when creating Template/Workflow: Assigns ownership to this team_id.",
-    )
+    # owner_team_id is not part of this Pydantic model, it's handled by the CRUD/service layer.
+    # The original validator concerning owner_team_id was effectively always checking against
+    # a None value for owner_team_id from the model's perspective.
 
     @field_validator("template_id")
     @classmethod
@@ -54,13 +53,13 @@ class ContentItemCreate(ContentItemBase):
 
     @model_validator(mode="after")
     def check_document_and_template_logic(self) -> "ContentItemCreate":
-        if self.item_type == ContentItemTypeEnum.DOCUMENT and not self.template_id:
-            if self.owner_team_id and not self.template_id:
-                pass
-            elif not self.owner_team_id and not self.template_id:
-                raise ValueError(
-                    "template_id is required when item_type is 'Document' for team users."
-                )
+        # User-initiated document creation via the API endpoint (`content_items.py`)
+        # already enforces that `item_in.template_id` must be provided.
+        # This Pydantic model validator was too strict for programmatic document creation
+        # (e.g., workflow outputs from workflow_service.py) where a template_id is not applicable.
+
+        # The only validation that remains relevant at this Pydantic model level is ensuring
+        # that template_id is *only* provided for DOCUMENT types if it is provided at all.
         if self.item_type != ContentItemTypeEnum.DOCUMENT and self.template_id:
             raise ValueError(
                 "template_id should only be provided when item_type is 'Document'."
@@ -128,7 +127,6 @@ class ContentItemWithCurrentVersion(ContentItem):
     @property
     def workflow_input_document_selectors(self) -> Optional[List[str]]:
         if self.item_type == ContentItemTypeEnum.WORKFLOW and self.parsed_workflow_definition_internal:
-            # Ensure parsed_workflow_definition_internal is not None before accessing attribute
             if self.parsed_workflow_definition_internal:
                  return self.parsed_workflow_definition_internal.inputDocumentSelectors
         return None
@@ -137,7 +135,6 @@ class ContentItemWithCurrentVersion(ContentItem):
     @property
     def workflow_output_name_template(self) -> Optional[str]:
         if self.item_type == ContentItemTypeEnum.WORKFLOW and self.parsed_workflow_definition_internal:
-            # Ensure parsed_workflow_definition_internal is not None before accessing attribute
             if self.parsed_workflow_definition_internal:
                 return self.parsed_workflow_definition_internal.outputName
         return None

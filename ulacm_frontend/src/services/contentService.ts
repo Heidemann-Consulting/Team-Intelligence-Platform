@@ -1,19 +1,19 @@
 // File: ulacm_frontend/src/services/contentService.ts
 // Purpose: Service for API calls related to content items, versions, and workflow execution.
-// Updated: Changed ContentItemBase to ContentItemBaseCore for createItem return type.
+// Updated: Modified runWorkflow to accept an optional payload with input_document_ids.
 
 import apiClient from './apiClient';
 import {
-  ContentItemBaseCore, // Changed from ContentItemBase
+  ContentItemBaseCore,
   ContentItemDetail,
   ContentItemType,
   PaginatedResponse,
   SearchResultsResponseApi,
   ContentItemSearchResult,
-  RunWorkflowResponse,
+  RunWorkflowResponse, // Make sure this is imported from api.ts or similar
   ContentItemDuplicatePayload,
   ContentItemListed,
-} from '@/types/api';
+} from '@/types/api'; // Ensure RunWorkflowResponse is correctly typed here
 import {
     ContentVersionDetails,
     SaveVersionResponse,
@@ -46,6 +46,11 @@ export interface SearchParams {
     sort_order?: 'asc' | 'desc';
 }
 
+// New interface for the payload of runWorkflow
+export interface RunWorkflowPayload {
+  input_document_ids?: string[];
+}
+
 const contentService = {
   getItems: async (params: {
     item_type?: ContentItemType;
@@ -60,8 +65,8 @@ const contentService = {
     return response.data;
   },
 
-  createItem: async (itemData: ContentItemCreatePayload): Promise<ContentItemBaseCore> => { // Changed return type
-    const response = await apiClient.post<ContentItemBaseCore>('/items', itemData); // Changed expected response type
+  createItem: async (itemData: ContentItemCreatePayload): Promise<ContentItemBaseCore> => {
+    const response = await apiClient.post<ContentItemBaseCore>('/items', itemData);
     return response.data;
   },
 
@@ -70,8 +75,8 @@ const contentService = {
     return response.data;
   },
 
-  updateItemMeta: async (itemId: string, metaData: ContentItemMetaUpdatePayload): Promise<ContentItemBaseCore> => { // Changed return type
-    const response = await apiClient.put<ContentItemBaseCore>(`/items/${itemId}/meta`, metaData); // Changed expected response type
+  updateItemMeta: async (itemId: string, metaData: ContentItemMetaUpdatePayload): Promise<ContentItemBaseCore> => {
+    const response = await apiClient.put<ContentItemBaseCore>(`/items/${itemId}/meta`, metaData);
     return response.data;
   },
 
@@ -110,9 +115,12 @@ const contentService = {
      };
   },
 
-  runWorkflow: async (workflowItemId: string): Promise<RunWorkflowResponse> => {
-    const response = await apiClient.post<RunWorkflowResponse>(`/workflows/${workflowItemId}/run`);
+  runWorkflow: async (workflowItemId: string, payload?: RunWorkflowPayload): Promise<RunWorkflowResponse> => {
+    // If payload is provided (i.e., contains input_document_ids), it will be sent as the request body.
+    // If payload is undefined, no request body will be sent (matching the previous behavior for workflows not requiring input).
+    const response = await apiClient.post<RunWorkflowResponse>(`/workflows/${workflowItemId}/run`, payload);
     return response.data;
   },
 };
+
 export default contentService;

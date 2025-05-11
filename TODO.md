@@ -33,7 +33,7 @@
 * ✅ Update the rituals and practices documents and create matching workflow libraries
 
 * ✅ Make template selection list in the create new document modal be alphabetically sorted.
-* Add functionality that users can choose via checkboxes which documents will be input documents.
+* Please add functionality that when starting a workflow users can choose via an alphabetically sorted list of applicable documents with checkboxes which documents will be used as input documents. It shall also contain an explicit warning when no applicable documents were found and offer to either cancel or run the workflow anyways..
 
 * Create initial wave of templates and workflows
 * Export initial wave of templates and workflows in ulacm_backend/init_db.sql

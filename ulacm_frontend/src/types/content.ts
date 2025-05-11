@@ -1,9 +1,6 @@
 // File: ulacm_frontend/src/types/content.ts
 // Purpose: TypeScript types specific to Content Items and Versions.
-
-// import { ContentItemType } from './api'; // Import enum if needed elsewhere
-
-// Version metadata (for lists/history) - SRS 8.5.2
+// No changes needed based on the current request, but providing the full file for completeness.
 export interface VersionMeta {
     version_id: string;
     version_number: number;

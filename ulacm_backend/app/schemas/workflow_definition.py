@@ -1,6 +1,6 @@
 # File: ulacm_backend/app/schemas/workflow_definition.py
 # Purpose: Pydantic schemas for Process Workflow definitions and execution.
-# Updated: Removed model_rebuild calls.
+# Updated: Added RunWorkflowPayload to accept input_document_ids.
 
 from pydantic import (
     BaseModel, UUID4, constr, Field, field_validator, ValidationInfo
@@ -8,7 +8,7 @@ from pydantic import (
 from typing import Optional, List, Dict, Any
 import datetime
 
-from app.schemas.content_item import ContentItem
+from app.schemas.content_item import ContentItem # Adjusted to import ContentItem directly for model_rebuild
 
 
 class WorkflowDefinition(BaseModel):
@@ -39,10 +39,10 @@ class WorkflowDefinition(BaseModel):
                         start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
                         end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
                         if start_date > end_date:
-                            raise ValueError("Start date must be before or equal to end date in 'between' selector.")
+                             raise ValueError("Start date must be before or equal to end date in 'between' selector.")
                         return v
                     except ValueError as e:
-                        raise ValueError(f"Invalid date format or range in 'between' selector: {e}")
+                         raise ValueError(f"Invalid date format or range in 'between' selector: {e}")
                 else:
                     raise ValueError("Invalid format for between. Use 'between_YYYY-MM-DD_YYYY-MM-DD'.")
             else:
@@ -55,14 +55,15 @@ class WorkflowExecutionInputDocument(BaseModel):
     name: str
     content: str
 
-class WorkflowExecutionOutputDocument(ContentItem):
+class WorkflowExecutionOutputDocument(ContentItem): # Changed from ContentItemDetail to ContentItem to match main.py
     markdown_content: str
     current_version_number: int = 1
     model_config = { "from_attributes": True }
+
+class RunWorkflowPayload(BaseModel):
+    input_document_ids: Optional[List[UUID4]] = Field(None, description="Optional list of specific document IDs to use as input.")
 
 class RunWorkflowResponse(BaseModel):
     message: str
     output_document: WorkflowExecutionOutputDocument
     llm_raw_response: Optional[str] = None
-
-# No model_rebuild calls here
