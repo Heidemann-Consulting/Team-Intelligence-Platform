@@ -69,7 +69,7 @@ inputDocumentSelectors: # User will select relevant documents based on these pat
   - "LACM_Competitors_*"
   - "LACM_TargetMarkets_*"
 inputDateSelector: null # User selects the relevant dated 'ManualNewsInput'
-outputName: "LACM_DailyNewsAnalysis_{{InputFileName | replace: 'LACM_ManualNewsInput_', '' | replace: '.md', ''}}_{{Year}}-{{Month}}-{{Day}}" # Tries to use date from input filename
+outputName: "LACM_DailyNewsAnalysis_{{Year}}-{{Month}}-{{Day}}" # Tries to use date from input filename
 prompt: |
   **Role:** You are an AI News Analyst supporting the LACM process. Your task is to filter and assess external information provided MANUALLY in the input documents for operational relevance.
   **Goal:** Identify and concisely summarize the MOST relevant news impacting our strategy and markets from the provided input, directly supporting informed daily decision-making.

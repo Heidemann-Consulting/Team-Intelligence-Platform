@@ -367,7 +367,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "Input_CrossTeamUpdates_*"
     inputDateSelector: null
-    outputName: "Output_CrossTeamSynthesis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
+    outputName: "CrossPollinationSummary_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the compiled updates or summaries from multiple teams provided in the document titled "{{InputFileName}}".
       Based *only* on the information within this document:
