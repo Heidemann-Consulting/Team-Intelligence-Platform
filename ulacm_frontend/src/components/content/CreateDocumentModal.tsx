@@ -78,6 +78,8 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
             name = name.substring(prefix.length);
         }
     });
+    // Convert spaces to underscores in the remaining template name part
+    name = name.trim().replace(/\s+/g, '_');
     const currentDate = format(new Date(), 'yyyy_MM_dd');
     return `${name.trim()}_${currentDate}`;
   };

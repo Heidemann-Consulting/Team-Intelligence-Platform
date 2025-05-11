@@ -1924,3 +1924,11 @@ ALTER TABLE ONLY public.content_versions
 --
 -- PostgreSQL database dump complete
 --
+
+--
+-- Final step: Populate/Refresh content_tsv for all existing content_versions rows
+-- This ensures that data inserted by this script (e.g., initial templates/workflows)
+-- has its tsvector generated, as the trigger is defined after these inserts.
+--
+UPDATE public.content_versions
+SET content_tsv = to_tsvector('pg_catalog.english', markdown_content);
