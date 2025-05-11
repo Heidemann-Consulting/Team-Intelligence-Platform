@@ -12,12 +12,13 @@
   - [**Introduction**](#introduction)
   - [**Core Phase 2 Workflows**](#core-phase-2-workflows)
     - [1. Extract Context Elements Workflow](#1-extract-context-elements-workflow)
-    - [2. Analyze Retrospective Data Workflow](#2-analyze-retrospective-data-workflow)
-    - [3. Suggest Retrospective Actions Workflow](#3-suggest-retrospective-actions-workflow)
-    - [4. Analyze Planning Data Workflow](#4-analyze-planning-data-workflow)
-    - [5. Draft Section Workflow (Pair Working)](#5-draft-section-workflow-pair-working)
-    - [6. Brainstorm Ideas Workflow (Pair Working)](#6-brainstorm-ideas-workflow-pair-working)
-    - [7. Analyze Text Segment Workflow (Pair Working)](#7-analyze-text-segment-workflow-pair-working)
+    - [2. Analyze Context Metrics Workflow](#2-analyze-context-metrics-workflow)
+    - [3. Analyze Retrospective Data Workflow](#3-analyze-retrospective-data-workflow)
+    - [4. Suggest Retrospective Actions Workflow](#4-suggest-retrospective-actions-workflow)
+    - [5. Analyze Planning Data Workflow](#5-analyze-planning-data-workflow)
+    - [6. Draft Section Workflow (Pair Working)](#6-draft-section-workflow-pair-working)
+    - [7. Brainstorm Ideas Workflow (Pair Working)](#7-brainstorm-ideas-workflow-pair-working)
+    - [8. Analyze Text Segment Workflow (Pair Working)](#8-analyze-text-segment-workflow-pair-working)
   - [**Notes on Usage by Team Users**](#notes-on-usage-by-team-users)
   - [**Notes for Administrators**](#notes-for-administrators)
 
@@ -73,9 +74,78 @@ prompt: |
   Provide only the extracted elements, categories, and potential relations as requested.
 ```
 
----
+### 2. Analyze Context Metrics Workflow
 
-### 2. Analyze Retrospective Data Workflow
+* **Workflow Name (in TIP):** `AnalyzeContextMetrics`
+* **Description:** This workflow processes a TIP Document containing a curated list of document names and their metadata (e.g., last modified date, author, or keywords if available and manually added to the input document). It aims to generate a basic context health dashboard or a set of metrics that can be used to populate such a dashboard.
+* **Ritual Relevance:** Enhanced Context Management (Weekly Structured Curation).
+* **Input Document Template (Expected):** A manually compiled TIP Document, for example, named `Input_ContextMetrics_YYYY-MM-DD_KW[WeekNumber]`. This document should list other TIP document names and any relevant metadata the team wishes to analyze for context health.
+    * Example input document content structure:
+        ```markdown
+        # Input for Context Metrics Analysis - YYYY-MM-DD - KWXX
+
+        ## Document List for Analysis:
+        - DocumentName: "ProjectAlpha_Goals_V1", LastModified: "YYYY-MM-DD", Keywords: "goals, project alpha, strategy"
+        - DocumentName: "DailyContextCuration_YYYY-MM-DD", LastModified: "YYYY-MM-DD", Keywords: "daily update, team sync"
+        - DocumentName: "MeetingNotes_SprintReview_YYYY-MM-DD", LastModified: "YYYY-MM-DD", Keywords: "sprint review, feedback"
+        - DocumentName: "OldDocument_Specification_V0.1", LastModified: "YYYY-MM-01", Keywords: "spec, old version"
+        # Add more document entries as needed
+
+        ## Analysis Focus (Optional - User can specify what to look for):
+        - Identify documents not modified in the last 30 days.
+        - Count documents per primary keyword.
+        ```
+
+**TIP Process Workflow Definition:**
+```yaml
+# Workflow Name: AnalyzeContextMetrics
+# Description: Analyzes a list of TIP documents and their metadata to generate context health metrics.
+
+inputDocumentSelectors:
+  - "Input_ContextMetrics_*" # Designed for manually compiled documents listing other documents
+inputDateSelector: null
+outputName: "Output_ContextHealthDashboard_Data_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+prompt: |
+  **Role:** You are an AI Knowledge Management Assistant. Your task is to analyze the provided list of documents and their metadata to identify basic context health metrics.
+  **Goal:** Generate a structured report based ONLY on the information within the input document titled "{{InputFileName}}". This report will serve as data for a Context Health Dashboard.
+
+  **Context:**
+  - The input document contains a list of other TIP document names and may include metadata such as "LastModified" dates and "Keywords".
+  - It may also contain an "Analysis Focus" section specifying what the user wants to identify.
+  - Today's Date for reference: {{CurrentDate_YYYY-MM-DD}}.
+
+  **Task:**
+  Based *only* on the content of the input document "{{InputFileName}}":
+
+  1.  **Document Count:**
+      - Report the total number of documents listed in the input.
+
+  2.  **Activity Summary (if "LastModified" dates are provided):**
+      - Identify and list any documents not modified in the last 30 days (calculate based on {{CurrentDate_YYYY-MM-DD}} and the provided "LastModified" dates).
+      - Identify and list documents modified in the last 7 days.
+
+  3.  **Keyword Analysis (if "Keywords" are provided):**
+      - If keywords are present for each document, count the occurrences of the top 3-5 most frequent primary keywords across all listed documents.
+      - List documents associated with each of these top keywords.
+
+  4.  **User-Defined Analysis Focus (if "Analysis Focus" section is provided in the input):**
+      - Address any specific requests made in the "Analysis Focus" section of the input document, using the provided data.
+
+  5.  **Potential Issues (General Observations):**
+      - Briefly note any obvious potential issues based *only* on the provided list, e.g., a high number of very old documents, or very few recent documents if that context is inferable from document names/dates.
+
+  **Format Output Clearly:**
+  Structure your output with clear headings for each section (e.g., "Document Count", "Activity Summary", "Keyword Analysis", "User-Defined Analysis", "Potential Issues").
+
+  **Constraint:** Base your entire analysis strictly on the information explicitly provided within the "{{InputFileName}}" document. Do not make assumptions or infer information beyond what is written.
+
+  INPUT DOCUMENT CONTENT:
+  ```
+  {{DocumentContext}}
+  ```
+```
+
+### 3. Analyze Retrospective Data Workflow
 
 * **Workflow Name (in TIP):** `AnalyzeRetroData`
 * **Description:** This workflow takes a TIP Document containing manually compiled retrospective data (e.g., `PreRetroData_SprintX_YYYY-MM-DD` created from `Template_PreRetrospectiveAnalysis_Phase2`) and generates insights, identifies patterns, and suggests discussion prompts for the AI-Enhanced Retrospective.
@@ -109,9 +179,7 @@ prompt: |
   ```
 ```
 
----
-
-### 3. Suggest Retrospective Actions Workflow
+### 4. Suggest Retrospective Actions Workflow
 
 * **Workflow Name (in TIP):** `SuggestRetroActions`
 * **Description:** Takes a TIP Document containing notes from a retrospective session (e.g., `RetroSessionNotes_SprintX_YYYY-MM-DD` based on `Template_RetrospectiveSession_Phase2`) and suggests potential action items.
@@ -150,9 +218,7 @@ prompt: |
   ```
 ```
 
----
-
-### 4. Analyze Planning Data Workflow
+### 5. Analyze Planning Data Workflow
 
 * **Workflow Name (in TIP):** `AnalyzePlanningData`
 * **Description:** This workflow takes a TIP Document containing manually compiled pre-planning data (e.g., `PrePlanningData_SprintY_YYYY-MM-DD` created from `Template_PrePlanningAnalysis_Phase2`) and generates insights related to historical performance, risks, and potential sprint scope.
@@ -189,9 +255,7 @@ prompt: |
   ```
 ```
 
----
-
-### 5. Draft Section Workflow (Pair Working)
+### 6. Draft Section Workflow (Pair Working)
 
 * **Workflow Name (in TIP):** `DraftSection-PairWorking`
 * **Description:** Helps a team member draft a section of a document based on a provided topic, keywords, or an outline.
@@ -224,9 +288,7 @@ prompt: |
   Begin your response directly with the drafted section. Do not add any prefatory remarks.
 ```
 
----
-
-### 6. Brainstorm Ideas Workflow (Pair Working)
+### 7. Brainstorm Ideas Workflow (Pair Working)
 
 * **Workflow Name (in TIP):** `BrainstormIdeas-PairWorking`
 * **Description:** Generates a list of ideas based on a problem statement, question, or topic provided in an input TIP Document.
@@ -257,9 +319,7 @@ prompt: |
   Begin your response directly with the list of brainstormed ideas.
 ```
 
----
-
-### 7. Analyze Text Segment Workflow (Pair Working)
+### 8. Analyze Text Segment Workflow (Pair Working)
 
 * **Workflow Name (in TIP):** `AnalyzeTextSegment-PairWorking`
 * **Description:** Performs a specific analysis (e.g., identify pros and cons, extract key arguments, summarize a short segment) on a piece of text provided in an input TIP Document. The user specifies the type of analysis in their input document.
@@ -295,8 +355,6 @@ prompt: |
 
   Begin your response directly with the results of your analysis.
 ```
-
----
 
 ## **Notes on Usage by Team Users**
 
