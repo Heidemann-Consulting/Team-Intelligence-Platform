@@ -23,7 +23,8 @@
 * ✅ Integrate sort in each element list views so that users can sort ascending and descending for name and for latest version creation date
 * ✅ Hide Admin-Team in Teamlistview (so that it cannot be removed or changed)
 
-* The modal "create a new document" window shall show a preview of the selected template
+* ✅ When in apiClient.ts a user is redirected to login because the session is expired make sure that the existing cookie is deleted.
+* ✅ The modal "Create New Document" window shall show a preview of the selected template
 
 * Under each workflow in the team user view show which documents it uses as input and which document it creates as output
 * Test that each workflow can indeed take multiple different kinds of document as input

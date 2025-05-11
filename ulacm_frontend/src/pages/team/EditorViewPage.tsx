@@ -149,9 +149,11 @@ const EditorViewPage: React.FC = () => {
       if (typeFromPath === ContentItemType.TEMPLATE) {
         defaultName = 'New Template';
         defaultContent = `---
+
 title: My New Template
 author: Template Author
 date: ${new Date().toISOString().split('T')[0]}
+
 ---
 
 # Template Heading
@@ -160,10 +162,8 @@ This is a new template. Replace with your content.
 `;
       } else if (typeFromPath === ContentItemType.WORKFLOW) {
         defaultName = 'New Workflow';
-        defaultContent = `processWorkFlowName: New Workflow Name (can be different from item name)
-trigger: manual
-inputDocumentSelector: "Input_Doc_*" # Glob pattern for document names
-# inputDateSelector: newerThanDays 7 # Optional: olderThanDays N, newerThanDays N, or between_YYYY-MM-DD_YYYY-MM-DD
+        defaultContent = `inputDocumentSelector: "Input_Doc_*" # Glob pattern for document names
+inputDateSelector: newerThanDays 7 # Optional: olderThanDays N, newerThanDays N, or between_YYYY-MM-DD_YYYY-MM-DD
 outputName: "Output_{{WorkflowName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   SYSTEM: You are an AI assistant. Your task is to process the provided document(s).

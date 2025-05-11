@@ -1,14 +1,14 @@
 // File: ulacm_frontend/src/components/content/CreateDocumentModal.tsx
 // Purpose: Modal for creating a new Document, requiring template selection.
-// Updated for Option 3: Fetches Admin System Team owned, globally visible templates.
+// Updated: Added template preview functionality.
 
 import React, { useState, useEffect, FormEvent, useCallback } from 'react';
-// import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { X, FilePlus, AlertCircle } from 'lucide-react';
-import { ContentItemBase, ContentItemType, PaginatedResponse } from '@/types/api';
+import { X, FilePlus, AlertCircle, Eye } from 'lucide-react';
+import { ContentItemBase, ContentItemType, PaginatedResponse, ContentItemDetail } from '@/types/api';
 import contentService, { ContentItemCreatePayload } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { marked } from 'marked'; // For rendering Markdown preview
 
 interface CreateDocumentModalProps {
   isOpen: boolean;
@@ -29,18 +29,23 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
   const [error, setError] = useState<string | null>(null); // Error for template loading
   const [createError, setCreateError] = useState<string | null>(null); // Error for document creation
 
+  const [templatePreviewContent, setTemplatePreviewContent] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
   const fetchTemplates = useCallback(async () => {
     if (!isOpen) return;
 
     setIsLoadingTemplates(true);
     setError(null);
     setCreateError(null);
+    setTemplatePreviewContent(null); // Clear previous preview
+    setPreviewError(null);
     try {
-      // Fetch Admin System Team's globally visible templates
       const params = {
         item_type: ContentItemType.TEMPLATE,
         limit: 100, // Max limit
-        for_usage: true // Indicate to backend this is for team selection
+        for_usage: true
       };
       const data: PaginatedResponse<ContentItemBase> = await contentService.getItems(params);
       setTemplates(data.items);
@@ -58,7 +63,36 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
 
   useEffect(() => {
     fetchTemplates();
-  }, [fetchTemplates]); // fetchTemplates is stable due to useCallback with [isOpen]
+  }, [fetchTemplates]);
+
+  const fetchTemplatePreview = useCallback(async (templateId: string) => {
+    if (!templateId) {
+      setTemplatePreviewContent(null);
+      setPreviewError(null);
+      return;
+    }
+    setIsLoadingPreview(true);
+    setPreviewError(null);
+    try {
+      const templateDetails: ContentItemDetail = await contentService.getItemDetails(templateId);
+      setTemplatePreviewContent(templateDetails.markdown_content || "# Empty Template\n\nThis template has no content.");
+    } catch (err: any) {
+      console.error("Failed to fetch template preview:", err);
+      setTemplatePreviewContent(null);
+      setPreviewError("Could not load template preview.");
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedTemplateId) {
+      fetchTemplatePreview(selectedTemplateId);
+    } else {
+      setTemplatePreviewContent(null); // Clear preview if no template is selected
+    }
+  }, [selectedTemplateId, fetchTemplatePreview]);
+
 
   useEffect(() => {
     if (!isOpen) {
@@ -66,6 +100,8 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
       setNewDocumentName('');
       setError(null);
       setCreateError(null);
+      setTemplatePreviewContent(null);
+      setPreviewError(null);
     }
   }, [isOpen]);
 
@@ -89,9 +125,12 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
       onSuccess(newDocument);
     } catch (err: any) {
       console.error("Failed to create document:", err);
-      const errorMessage = err.message || 'Failed to create document.';
-      setCreateError(errorMessage);
-      // No separate toast here, error is displayed in modal
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to create document.';
+      if (err.response?.status === 409 && errorMessage.toLowerCase().includes("name") && errorMessage.toLowerCase().includes("document")) {
+        setCreateError(`A document with the name "${newDocumentName.trim()}" already exists. Please choose a different name.`);
+      } else {
+        setCreateError(errorMessage);
+      }
     } finally {
       setIsLoadingCreate(false);
     }
@@ -99,9 +138,32 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
 
   if (!isOpen) return null;
 
+  const renderPreviewHTML = (): { __html: string } | undefined => {
+    if (!templatePreviewContent) {
+      return undefined;
+    }
+    try {
+      const parsedOutput = marked.parse(templatePreviewContent);
+
+      if (typeof parsedOutput === 'string') {
+        return { __html: parsedOutput };
+      } else {
+        // This case implies marked.parse returned a Promise because it was called with async options
+        // or an async tokenizer/renderer. For a simple preview, this is not ideal.
+        // dangerouslySetInnerHTML requires a string.
+        console.warn("marked.parse returned a Promise for preview. Displaying placeholder. For async markdown, a different rendering strategy is needed.");
+        return { __html: "<p class='text-orange-500 italic'>Preview generation is processing (async)...</p>" };
+      }
+    } catch (parseError) {
+      console.error("Error parsing Markdown for preview:", parseError);
+      return { __html: "<p class='text-red-500 font-semibold'>Error rendering preview.</p>" };
+    }
+  };
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-auto transform transition-all max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto transform transition-all max-h-[90vh] flex flex-col"> {/* Increased max-w for preview */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ulacm-gray-200 flex-shrink-0">
           <h3 className="text-xl font-semibold text-ulacm-gray-800 flex items-center">
             <FilePlus size={20} className="mr-2 text-ulacm-primary" /> Create New Document
@@ -113,55 +175,86 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
 
         <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto">
           <div className="px-6 py-5 space-y-5">
-            <div>
-              <label htmlFor="templateSelect" className="block text-sm font-medium text-ulacm-gray-700 mb-1">
-                Select Template <span className="text-red-600">*</span>
-              </label>
-              {isLoadingTemplates ? (
-                <div className="flex items-center text-sm text-ulacm-gray-500 h-10">
-                  <LoadingSpinner size="sm" className="mr-2" /> Loading templates...
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Grid for form and preview */}
+              {/* Form Fields */}
+              <div className="space-y-5">
+                <div>
+                  <label htmlFor="templateSelect" className="block text-sm font-medium text-ulacm-gray-700 mb-1">
+                    Select Template <span className="text-red-600">*</span>
+                  </label>
+                  {isLoadingTemplates ? (
+                    <div className="flex items-center text-sm text-ulacm-gray-500 h-10">
+                      <LoadingSpinner size="sm" className="mr-2" /> Loading templates...
+                    </div>
+                  ) : error ? (
+                     <div className="bg-red-50 border border-red-300 text-red-700 px-3 py-2 rounded text-sm flex items-start">
+                         <AlertCircle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                         {error}
+                     </div>
+                  ) : (
+                    <select
+                      id="templateSelect" value={selectedTemplateId}
+                      onChange={(e) => setSelectedTemplateId(e.target.value)} required
+                      className="w-full px-3.5 py-2.5 border border-ulacm-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-ulacm-primary/50 focus:border-ulacm-primary transition-colors bg-white appearance-none"
+                    >
+                      <option value="" disabled>-- Select a Template --</option>
+                      {templates.map((template) => (
+                        <option key={template.item_id} value={template.item_id}>
+                          {template.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <p className="mt-1.5 text-xs text-ulacm-gray-500">
+                    Templates are managed by Administrators.
+                  </p>
                 </div>
-              ) : error ? (
-                 <div className="bg-red-50 border border-red-300 text-red-700 px-3 py-2 rounded text-sm flex items-start">
-                     <AlertCircle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-                     {error}
-                 </div>
-              ) : (
-                <select
-                  id="templateSelect" value={selectedTemplateId}
-                  onChange={(e) => setSelectedTemplateId(e.target.value)} required
-                  className="w-full px-3.5 py-2.5 border border-ulacm-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-ulacm-primary/50 focus:border-ulacm-primary transition-colors bg-white appearance-none"
-                >
-                  <option value="" disabled>-- Select a Template --</option>
-                  {templates.map((template) => (
-                    <option key={template.item_id} value={template.item_id}>
-                      {template.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <p className="mt-1.5 text-xs text-ulacm-gray-500">
-                Templates are managed by Administrators.
-              </p>
-            </div>
 
-            <div>
-              <label htmlFor="documentName" className="block text-sm font-medium text-ulacm-gray-700 mb-1">
-                Document Name <span className="text-red-600">*</span>
-              </label>
-              <input
-                id="documentName" type="text" value={newDocumentName}
-                onChange={(e) => setNewDocumentName(e.target.value)} required
-                placeholder="Enter a name for your new document"
-                className="w-full px-3.5 py-2.5 border border-ulacm-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-ulacm-primary/50 focus:border-ulacm-primary transition-colors"
-              />
+                <div>
+                  <label htmlFor="documentName" className="block text-sm font-medium text-ulacm-gray-700 mb-1">
+                    Document Name <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    id="documentName" type="text" value={newDocumentName}
+                    onChange={(e) => setNewDocumentName(e.target.value)} required
+                    placeholder="Enter a name for your new document"
+                    className="w-full px-3.5 py-2.5 border border-ulacm-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-ulacm-primary/50 focus:border-ulacm-primary transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Template Preview */}
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium text-ulacm-gray-700 flex items-center">
+                  <Eye size={16} className="mr-1.5 text-ulacm-gray-400"/> Template Preview
+                </h4>
+                <div className="border border-ulacm-gray-200 rounded-lg p-3 bg-ulacm-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto prose prose-sm max-w-none">
+                  {isLoadingPreview ? (
+                    <div className="flex flex-col items-center justify-center h-full text-ulacm-gray-500">
+                      <LoadingSpinner size="sm" />
+                      <p className="mt-1 text-xs">Loading preview...</p>
+                    </div>
+                  ) : previewError ? (
+                    <div className="flex flex-col items-center justify-center h-full text-red-500">
+                       <AlertCircle size={20} className="mb-1"/>
+                       <p className="text-xs">{previewError}</p>
+                    </div>
+                  ) : templatePreviewContent ? (
+                    <div dangerouslySetInnerHTML={renderPreviewHTML()} />
+                  ) : (
+                    <p className="text-ulacm-gray-400 italic text-xs text-center py-10">
+                      Select a template to see its preview.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {createError && (
-               <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start" role="alert">
+               <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start mt-4" role="alert">
                     <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
                     <span className="block sm:inline text-sm">{createError}</span>
-                 </div>
+               </div>
             )}
           </div>
 

@@ -121,10 +121,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (teamError) {
          const axiosError = teamError as AxiosError;
-         if (axiosError.response?.status !== 401 && axiosError.response?.status !== 403) {
-             // Log unexpected errors, but don't block checking admin session
-             console.warn("Unexpected error checking team session:", teamError);
-         }
+        //  if (axiosError.response?.status !== 401 && axiosError.response?.status !== 403) {
+        //      // Log unexpected errors, but don't block checking admin session
+        //      console.warn("Unexpected error checking team session:", teamError);
+        //  }
          // If 401/403 or other error, proceed to check admin session
       }
 
