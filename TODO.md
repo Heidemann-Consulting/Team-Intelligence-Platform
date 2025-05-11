@@ -35,14 +35,15 @@
 * ✅ Make template selection list in the create new document modal be alphabetically sorted.
 * ✅ Added functionality that when starting a workflow users can choose via an alphabetically sorted list of applicable documents with checkboxes which documents will be used as input documents. It shall also contain an explicit warning when no applicable documents were found and offer to either cancel or run the workflow anyways.
 
-* Create initial wave of templates and workflows for LACM process
-* Export initial wave of templates and workflows in ulacm_backend/init_db.sql
+* ✅ Create templates and workflows for Lean AI-Co-Management (LACM) process
+
+* Export templates and workflows in ulacm_backend/init_db.sql
 
 ## Prio 2
 
 * Rework the api endpoint /api/v1/items to enable filtering directly via the query, so that there is no problem when the amount of documents exceeds 100. Also rework all occasions where this endpoint is used in order to take advantage of the new filtering functionality (and move filtering / search from frontend to backend).
-
-* Performance: Using ContentItemWithCurrentVersion for lists means that for every item, its current version's details (including potentially large markdown_content) are loaded and serialized. If your lists are very long or performance becomes an issue, you might consider creating a more lightweight schema specifically for list items that includes item_id, name, item_type, current_version_number, and other essential list view fields, but omits the full markdown_content.
+combin with:
+* Performance: Using ContentItemWithCurrentVersion for lists means that for every item, its current version's details (including potentially large markdown_content) are loaded and serialized. Because lists could become very long or performance becomes an issue, create a more lightweight schema specifically for list items that includes item_id, name, item_type, current_version_number, and other essential list view fields, but omits the full markdown_content.
 
 * The API endpoint (/run) would immediately acknowledge the request (e.g., HTTP 202 Accepted), possibly returning a task/job ID.
 The actual workflow processing would happen in the background (e.g., using FastAPI's BackgroundTasks for simple cases, or a dedicated task queue like Celery for more robust needs).

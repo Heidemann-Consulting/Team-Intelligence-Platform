@@ -121,9 +121,10 @@ TIP documentation is structured by implementation phase to provide clear focus o
 - [PITCH.md](PITCH.md) - Stakeholder pitches
 - [Product Requirements Document](docs/tip-prd.md) - Basic idea and product requirements of TIP
 - [Software Requirements Specification](docs/tip-srs.md) - Detailed Software Requirements Specification of TIP
-- [Phase 1 Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) - Implementation guide for team rituals & practices
-- [Phase 2 Rituals and Practices](docs/tip-phase2-rituals-and-practices.md) - Implementation guide for team rituals & practices
-- [Phase 3 Rituals and Practices](docs/tip-phase3-rituals-and-practices.md) - Implementation guide for team rituals & practices
+- [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md) - Lean Process for using AI-Co-Management everyday
+- [Phase 1 Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) - Implementation guide for team rituals & practices Phase 1
+- [Phase 2 Rituals and Practices](docs/tip-phase2-rituals-and-practices.md) - Implementation guide for team rituals & practices Phase 2
+- [Phase 3 Rituals and Practices](docs/tip-phase3-rituals-and-practices.md) - Implementation guide for team rituals & practices Phase 3
 - [TODO.md](TODO.md) - List of open topics
 - [LICENSE](LICENSE) - Apache 2.0 license
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community behavior expectations
