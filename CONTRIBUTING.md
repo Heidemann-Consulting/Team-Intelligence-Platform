@@ -18,6 +18,8 @@
   - [Deployment](#deployment)
   - [Stopping the Application](#stopping-the-application)
   - [Troubleshooting](#troubleshooting)
+  - [Detailed Product Requirements Document](#detailed-product-requirements-document)
+  - [Detailed Software Requirements Specification](#detailed-software-requirements-specification)
   - [Executing Backend Tests (Work in progress)](#executing-backend-tests-work-in-progress)
     - [Navigate to the Backend Directory:](#navigate-to-the-backend-directory)
     - [Ensure Dependencies are Installed:](#ensure-dependencies-are-installed)
@@ -182,6 +184,14 @@ See [README.md](README.md).
 ## Troubleshooting
 
 See [README.md](README.md).
+
+## Detailed Product Requirements Document
+
+See [TIP Product Requirements Document](docs/tip-prd.md).
+
+## Detailed Software Requirements Specification
+
+See [TIP Software Requirements Specification](docs/tip-srs.md).
 
 ## Executing Backend Tests (Work in progress)
 

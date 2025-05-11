@@ -119,6 +119,8 @@ TIP documentation is structured by implementation phase to provide clear focus o
 
 - [README.md](README.md) - This document providing an overview
 - [PITCH.md](PITCH.md) - Stakeholder pitches
+- [Product Requirements Document](docs/tip-prd.md) - Basic idea and product requirements of TIP
+- [Software Requirements Specification](docs/tip-srs.md) - Detailed Software Requirements Specification of TIP
 - [Phase 1 Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) - Implementation guide for team rituals & practices
 - [Phase 2 Rituals and Practices](docs/tip-phase2-rituals-and-practices.md) - Implementation guide for team rituals & practices
 - [Phase 3 Rituals and Practices](docs/tip-phase3-rituals-and-practices.md) - Implementation guide for team rituals & practices
