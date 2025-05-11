@@ -483,7 +483,7 @@ This section details the functional requirements of the Team Intelligence Platfo
     * *Verification*: Test saving valid and invalid workflow definitions, check error messages.
     * *Source*: PRD 4.7.1.
 * **FR-WFDEF-003**: A valid Process Workflow definition (YAML-like structure) MUST include:
-    * `inputDocumentSelectors`: (List of strings, required) Glob patterns for input Document names (e.g., `["KW*_Weekly_Analysis", "Daily_Log_????-??-??.md"]`).
+    * `inputDocumentSelectors`: (List of strings, required) Glob patterns for input Document names (e.g., `["KW*_Weekly_Analysis", "Daily_Log_????-??-??"]`).
     * `inputDateSelector`: (String, optional) Date filter (e.g., `olderThanDays 7`, `between_YYYY-MM-DD_YYYY-MM-DD`).
     * `outputName`: (String, required) Template for output Document name (placeholders: `{{Year}}`, `{{Month}}`, `{{Day}}`, `{{InputFileName}}`, `{{WorkflowName}}`).
     * `prompt`: (Multiline string, required) LLM prompt with placeholders.

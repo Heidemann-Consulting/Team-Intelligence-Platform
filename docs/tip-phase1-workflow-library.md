@@ -40,7 +40,7 @@ Each workflow definition below is presented in the YAML-like format expected by 
 inputDocumentSelectors:
   - "*" # Allows user to select any one document visible to them at runtime.
 inputDateSelector: null # No specific date filter by default for this generic workflow.
-outputName: "Summary_of_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "Summary_of_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   Please provide a concise summary of the following document:
 
@@ -72,7 +72,7 @@ inputDocumentSelectors:
   - "Meeting_Notes_*"
   - "*_MeetingNotes_*"
 inputDateSelector: null # User will typically select a recent meeting notes document.
-outputName: "MeetingSummary_from_{{InputFileName}}_AI-Generated_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "MeetingSummary_from_{{InputFileName}}_AI-Generated_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   You are an AI assistant tasked with creating a structured summary from the provided meeting notes.
 

@@ -46,7 +46,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
 inputDocumentSelectors:
   - "DailyContextCuration_*" # Designed for documents like DailyContextCuration_YYYY-MM-DD
 inputDateSelector: null
-outputName: "ExtractedElements_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "ExtractedElements_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   Review the following daily context updates from the document titled "{{InputFileName}}".
   For each team member's update, identify 3-5 key informational elements (e.g., decisions, findings, new terms, project updates, risks identified).
@@ -90,7 +90,7 @@ prompt: |
 inputDocumentSelectors:
   - "PreRetroData_*" # Designed for documents like PreRetroData_SprintX_YYYY-MM-DD
 inputDateSelector: null
-outputName: "AI_RetroInsights_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "AI_RetroInsights_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   Based on the content of the Pre-Retrospective Analysis document titled "{{InputFileName}}", perform the following analysis. The input document contains sections like "Metrics Analysis", "Communication Pattern Analysis", and "Historical Pattern Identification".
 
@@ -126,7 +126,7 @@ prompt: |
 inputDocumentSelectors:
   - "RetroSessionNotes_*" # Designed for documents from the Retrospective Session Template
 inputDateSelector: null
-outputName: "SuggestedActions_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "SuggestedActions_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   Review the Retrospective Session Notes from the document titled "{{InputFileName}}".
   Based on the "Key Pattern Discussion", "Root Cause Exploration", and "Improvement Options" sections, suggest 3-5 concrete, actionable, and measurable (if possible) improvement actions the team could take.
@@ -167,7 +167,7 @@ prompt: |
 inputDocumentSelectors:
   - "PrePlanningData_*" # Designed for documents like PrePlanningData_SprintY_YYYY-MM-DD
 inputDateSelector: null
-outputName: "AI_PlanningInsights_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "AI_PlanningInsights_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   Based on the content of the Pre-Planning Analysis document titled "{{InputFileName}}", provide the following:
 
@@ -206,7 +206,7 @@ prompt: |
 inputDocumentSelectors:
   - "PairInput_*" # User prepares a document with their specific input, e.g., PairInput_DraftFeatureX_YYYY-MM-DD
 inputDateSelector: null
-outputName: "DraftOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "DraftOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   The following input document "{{InputFileName}}" contains a request to draft a text section.
   The request might include a topic, keywords, a brief outline, or some source material.
@@ -241,7 +241,7 @@ prompt: |
 inputDocumentSelectors:
   - "PairInput_*" # User prepares a document with their specific input
 inputDateSelector: null
-outputName: "BrainstormOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "BrainstormOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   The input document "{{InputFileName}}" contains a request for brainstorming ideas.
   This request could be a problem statement, a question, or a topic.
@@ -280,7 +280,7 @@ prompt: |
 inputDocumentSelectors:
   - "PairInput_*" # User prepares a document with text and analysis instructions
 inputDateSelector: null
-outputName: "AnalysisOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+outputName: "AnalysisOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
   The input document "{{InputFileName}}" contains a segment of text and a specific request for how to analyze that text.
   Carefully read the "Analysis Request" and the "Text to Analyze" sections within the input document.

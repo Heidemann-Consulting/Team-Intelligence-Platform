@@ -53,7 +53,7 @@ The implementation of Phase 3 within TIP leverages its document-centric approach
 Before progressing to Phase 3, teams should have mastered the practices from Phases 1 and 2 within TIP:
 
 * **Phase 1 ("The Cognitive Foundation"):** Focused on establishing core knowledge capture habits, basic AI interaction via TIP Workflows (e.g., `SummarizeTextWorkflow`, `GenerateMeetingSummaryWorkflow`), and initial prompt development. All knowledge and prompt documentation reside in TIP Documents with consistent naming.
-* **Phase 2 ("The Collaborative Acceleration"):** Introduced enhanced context management, AI-assisted retrospectives and planning (using TIP Workflows like `TIP-Workflow-AnalyzeRetroData-Phase2`, `TIP-Workflow-AnalyzePlanningData-Phase2` on manually prepared TIP Documents), and basic AI pair working patterns. All processes and artifacts are managed within TIP.
+* **Phase 2 ("The Collaborative Acceleration"):** Introduced enhanced context management, AI-assisted retrospectives and planning (using TIP Workflows like `AnalyzeRetroData`, `AnalyzePlanningData` on manually prepared TIP Documents), and basic AI pair working patterns. All processes and artifacts are managed within TIP.
 
 These phases ensure teams are proficient in using TIP Documents for knowledge management, preparing inputs for TIP Process Workflows, and interpreting their outputs.
 
@@ -90,19 +90,19 @@ This section provides detailed descriptions of the purpose, format, process, and
 * **Purpose:** To create an evolving knowledge ecosystem that spans team boundaries, using sophisticated relationship mapping (manual, by referencing TIP Document names) and proactive context delivery, all managed within TIP.
 * **Cadence & Format:**
     * **Continuous Automated Capture (Conceptual - Manual in TIP):** Team members are responsible for capturing relevant information (e.g., from communication channels, external research) into new or existing TIP Documents. For instance, news research is done manually, and findings are summarized in a TIP Document like `NewsDigest_Topic_YYYY-MM-DD`.
-    * **Weekly Team Curation (30 min):** Team session using `Template_WeeklyTeamCuration_Phase3` (from the [TIP Phase 3 Templates Library](./tip-phase3-templates-library.md)) to create a `WeeklyContextCuration_YYYY-MM-DD_TeamName` TIP Document. Review AI-identified health issues (output from a hypothetical `TIP-Workflow-AnalyzeContextHealth-Phase3` run on a manually compiled list of recent key documents).
-    * **Monthly Cross-Team Alignment (60 min):** Context Stewards from related teams meet. Use `Template_MonthlyCrossTeamAlignment_Phase3` to create a `MonthlyCrossTeamAlignment_YYYY-MM_Topic` TIP Document. AI (via a `TIP-Workflow-IdentifyBoundaryAreas-Phase3` run on a curated list of TIP Documents from participating teams) might help identify boundary areas and connection points based on shared keywords or referenced document names.
+    * **Weekly Team Curation (30 min):** Team session using `Template_WeeklyTeamCuration_Phase3` (from the [TIP Phase 3 Templates Library](./tip-phase3-templates-library.md)) to create a `Input_ContextHealthAnalysis_WeeklyContextCuration_YYYY-MM-DD_TeamName` TIP Document. Review AI-identified health issues (output from a hypothetical `AnalyzeContextHealth` run on a manually compiled list of recent key documents).
+    * **Monthly Cross-Team Alignment (60 min):** Context Stewards from related teams meet. Use `Template_MonthlyCrossTeamAlignment_Phase3` to create a `MonthlyCrossTeamAlignment_YYYY-MM_Topic` TIP Document. AI (via a `IdentifyBoundaryAreas` run on a curated list of TIP Documents from participating teams with naming `Input_BoundaryAnalysis_*`) might help identify boundary areas and connection points based on shared keywords or referenced document names.
 * **Participants:** All team members, AI (via specific TIP Workflows), Context Stewards from multiple teams, Knowledge Management specialist.
 * **Process within TIP:**
-    1.  **Continuous Evolution:** Team members manually create/update TIP Documents. For external data like news, a member researches and creates a TIP Document (e.g., `ExternalInsight_EventName_YYYY-MM-DD`).
+    1.  **Continuous Evolution:** Team members manually create/update TIP Documents. For external data like news, a member researches and creates a TIP Document (e.g., `Input_ContextHealthAnalysis_EventName_YYYY-MM-DD`).
     2.  **Weekly Curation:**
         * Facilitator prepares a list of key TIP Document names created/updated during the week.
-        * (Optional) An Admin-defined `TIP-Workflow-AnalyzeContextHealth-Phase3` is run by a team member using this list (pasted into a temporary input TIP Document).
+        * (Optional) An Admin-defined `AnalyzeContextHealth` is run by a team member using this list (pasted into a temporary input TIP Document).
         * Team reviews the output TIP Document (e.g., `ContextHealthAnalysis_YYYY-MM-DD`) and the `WeeklyContextCuration_YYYY-MM-DD_TeamName` document.
         * Manually map relationships by adding references to other TIP Document names within relevant documents.
     3.  **Monthly Alignment:**
         * Context Stewards prepare a list of key TIP Document names from their respective teams relevant to shared topics.
-        * (Optional) A `TIP-Workflow-IdentifyBoundaryAreas-Phase3` is run by a facilitator using these lists (compiled into an input TIP Document).
+        * (Optional) A `IdentifyBoundaryAreas` is run by a facilitator using these lists (compiled into an input TIP Document).
         * Stewards review the output and collaboratively update the `MonthlyCrossTeamAlignment_YYYY-MM_Topic` TIP Document.
 * **Tools:** Team Intelligence Platform (TIP) for all document creation, editing, versioning, and workflow execution. Manual research and compilation into TIP Documents are key.
 * **Artifacts (TIP Documents with consistent naming):**
@@ -123,17 +123,17 @@ This section provides detailed descriptions of the purpose, format, process, and
     2.  **Option Development (30-45 min):**
         * Create an `OptionDevelopment_DecisionID_YYYY-MM-DD` TIP Document using `Template_OptionDevelopment_Phase3`.
         * Team brainstorms options and documents them.
-        * (Optional) To generate AI options, a team member prepares a TIP Document with the problem statement and context, then runs a `TIP-Workflow-GenerateDecisionOptions-Phase3`. The output options are manually copied into the `OptionDevelopment_DecisionID_YYYY-MM-DD` document.
+        * (Optional) To generate AI options, a team member prepares a TIP Document with the problem statement and context, then runs a `GenerateDecisionOptions`. The output options are manually copied into the `OptionDevelopment_DecisionID_YYYY-MM-DD` document.
     3.  **Structured Evaluation (30-45 min):**
         * Create a `StructuredEvaluation_DecisionID_YYYY-MM-DD` TIP Document using `Template_StructuredEvaluation_Phase3`.
         * Team manually scores options against criteria.
-        * (Optional) For bias identification or sensitivity analysis, relevant sections of the evaluation document can be used as input to a `TIP-Workflow-AnalyzeDecisionFactors-Phase3`. Results are manually integrated.
+        * (Optional) For bias identification or sensitivity analysis, relevant sections of the evaluation document can be used as input to a `AnalyzeDecisionFactors`. Results are manually integrated.
     4.  **Decision Finalization (15-30 min):**
         * Create a `DecisionFinalization_DecisionID_YYYY-MM-DD` TIP Document using `Template_DecisionFinalization_Phase3`.
 * **Tools:** TIP for document management and workflow execution. Manual data entry and synthesis are crucial.
 * **Workflows (Admin-created, conceptual):**
-    * `TIP-Workflow-GenerateDecisionOptions-Phase3`: Input: Problem statement, criteria, context (in a TIP doc). Output: List of potential options.
-    * `TIP-Workflow-AnalyzeDecisionFactors-Phase3`: Input: Options, criteria, scores, potential biases (in a TIP doc). Output: Analysis of factors, potential biases.
+    * `GenerateDecisionOptions`: Input: Problem statement, criteria, context (in a TIP doc). Output: List of potential options.
+    * `AnalyzeDecisionFactors`: Input: Options, criteria, scores, potential biases (in a TIP doc). Output: Analysis of factors, potential biases.
 * **Artifacts (TIP Documents):**
     * `DecisionInitialization_DecisionID_YYYY-MM-DD`
     * `OptionDevelopment_DecisionID_YYYY-MM-DD`
@@ -152,23 +152,23 @@ This section provides detailed descriptions of the purpose, format, process, and
 * **Process within TIP:**
     1.  **Sprint Retrospective:**
         * Pre-work: Manually compile data (metrics from external tools, observations) into the `SprintRetroAnalysis_SprintX_YYYY-MM-DD` TIP Document.
-        * Run `TIP-Workflow-AnalyzeSprintRetroData-Phase3` on this document.
+        * Run `AnalyzeSprintRetroData` on this document.
         * Session: Review AI insights from the workflow output document (`SprintRetroInsights_SprintX_YYYY-MM-DD`). Document discussions in `SprintRetroSession_SprintX_YYYY-MM-DD`.
-        * (Optional) Run `TIP-Workflow-SuggestSprintActions-Phase3` on session notes.
+        * (Optional) Run `SuggestSprintActions` on session notes.
     2.  **Quarterly Meta-Retrospective:**
         * Manually synthesize key findings from the last ~6 `SprintRetroSummary_SprintX_YYYY-MM-DD` TIP Documents into the `QuarterlyMetaRetro_YYYY-QQ_TeamName` document.
-        * Run `TIP-Workflow-AnalyzeQuarterlyTrends-Phase3` on this synthesized document.
+        * Run `AnalyzeQuarterlyTrends` on this synthesized document.
         * Session: Review AI insights and plan longer-term improvements.
     3.  **Annual Strategic Retrospective:**
         * Manually synthesize key findings from the last 4 `QuarterlyMetaRetroSummary_YYYY-QQ_TeamName` TIP Documents into the `AnnualStrategicRetro_YYYY_TeamName` document.
-        * Run `TIP-Workflow-AnalyzeAnnualPerformance-Phase3` on this.
+        * Run `AnalyzeAnnualPerformance` on this.
         * Session: Review AI insights for strategic planning.
 * **Tools:** TIP for document management and workflow execution. Significant manual data compilation and synthesis into TIP Documents is required.
 * **Workflows (Admin-created, conceptual):**
-    * `TIP-Workflow-AnalyzeSprintRetroData-Phase3`: Input: `SprintRetroAnalysis_SprintX_YYYY-MM-DD`. Output: Insights, patterns.
-    * `TIP-Workflow-SuggestSprintActions-Phase3`: Input: `SprintRetroSession_SprintX_YYYY-MM-DD`. Output: Suggested actions.
-    * `TIP-Workflow-AnalyzeQuarterlyTrends-Phase3`: Input: Manually compiled quarterly data TIP doc. Output: Trend analysis.
-    * `TIP-Workflow-AnalyzeAnnualPerformance-Phase3`: Input: Manually compiled annual data TIP doc. Output: Strategic insights.
+    * `AnalyzeSprintRetroData`: Input: `SprintRetroAnalysis_SprintX_YYYY-MM-DD`. Output: Insights, patterns.
+    * `SuggestSprintActions`: Input: `SprintRetroSession_SprintX_YYYY-MM-DD`. Output: Suggested actions.
+    * `AnalyzeQuarterlyTrends`: Input: Manually compiled quarterly data TIP doc. Output: Trend analysis.
+    * `AnalyzeAnnualPerformance`: Input: Manually compiled annual data TIP doc. Output: Strategic insights.
 * **Artifacts (TIP Documents):** All analysis, session notes, summaries, and action plans are TIP Documents with consistent naming (e.g., `SprintRetroSummary_SprintX_YYYY-MM-DD`).
 * **Success Indicators:** Consistent improvement in metrics tracked in TIP Documents, systemic issues identified and addressed, strategic alignment of team evolution documented in TIP.
 
@@ -184,22 +184,22 @@ This section provides detailed descriptions of the purpose, format, process, and
     1.  **Weekly Cross-Pollination:**
         * Representatives prepare brief updates from their teams as TIP Documents (e.g., `TeamUpdate_TeamA_YYYY-MM-DD`).
         * A facilitator compiles these into a single input TIP Document or provides a list of document names.
-        * Run `TIP-Workflow-SynthesizeCrossTeamUpdates-Phase3` on the compiled input/list.
+        * Run `SynthesizeCrossTeamUpdates` on the compiled input/list (e.g. `Input_CrossTeamUpdates_*`).
         * Team reps review the synthesized output (e.g., `CrossPollinationSummary_YYYY-MM-DD`) and discuss in the `WeeklyCrossPollination_YYYY-MM-DD_Topic` document.
     2.  **Monthly Cross-Team Ritual:**
         * Similar process, but with more in-depth input TIP Documents prepared by each team focusing on shared challenges/practices.
-        * Run `TIP-Workflow-IdentifySharedChallenges-Phase3` and/or `TIP-Workflow-SuggestCollaborativePractices-Phase3`.
+        * Run `IdentifySharedChallenges` (inputs: `Input_SharedChallengesAnalysis_*`)and/or `SuggestCollaborativePractices` (inputs: `Input_TeamPracticesReview_*`).
         * Discussions and plans captured in `MonthlyCrossTeamRitual_YYYY-MM_Topic`.
     3.  **Quarterly Alignment Session:**
         * Inputs are strategic documents from each team and outputs from previous monthly rituals.
-        * Run `TIP-Workflow-AnalyzePortfolioPatterns-Phase3`.
+        * Run `AnalyzePortfolioPatterns`.
         * Discussions and strategic initiatives captured in `QuarterlyAlignment_YYYY-QQ_Topic`.
 * **Tools:** TIP for document management and workflow execution.
 * **Workflows (Admin-created, conceptual):**
-    * `TIP-Workflow-SynthesizeCrossTeamUpdates-Phase3`: Input: Multiple team update TIP docs/names. Output: Synthesized insights, patterns.
-    * `TIP-Workflow-IdentifySharedChallenges-Phase3`: Input: TIP Docs detailing team challenges. Output: Common challenges.
-    * `TIP-Workflow-SuggestCollaborativePractices-Phase3`: Input: TIP Docs on current practices. Output: Suggested shared practices.
-    * `TIP-Workflow-AnalyzePortfolioPatterns-Phase3`: Input: Strategic TIP Docs from multiple teams. Output: Portfolio-level patterns.
+    * `SynthesizeCrossTeamUpdates`: Input: Multiple team update TIP docs/names. Output: Synthesized insights, patterns.
+    * `IdentifySharedChallenges`: Input: TIP Docs detailing team challenges. Output: Common challenges.
+    * `SuggestCollaborativePractices`: Input: TIP Docs on current practices. Output: Suggested shared practices.
+    * `AnalyzePortfolioPatterns`: Input: Strategic TIP Docs from multiple teams. Output: Portfolio-level patterns.
 * **Artifacts (TIP Documents):** Cross-team insight summaries, shared practice library (as a collection of TIP Documents), alignment roadmaps. All named consistently.
 * **Success Indicators:** Acceleration of cross-team initiatives (tracked in TIP Documents), documented knowledge reuse across boundaries, reduced duplication of effort.
 
@@ -215,9 +215,9 @@ This section provides detailed descriptions of the purpose, format, process, and
     2.  **Graduated Autonomy Framework (Team Task):**
         * The team defines different levels of autonomy for various tasks (e.g., "Level 1: AI Suggests, Human Implements", "Level 2: AI Drafts, Human Reviews/Edits"). This framework is documented in a TIP Document: `GraduatedAutonomyFramework_TeamName_V1` using `Template_GraduatedAutonomyFramework_Phase3`.
     3.  **Pair Working Session:**
-        * Team member creates a `PairWorkingInitialization_TaskName_YYYY-MM-DD` TIP Document using `Template_PairWorkingSessionInitialization_Phase3`. This includes the objective, success criteria, relevant context TIP Document names, the chosen AI Role (i.e., which TIP Workflow to use), and the autonomy level.
+        * Team member creates a `PairInput_TaskName_YYYY-MM-DD` TIP Document using `Template_PairWorkingSessionInitialization_Phase3`. This includes the objective, success criteria, relevant context TIP Document names, the chosen AI Role (i.e., which TIP Workflow to use), and the autonomy level.
         * The team member prepares an input TIP Document containing the specific data/text for the AI role/workflow.
-        * Execute the relevant TIP Workflow (e.g., `TIP-Workflow-RefactorCodeSegment-Phase3`, `TIP-Workflow-DraftMarketAnalysisSection-Phase3`).
+        * Execute the relevant TIP Workflow (e.g., `RefactorCodeSegment`, `DraftMarketAnalysisSection`).
         * Review the output TIP Document. Iterate by refining the input TIP Document and re-running the workflow.
         * Log key interactions, decisions, and prompt variations in a `ComprehensiveSessionLog_TaskName_YYYY-MM-DD` TIP Document using `Template_ComprehensiveSessionLog_Phase3`.
     4.  **Continuous Learning Loop:**
@@ -226,12 +226,12 @@ This section provides detailed descriptions of the purpose, format, process, and
         * Suggest refinements to Admin-managed TIP Workflow prompts based on experience.
 * **Tools:** TIP for document management and workflow execution.
 * **Workflows (Admin-created, examples):**
-    * `TIP-Workflow-RefactorCodeSegment-Phase3`: Input: Code segment, refactoring guidelines (from context doc). Output: Refactored code.
-    * `TIP-Workflow-DraftMarketAnalysisSection-Phase3`: Input: Topic, keywords, data points (from context doc). Output: Draft analysis section.
+    * `RefactorCodeSegment`: Input: Code segment, refactoring guidelines (from context doc). Output: Refactored code.
+    * `DraftMarketAnalysisSection`: Input: Topic, keywords, data points (from context doc). Output: Draft analysis section.
 * **Artifacts (TIP Documents):**
     * `AIRoleDefinition_RoleName_V1`
     * `GraduatedAutonomyFramework_TeamName_V1`
-    * `PairWorkingInitialization_TaskName_YYYY-MM-DD`
+    * `PairInput_TaskName_YYYY-MM-DD`
     * `ComprehensiveSessionLog_TaskName_YYYY-MM-DD`
     * AI-generated output documents (e.g., `RefactoredCode_FeatureX_V1`, `MarketAnalysisDraft_ProductY_SectionZ_V1`)
     * `PairWorkingPattern_PatternName_V1`
@@ -370,7 +370,7 @@ All templates referenced in this document are defined in the **[TIP Phase 3 Temp
     * `QuarterlyAlignment_YYYY-QQ_Topic` (using `Template_QuarterlyAlignmentSession_Phase3`)
 * Advanced AI Pair Working:
     * `AIRoleDefinition_RoleName_V1` (using `Template_AIRoleDefinition_Phase3`)
-    * `PairWorkingInitialization_TaskName_YYYY-MM-DD` (using `Template_PairWorkingSessionInitialization_Phase3`)
+    * `PPairInput_TaskName_YYYY-MM-DD` (using `Template_PairWorkingSessionInitialization_Phase3`)
     * `ComprehensiveSessionLog_TaskName_YYYY-MM-DD` (using `Template_ComprehensiveSessionLog_Phase3`)
     * `GraduatedAutonomyFramework_TeamName_V1` (using `Template_GraduatedAutonomyFramework_Phase3`)
 
@@ -379,53 +379,53 @@ All templates referenced in this document are defined in the **[TIP Phase 3 Temp
 This section lists conceptual TIP Process Workflows an Administrator would need to create to support Phase 3 rituals. Full details and definitions are available in the [TIP Phase 3 Workflow Library](./tip-phase3-workflow-library.md). Team Users would execute these workflows using TIP Documents as inputs. *Exact names are illustrative and should be standardized by Admins.*
 
 * **Networked Context Management Workflows:**
-    * `TIP-Workflow-AnalyzeContextHealth-Phase3`:
+    * `AnalyzeContextHealth`:
         * Input: TIP Document listing names of recently changed/key documents.
         * Output: TIP Document summarizing potential health issues (e.g., orphaned docs, stale areas - based on simple text analysis of provided list).
-    * `TIP-Workflow-IdentifyBoundaryAreas-Phase3`:
+    * `IdentifyBoundaryAreas`:
         * Input: TIP Document listing key document names from multiple teams.
         * Output: TIP Document suggesting potential boundary areas based on common keywords in document names or (if content snippets provided) content.
 * **AI-Driven Decision Framework Workflows:**
-    * `TIP-Workflow-GenerateDecisionOptions-Phase3`:
+    * `GenerateDecisionOptions`:
         * Input: TIP Document detailing problem, criteria, context.
         * Output: TIP Document listing brainstormed decision options.
-    * `TIP-Workflow-AnalyzeDecisionFactors-Phase3`:
+    * `AnalyzeDecisionFactors`:
         * Input: TIP Document with options, criteria, scores, stated biases.
         * Output: TIP Document providing analysis on sensitivities or potential impacts of biases.
 * **Advanced Retrospective System Workflows:**
-    * `TIP-Workflow-AnalyzeSprintRetroData-Phase3`:
+    * `AnalyzeSprintRetroData`:
         * Input: TIP Document `SprintRetroAnalysis_SprintX_YYYY-MM-DD` (manually compiled data).
-        * Output: TIP Document `SprintRetroInsights_SprintX_YYYY-MM-DD` with patterns, suggested discussion points.
-    * `TIP-Workflow-SuggestSprintActions-Phase3`:
+        * Output: TIP Document `SprintRetroInsights_YYYY-MM-DD` with patterns, suggested discussion points.
+    * `SuggestSprintActions`:
         * Input: TIP Document `SprintRetroSession_SprintX_YYYY-MM-DD` (session notes).
         * Output: TIP Document with suggested actionable items.
-    * `TIP-Workflow-AnalyzeQuarterlyTrends-Phase3`:
+    * `AnalyzeQuarterlyTrends`:
         * Input: TIP Document `QuarterlyMetaRetro_YYYY-QQ_TeamName` (manually compiled data).
         * Output: TIP Document with trend analysis.
-    * `TIP-Workflow-AnalyzeAnnualPerformance-Phase3`:
+    * `AnalyzeAnnualPerformance`:
         * Input: TIP Document `AnnualStrategicRetro_YYYY_TeamName` (manually compiled data).
         * Output: TIP Document with strategic performance insights.
 * **Cross-Team Intelligence Workflows:**
-    * `TIP-Workflow-SynthesizeCrossTeamUpdates-Phase3`:
+    * `SynthesizeCrossTeamUpdates`:
         * Input: TIP Document compiling updates from multiple teams (or list of doc names).
         * Output: TIP Document with synthesized insights.
-    * `TIP-Workflow-IdentifySharedChallenges-Phase3`:
+    * `IdentifySharedChallenges`:
         * Input: TIP Document compiling challenges from multiple teams.
         * Output: TIP Document identifying common challenges.
-    * `TIP-Workflow-SuggestCollaborativePractices-Phase3`:
+    * `SuggestCollaborativePractices`:
         * Input: TIP Document describing current practices from multiple teams.
         * Output: TIP Document suggesting potential shared/best practices.
-    * `TIP-Workflow-AnalyzePortfolioPatterns-Phase3`:
+    * `AnalyzePortfolioPatterns`:
         * Input: TIP Document compiling strategic info from multiple teams.
         * Output: TIP Document with portfolio-level pattern analysis.
 * **Advanced AI Pair Working Workflows (Domain-Specific Examples):**
-    * `TIP-Workflow-DraftCodeDocumentation-Phase3`:
+    * `DraftCodeDocumentation`:
         * Input: TIP Document with code segment and context.
         * Output: TIP Document with draft documentation.
-    * `TIP-Workflow-BrainstormProductFeatures-Phase3`:
+    * `BrainstormProductFeatures`:
         * Input: TIP Document with product brief and target user.
         * Output: TIP Document with brainstormed feature ideas.
-    * `TIP-Workflow-SummarizeResearchPaper-Phase3`:
+    * `SummarizeResearchPaper`:
         * Input: TIP Document containing the full text of a research paper (manually copied in).
         * Output: TIP Document with a summary of the paper.
 

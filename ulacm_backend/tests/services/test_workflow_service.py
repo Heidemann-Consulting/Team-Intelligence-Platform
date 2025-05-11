@@ -93,7 +93,7 @@ def sample_workflow_item() -> ContentItem:
     workflow_def_content = """
 processWorkFlowName: Test Workflow
 trigger: manual
-inputDocumentSelector: "Input_Doc_*.md"
+inputDocumentSelector: "Input_Doc_*"
 inputDateSelector: newerThanDays 7
 model: ollama/test-model
 temperature: 0.6
@@ -126,7 +126,7 @@ def sample_input_doc() -> ContentItem:
     )
     doc = create_test_content_item(
         item_id_str="bbbbbbbb-1111-1111-1111-111111111111",
-        name="Input_Doc_1.md",
+        name="Input_Doc_1",
         item_type=ContentItemTypeEnum.DOCUMENT,
         current_version=version,
         created_at=FROZEN_TIME_DT - timedelta(days=3) # Use version creation time for filter usually
@@ -201,15 +201,15 @@ def test_filter_by_date_selector_parametrized(item_date, date_selector_str, curr
 # --- Tests for Other Helpers ---
 
 @pytest.mark.parametrize("name, pattern, expected", [
-    ("Report_2023.md", "*.md", True),
-    ("Report_2023.txt", "*.md", False),
-    ("KW10_Analysis.md", "KW*_Analysis.md", True),
-    ("KW10_Summary.md", "KW*_Analysis.md", False),
-    ("Daily_Log_2023-10-25.md", "Daily_Log_????-??-??.md", True),
-    ("Daily_Log_2023-10-25X.md", "Daily_Log_????-??-??.md", False),
-    ("meeting_notes.md", "meeting*", True),
-    ("meeting_notes.md", "meeting", False), # Glob requires '*' for partial match
-    ("CaseSensitiveDoc.MD", "*.md", True), # Test case insensitivity
+    ("Report_2023", "*", True),
+    ("Report_2023.txt", "*", False),
+    ("KW10_Analysis", "KW*_Analysis", True),
+    ("KW10_Summary", "KW*_Analysis", False),
+    ("Daily_Log_2023-10-25", "Daily_Log_????-??-??", True),
+    ("Daily_Log_2023-10-25X", "Daily_Log_????-??-??", False),
+    ("meeting_notes", "meeting*", True),
+    ("meeting_notes", "meeting", False), # Glob requires '*' for partial match
+    ("CaseSensitiveDoc", "*", True), # Test case insensitivity
 ])
 def test_match_glob_pattern(name, pattern, expected):
     """Test the glob pattern matching helper."""
@@ -229,16 +229,16 @@ async def test_select_input_documents(mock_db_session, sample_validated_definiti
     )
     old_doc = create_test_content_item(
         item_id_str="cccccccc-2222-2222-2222-222222222222",
-        name="Input_Doc_Old.md", current_version=old_version
+        name="Input_Doc_Old", current_version=old_version
     )
     # Create a doc that doesn't match name pattern
-    wrong_name_doc = create_test_content_item(name="Wrong_Name.md")
+    wrong_name_doc = create_test_content_item(name="Wrong_Name")
     # Create a doc owned by another team but globally visible (should be included)
     global_version = create_test_content_version(item_id_str="dddddddd-3333-3333-3333-333333333333", created_at=FROZEN_TIME_DT - timedelta(days=1))
     global_doc = create_test_content_item(
         item_id_str="dddddddd-3333-3333-3333-333333333333",
         team_id_str="99999999-9999-9999-9999-999999999999",
-        name="Input_Doc_Global.md", is_globally_visible=True, current_version=global_version
+        name="Input_Doc_Global", is_globally_visible=True, current_version=global_version
     )
 
 
@@ -277,7 +277,7 @@ async def test_select_input_documents(mock_db_session, sample_validated_definiti
 def test_construct_prompt(sample_validated_definition):
     """Test placeholder replacement in the prompt."""
     input_contents = ["Content of Doc 1.", "Content of Doc 2."]
-    input_names = ["Input_Doc_1.md", "Input_Doc_2.md"]
+    input_names = ["Input_Doc_1", "Input_Doc_2"]
 
     expected_context = "[Document: Input_Doc_1.md]\n\nContent of Doc 1.\n\n---\n\n[Document: Input_Doc_2.md]\n\nContent of Doc 2."
 
@@ -289,7 +289,7 @@ def test_construct_prompt(sample_validated_definition):
     )
 
     assert f"Process context: {expected_context}" in final_prompt
-    assert "Input names: Input_Doc_1.md, Input_Doc_2.md" in final_prompt
+    assert "Input names: Input_Doc_1.md, Input_Doc_2" in final_prompt
     assert "Input count: 2" in final_prompt
     assert "{{CurrentDate}}" not in final_prompt
 
@@ -308,8 +308,8 @@ def test_construct_prompt(sample_validated_definition):
 @freeze_time(FROZEN_TIME_STR)
 def test_generate_output_name(sample_validated_definition):
     """Test placeholder replacement in the output name template."""
-    input_names = ["Input_Doc_1.md"]
-    expected_name = f"Output_{FROZEN_TIME_DT.strftime('%Y-%m-%d')}.md"
+    input_names = ["Input_Doc_1"]
+    expected_name = f"Output_{FROZEN_TIME_DT.strftime('%Y-%m-%d')}"
 
     generated_name = _generate_output_name(
         definition=sample_validated_definition,
@@ -320,9 +320,9 @@ def test_generate_output_name(sample_validated_definition):
 
     # Test template using other placeholders
     definition_alt_name = sample_validated_definition.model_copy(update={
-        "outputName": "{{WorkflowName}}_{{InputFileName}}.md"
+        "outputName": "{{WorkflowName}}_{{InputFileName}}"
     })
-    expected_name_alt = f"{sample_validated_definition.processWorkFlowName}_Input_Doc_1.md"
+    expected_name_alt = f"{sample_validated_definition.processWorkFlowName}_Input_Doc_1"
     generated_name_alt = _generate_output_name(
         definition=definition_alt_name,
         input_doc_names_list=input_names,
@@ -332,9 +332,9 @@ def test_generate_output_name(sample_validated_definition):
 
     # Test sanitization
     definition_bad_chars = sample_validated_definition.model_copy(update={
-        "outputName": "Output_<>/\\:?*.md"
+        "outputName": "Output_<>/\\:?*"
     })
-    expected_name_sanitized = "Output________.md"
+    expected_name_sanitized = "Output________"
     generated_name_sanitized = _generate_output_name(
         definition=definition_bad_chars,
         input_doc_names_list=[],
@@ -349,7 +349,7 @@ def test_generate_output_name(sample_validated_definition):
 async def test_ensure_unique_output_name(mock_check_unique, mock_db_session):
     """Test finding a unique output name."""
     test_team_id = PyUUID("11111111-1111-1111-1111-111111111111")
-    base_name = "Generated_Output.md"
+    base_name = "Generated_Output"
     base_name_root = "Generated_Output"
 
     # Scenario 1: Base name is already unique
@@ -368,11 +368,11 @@ async def test_ensure_unique_output_name(mock_check_unique, mock_db_session):
     mock_check_unique_sfx = AsyncMock(side_effect = [False, True])
     with patch('app.services.workflow_service.content_item.check_name_uniqueness', new=mock_check_unique_sfx):
         unique_name_suffixed = await _ensure_unique_output_name(mock_db_session, base_name, test_team_id)
-        assert unique_name_suffixed == f"{base_name_root}_1.md"
+        assert unique_name_suffixed == f"{base_name_root}_1"
         assert mock_check_unique_sfx.await_count == 2
         mock_check_unique_sfx.assert_has_awaits([
             call(db=mock_db_session, name=base_name, item_type=ContentItemTypeEnum.DOCUMENT, team_id=test_team_id),
-            call(db=mock_db_session, name=f"{base_name_root}_1.md", item_type=ContentItemTypeEnum.DOCUMENT, team_id=test_team_id)
+            call(db=mock_db_session, name=f"{base_name_root}_1", item_type=ContentItemTypeEnum.DOCUMENT, team_id=test_team_id)
         ])
 
     # Scenario 3: Fails after too many attempts
@@ -403,7 +403,7 @@ async def test_execute_workflow_success(
     """Test the successful execution path of a workflow."""
     test_team_id = sample_workflow_item.team_id
     llm_response = "## Generated Document Content"
-    expected_output_name = f"Output_{FROZEN_TIME_DT.strftime('%Y-%m-%d')}.md"
+    expected_output_name = f"Output_{FROZEN_TIME_DT.strftime('%Y-%m-%d')}"
 
     # Configure mocks
     mock_parse.return_value = sample_validated_definition
@@ -535,7 +535,7 @@ async def test_execute_workflow_output_creation_error(
     """Test workflow execution when saving the output document fails."""
     test_team_id = sample_workflow_item.team_id
     llm_response = "Some output"
-    expected_output_name = "Output_Name.md"
+    expected_output_name = "Output_Name"
 
     mock_parse.return_value = sample_validated_definition
     mock_select_inputs.return_value = []

@@ -73,7 +73,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "Input_ContextHealthAnalysis_*" # Designed for manually compiled documents
     inputDateSelector: null
-    outputName: "Output_ContextHealthAnalysis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "ContextHealthAnalysis_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the following list of documents, their modification dates, keywords, and any manually noted relationships from the document titled "{{InputFileName}}".
       Based *only* on the information provided in this input document:
@@ -123,7 +123,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "Input_BoundaryAnalysis_*"
     inputDateSelector: null
-    outputName: "Output_BoundaryAnalysis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_BoundaryAnalysis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the lists of documents and their associated keywords from different teams, as provided in the document titled "{{InputFileName}}".
       Based *only* on the document names and keywords provided:
@@ -156,7 +156,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "DecisionInitialization_*"
     inputDateSelector: null
-    outputName: "Output_GeneratedOptions_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_GeneratedOptions_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Based on the "Problem Statement", "Decision Criteria", "Stakeholder Perspectives", and "Constraints" sections in the Decision Initialization document titled "{{InputFileName}}", generate 3-5 distinct and creative options to address the core problem.
 
@@ -187,7 +187,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "StructuredEvaluation_*"
     inputDateSelector: null
-    outputName: "Output_DecisionFactorAnalysis_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_DecisionFactorAnalysis_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the "Multi-Criteria Analysis" (including option scoring against weighted criteria), "Bias Identification", and "Sensitivity Analysis" (if provided) sections of the Structured Evaluation document titled "{{InputFileName}}".
 
@@ -222,7 +222,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "SprintRetroAnalysis_*"
     inputDateSelector: null
-    outputName: "Output_SprintRetroInsights_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "SprintRetroInsights_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Based *only* on the content of the Sprint Retrospective Analysis document titled "{{InputFileName}}", which includes sections like "Quantitative Performance Analysis", "Deep Pattern Analysis", "Previous Action Assessment", "Team Health Assessment", and "AI-Generated Insights" (from a previous step or human input):
 
@@ -253,7 +253,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "SprintRetroSession_*"
     inputDateSelector: null
-    outputName: "Output_SuggestedSprintActions_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_SuggestedSprintActions_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the "Focused Pattern Exploration", "Root Cause Investigation", and "Strategic Improvement Planning" sections of the Retrospective Session Notes from the document titled "{{InputFileName}}".
       Based on the identified root causes and planned improvement initiatives or experiments:
@@ -288,7 +288,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "QuarterlyMetaRetro_*"
     inputDateSelector: null
-    outputName: "Output_QuarterlyTrendsAnalysis_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_QuarterlyTrendsAnalysis_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Based *only* on the content of the Quarterly Meta-Retrospective document titled "{{InputFileName}}", which includes sections like "Performance Trend Analysis", "System Dynamics Exploration", and "Capability Assessment":
 
@@ -319,7 +319,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "AnnualStrategicRetro_*"
     inputDateSelector: null
-    outputName: "Output_AnnualPerformanceAnalysis_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_AnnualPerformanceAnalysis_for_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Based *only* on the content of the Annual Strategic Retrospective document titled "{{InputFileName}}", which includes sections like "Annual Performance Review", "Team Evolution Analysis", "Business Impact Assessment", and "Capability Development Strategy":
 
@@ -367,7 +367,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "Input_CrossTeamUpdates_*"
     inputDateSelector: null
-    outputName: "Output_CrossTeamSynthesis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_CrossTeamSynthesis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the compiled updates or summaries from multiple teams provided in the document titled "{{InputFileName}}".
       Based *only* on the information within this document:
@@ -398,7 +398,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "Input_SharedChallengesAnalysis_*"
     inputDateSelector: null
-    outputName: "Output_SharedChallengesAnalysis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_SharedChallengesAnalysis_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the detailed challenge descriptions from multiple teams provided in the document titled "{{InputFileName}}".
       Based *only* on this information:
@@ -429,7 +429,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "Input_TeamPracticesReview_*"
     inputDateSelector: null
-    outputName: "Output_CollaborativePractices_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_CollaborativePractices_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the descriptions of current practices from multiple teams provided in the document titled "{{InputFileName}}".
       Based *only* on this information:
@@ -460,7 +460,7 @@ All input documents for these workflows are expected to be **TIP Documents**, of
     inputDocumentSelectors:
       - "Input_PortfolioReview_*"
     inputDateSelector: null
-    outputName: "Output_PortfolioPatterns_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "Output_PortfolioPatterns_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       Review the strategic information and performance data from multiple teams/projects, as compiled in the document titled "{{InputFileName}}".
       Based *only* on this information:
@@ -516,7 +516,7 @@ These workflows are more generic and rely on the user providing specific instruc
     inputDocumentSelectors:
       - "PairInput_*"
     inputDateSelector: null
-    outputName: "DraftOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "DraftOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       The following input document "{{InputFileName}}" contains a request to draft a text section.
       The request includes an outline, potentially some source material snippets, and specific instructions regarding tone or key terms.
@@ -548,7 +548,7 @@ These workflows are more generic and rely on the user providing specific instruc
     inputDocumentSelectors:
       - "PairInput_*"
     inputDateSelector: null
-    outputName: "BrainstormOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "BrainstormOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       The input document "{{InputFileName}}" contains a request for brainstorming strategic ideas.
       It details a problem/opportunity, background context, constraints, and a desired future state.
@@ -597,7 +597,7 @@ These workflows are more generic and rely on the user providing specific instruc
     inputDocumentSelectors:
       - "PairInput_*"
     inputDateSelector: null
-    outputName: "SummaryOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}.md"
+    outputName: "SummaryOutput_from_{{InputFileName}}_{{Year}}-{{Month}}-{{Day}}"
     prompt: |
       The input document "{{InputFileName}}" contains a body of text to be summarized AND specific instructions or questions outlining the desired focus areas for the summary.
 

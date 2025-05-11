@@ -55,15 +55,15 @@ The focus is on transforming AI into an active collaborator. By following these 
 Before commencing the LACM routines, your team needs a set of foundational TIP Documents. These provide essential context for both the team and the AI workflows. An Administrator should have already created the necessary "Document Templates" in TIP, as defined in the `LACM Templates Library for TIP`.
 
 Your team should create the following TIP Documents using those templates:
-* `LACM_Strategy_Current.md` (from `LACM_Strategy`)
-* `LACM_Competitors_Current.md` (from `LACM_Competitors`)
-* `LACM_TargetMarkets_Current.md` (from `LACM_TargetMarkets`)
-* `LACM_Goals_Q[CurrentQuarter]_[CurrentYear].md` (from `LACM_QuarterlyGoals`)
-* `LACM_KW[CurrentWeek]_WeeklyPlanPreview_InitialSetup.md` (from `LACM_WeeklyPlanPreview_Initial` for the very first week)
-* `LACM_TaskList_Current.md` (from `LACM_TaskList`)
-* `LACM_AvailableTime_Current.md` (from `LACM_AvailableTime`)
-* `LACM_Processes_Internal.md` (from `LACM_Processes`, can be initially basic)
-* Other documents like `LACM_IdeaBacklog.md`, `LACM_CustomerFeedback_Log.md`, `LACM_SalesHandbook_Internal.md` can be created as needed using their respective templates.
+* `LACM_Strategy_Current` (from `LACM_Strategy`)
+* `LACM_Competitors_Current` (from `LACM_Competitors`)
+* `LACM_TargetMarkets_Current` (from `LACM_TargetMarkets`)
+* `LACM_Goals_Q[CurrentQuarter]_[CurrentYear]` (from `LACM_QuarterlyGoals`)
+* `LACM_KW[CurrentWeek]_WeeklyPlanPreview_InitialSetup` (from `LACM_WeeklyPlanPreview_Initial` for the very first week)
+* `LACM_TaskList_Current` (from `LACM_TaskList`)
+* `LACM_AvailableTime_Current` (from `LACM_AvailableTime`)
+* `LACM_Processes_Internal` (from `LACM_Processes`, can be initially basic)
+* Other documents like `LACM_IdeaBacklog`, `LACM_CustomerFeedback_Log`, `LACM_SalesHandbook_Internal` can be created as needed using their respective templates.
 
 Refer to the (separate) "LACM Onboarding Guide for TIP" for detailed instructions on creating and populating these initial documents. Ensure these core documents are saved in TIP before starting Phase 1.
 
@@ -78,7 +78,7 @@ The LACM process in TIP is guided by these core principles:
 3.  **Integration in Routines:** AI-assisted steps are embedded in regular daily, weekly, monthly, and strategic cycles within the TIP environment.
 4.  **Transparent Evaluation:** Humans always review, edit (if necessary), and explicitly save (creating a new version) AI-generated TIP Documents before they become part of the official knowledge base.
 5.  **Continuous Learning:** The process facilitates iterative improvement of inputs to TIP Workflows, manual processes, and the knowledge base itself, all documented within TIP.
-6.  **Markdown Standard:** `.md` is the universal format for all TIP Documents, ensuring human and machine readability.
+6.  **Markdown Standard:** Markdown is the universal format for all TIP Documents, ensuring human and machine readability.
 7.  **Local AI Processing:** All AI processing via TIP Workflows uses the locally configured LLM, ensuring data privacy. No internet or external tool access by the LLM is assumed or utilized.
 
 ---
@@ -108,30 +108,30 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - Manual Input):**
         * Manually research relevant news, articles, competitor updates, market signals from the last 24-48 hours.
-        * In TIP, create a new TIP Document named `LACM_ManualNewsInput_YYYY-MM-DD.md` (e.g., `LACM_ManualNewsInput_2025-05-11.md`) using the `LACM_ManualNewsInput` from the LACM Templates Library.
+        * In TIP, create a new TIP Document named `LACM_ManualNewsInput_YYYY-MM-DD` (e.g., `LACM_ManualNewsInput_2025-05-11`) using the `LACM_ManualNewsInput` from the LACM Templates Library.
         * Paste summaries, key points, or relevant text snippets into this document. Save the document.
     2.  **How (User - AI Processing):**
         * Navigate to "Run Workflows" in TIP.
         * Select the Admin-created Process Workflow: `LACM_Workflow_DailyNewsAnalysis`.
         * When prompted, select the following TIP Documents as inputs:
-            * The `LACM_ManualNewsInput_YYYY-MM-DD.md` you just created.
-            * The current `LACM_Strategy_Current.md`.
-            * The current `LACM_Competitors_Current.md`.
-            * The current `LACM_TargetMarkets_Current.md`.
+            * The `LACM_ManualNewsInput_YYYY-MM-DD` you just created.
+            * The current `LACM_Strategy_Current`.
+            * The current `LACM_Competitors_Current`.
+            * The current `LACM_TargetMarkets_Current`.
         * Execute the workflow.
     3.  **AI Does (via TIP Workflow `LACM_Workflow_DailyNewsAnalysis`):**
         * Processes the content of the selected TIP Documents.
         * Analyzes the manually provided news against the strategic context documents.
         * Generates a new TIP Document summarizing relevant news and potential impacts.
     4.  **You Do (User - Review):**
-        * Open and briefly review the AI-generated TIP Document (e.g., `LACM_DailyNewsAnalysis_2025-05-11_...md`) for relevant insights. This document will be an input for subsequent steps. No explicit save/commit is needed by you on this AI output document unless you wish to make corrective edits (which would create a new version).
+        * Open and briefly review the AI-generated TIP Document (e.g., `LACM_DailyNewsAnalysis_2025-05-11_..`) for relevant insights. This document will be an input for subsequent steps. No explicit save/commit is needed by you on this AI output document unless you wish to make corrective edits (which would create a new version).
 * **Tools:** TIP for document creation/editing and workflow execution. External tools/websites for manual news research.
 * **Artifacts (TIP Documents):**
-    * Input: `LACM_ManualNewsInput_YYYY-MM-DD.md`
-    * Context: `LACM_Strategy_Current.md`, `LACM_Competitors_Current.md`, `LACM_TargetMarkets_Current.md`
-    * Output: `LACM_DailyNewsAnalysis_YYYY-MM-DD_...md` (exact name based on workflow output template)
+    * Input: `LACM_ManualNewsInput_YYYY-MM-DD`
+    * Context: `LACM_Strategy_Current`, `LACM_Competitors_Current`, `LACM_TargetMarkets_Current`
+    * Output: `LACM_DailyNewsAnalysis_YYYY-MM-DD_..` (exact name based on workflow output template)
 * **Value:** Early awareness of opportunities/threats from your curated information, provides external context for daily decisions.
-* **TIP:** If the AI analysis seems off, review the content and clarity of your `LACM_ManualNewsInput_YYYY-MM-DD.md` and the detail in your strategy/competitor/market documents.
+* **TIP:** If the AI analysis seems off, review the content and clarity of your `LACM_ManualNewsInput_YYYY-MM-DD` and the detail in your strategy/competitor/market documents.
 
 ### 5.2. Daily Review & Context Capture
 
@@ -141,26 +141,26 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - Manual Input):**
         * Reflect on your last 24 hours of work (achievements, challenges, interactions, learnings).
-        * In TIP, create/update a TIP Document, e.g., `LACM_DailyLogInput_Team_YYYY-MM-DD.md` (or individual files like `LACM_DailyLogInput_UserA_YYYY-MM-DD.md` then manually consolidate if preferred) using `LACM_DailyLogInput`. Enter your reflections. Save the document.
+        * In TIP, create/update a TIP Document, e.g., `LACM_DailyLogInput_Team_YYYY-MM-DD` (or individual files like `LACM_DailyLogInput_UserA_YYYY-MM-DD` then manually consolidate if preferred) using `LACM_DailyLogInput`. Enter your reflections. Save the document.
     2.  **How (User - AI Processing):**
         * Navigate to "Run Workflows" in TIP.
         * Select the Admin-created Process Workflow: `LACM_Workflow_DailyLogGenerator`.
         * When prompted, select as inputs:
-            * The `LACM_DailyLogInput_..._YYYY-MM-DD.md` containing the team's (or your) raw notes.
-            * The previous day's plan (e.g., `LACM_DailyPlan_YYYY-MM-DD-1.md`).
-            * Today's analysis document (e.g., `LACM_DailyNewsAnalysis_YYYY-MM-DD_...md`).
+            * The `LACM_DailyLogInput_..._YYYY-MM-DD` containing the team's (or your) raw notes.
+            * The previous day's plan (e.g., `LACM_DailyPlan_YYYY-MM-DD-1`).
+            * Today's analysis document (e.g., `LACM_DailyNewsAnalysis_YYYY-MM-DD_..`).
         * Execute the workflow.
     3.  **AI Does (via TIP Workflow `LACM_Workflow_DailyLogGenerator`):**
         * Processes the content of the selected TIP Documents.
         * Structures the inputs into a draft daily log.
     4.  **You Do (User - Review & Commit):**
-        * Open the AI-generated TIP Document (e.g., `LACM_DailyLog_YYYY-MM-DD_...md`).
+        * Open the AI-generated TIP Document (e.g., `LACM_DailyLog_YYYY-MM-DD_..`).
         * **Crucially, review this draft carefully.** Correct inaccuracies, add missing details, refine phrasing directly in the TIP editor.
         * Once satisfied, **Save** the document in TIP. This action creates a new version, making it the official log for the day.
 * **Tools:** TIP for document creation/editing and workflow execution.
 * **Artifacts (TIP Documents):**
-    * Input: `LACM_DailyLogInput_..._YYYY-MM-DD.md`, `LACM_DailyPlan_YYYY-MM-DD-1.md`, `LACM_DailyNewsAnalysis_YYYY-MM-DD_...md`.
-    * Output: `LACM_DailyLog_YYYY-MM-DD_...md` (reviewed and saved by user).
+    * Input: `LACM_DailyLogInput_..._YYYY-MM-DD`, `LACM_DailyPlan_YYYY-MM-DD-1`, `LACM_DailyNewsAnalysis_YYYY-MM-DD_..`.
+    * Output: `LACM_DailyLog_YYYY-MM-DD_..` (reviewed and saved by user).
 * **Value:** Captures vital operational context, creates a record of progress and issues, documents learnings.
 * **TIP:** Be thorough in your review and editing of the AI-generated daily log. Consistent structure (guided by the AI's output format) is key for future analysis.
 
@@ -171,35 +171,35 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Participants:** All Team Members (review and refine plan), AI (via TIP Workflow).
 * **Process in TIP:**
     1.  **How (User - Input Preparation & AI Processing):**
-        * Ensure your `LACM_AvailableTime_Current.md` and `LACM_TaskList_Current.md` TIP Documents are up-to-date. Save any changes.
+        * Ensure your `LACM_AvailableTime_Current` and `LACM_TaskList_Current` TIP Documents are up-to-date. Save any changes.
         * Navigate to "Run Workflows" in TIP.
         * Select the Admin-created Process Workflow: `LACM_Workflow_DailyPlanGenerator`.
         * When prompted, select all relevant input TIP Documents:
-            * Today's `LACM_DailyLog_YYYY-MM-DD_...md` (from step 5.2).
-            * Today's `LACM_DailyNewsAnalysis_YYYY-MM-DD_...md` (from step 5.1).
-            * Current `LACM_Strategy_Current.md`.
-            * Current `LACM_Goals_Quarter_Q[CurrentQuarter]_[CurrentYear].md`.
-            * Current week's `LACM_KW[CurrentWeek]_WeeklyPlanPreview_....md`.
-            * Current `LACM_TaskList_Current.md`.
-            * Current `LACM_AvailableTime_Current.md`.
+            * Today's `LACM_DailyLog_YYYY-MM-DD_..` (from step 5.2).
+            * Today's `LACM_DailyNewsAnalysis_YYYY-MM-DD_..` (from step 5.1).
+            * Current `LACM_Strategy_Current`.
+            * Current `LACM_Goals_Quarter_Q[CurrentQuarter]_[CurrentYear]`.
+            * Current week's `LACM_KW[CurrentWeek]_WeeklyPlanPreview_...`.
+            * Current `LACM_TaskList_Current`.
+            * Current `LACM_AvailableTime_Current`.
         * Execute the workflow.
     2.  **AI Does (via TIP Workflow `LACM_Workflow_DailyPlanGenerator`):**
         * Analyzes the provided TIP Documents.
         * Prioritizes tasks, considers available time.
         * Generates a draft daily plan TIP Document.
     3.  **You Do (User - Review & Commit):**
-        * Open the AI-generated TIP Document (e.g., `LACM_DailyPlan_YYYY-MM-DD_...md`).
+        * Open the AI-generated TIP Document (e.g., `LACM_DailyPlan_YYYY-MM-DD_..`).
         * Review the plan. Does it make sense? Is it realistic? Are priorities correct?
         * Use the structure from `LACM_DailyPlanReview` as a mental guide for your review, or to manually adjust/override sections.
         * Edit the plan directly in the TIP editor as needed.
         * Once satisfied, **Save** the document in TIP. This is your team's plan for the day.
-        * Manually update your primary task management system (if external to `LACM_TaskList_Current.md`) based on this plan.
+        * Manually update your primary task management system (if external to `LACM_TaskList_Current`) based on this plan.
 * **Tools:** TIP for document management and workflow execution.
 * **Artifacts (TIP Documents):**
     * Inputs: Various context documents as listed above.
-    * Output: `LACM_DailyPlan_YYYY-MM-DD_...md` (reviewed and saved by user).
+    * Output: `LACM_DailyPlan_YYYY-MM-DD_..` (reviewed and saved by user).
 * **Value:** Provides a clear, prioritized, and achievable plan for the day, aligned with larger goals.
-* **TIP:** The AI's plan is a *suggestion*. Use your judgment. If the plan seems too ambitious, adjust it or update `LACM_AvailableTime_Current.md` for the next day.
+* **TIP:** The AI's plan is a *suggestion*. Use your judgment. If the plan seems too ambitious, adjust it or update `LACM_AvailableTime_Current` for the next day.
 
 ### 5.4. Continuous Documentation & Context Curation
 
@@ -209,23 +209,23 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - Manual Documentation):**
         * As you attend meetings, make decisions, conduct research, or complete work, capture notes and outcomes directly in new or existing TIP Documents.
-        * Use clear, consistent naming conventions (e.g., `LACM_MeetingSummary_[Topic]_[YYYY-MM-DD].md` from `LACM_MeetingSummary`, or `LACM_DecisionLog_TeamName.md` from `LACM_DecisionLog`).
-        * Reference other relevant TIP Documents by name within your notes to create manual links (e.g., "Decision related to `LACM_Strategy_Current.md` section 4").
+        * Use clear, consistent naming conventions (e.g., `LACM_MeetingSummary_[Topic]_[YYYY-MM-DD]` from `LACM_MeetingSummary`, or `LACM_DecisionLog_TeamName` from `LACM_DecisionLog`).
+        * Reference other relevant TIP Documents by name within your notes to create manual links (e.g., "Decision related to `LACM_Strategy_Current` section 4").
         * Save your documents regularly in TIP.
     2.  **How (User - AI-Assisted Documentation, Ad-hoc):**
-        * For tasks like summarizing meeting notes or analyzing a piece of text, prepare an input TIP Document (e.g., `LACM_PairInput_SummarizeNotes_YYYY-MM-DD.md`) with the raw text and your request.
+        * For tasks like summarizing meeting notes or analyzing a piece of text, prepare an input TIP Document (e.g., `LACM_PairInput_SummarizeNotes_YYYY-MM-DD`) with the raw text and your request.
         * Navigate to "Run Workflows" in TIP. Select a general-purpose workflow like `LACM_Workflow_DraftSection` or `LACM_Workflow_AnalyzeTextSegment`.
         * Provide your prepared TIP Document as input.
         * Execute the workflow.
     3.  **AI Does (via selected TIP Workflow):**
-        * Processes your input document and generates an output TIP Document (e.g., `LACM_DraftOutput_SummarizeNotes_...md`).
+        * Processes your input document and generates an output TIP Document (e.g., `LACM_DraftOutput_SummarizeNotes_..`).
     4.  **You Do (User - Review & Integrate):**
         * Review the AI-generated TIP Document. Edit and refine it.
         * Incorporate the polished content into your main project documentation, meeting summaries, or other relevant TIP Documents. Save these updates.
 * **Tools:** TIP for document creation, editing, versioning, and workflow execution.
 * **Artifacts (TIP Documents):** Various project notes, meeting summaries, decision logs, research notes, etc. All stored and versioned in TIP.
 * **Value:** Builds the core "Collective Context." Makes information searchable and reusable. Preserves knowledge.
-* **TIP:** Develop consistent naming conventions for your TIP Documents. Manually "link" related documents by explicitly mentioning their names in the text (e.g., "As detailed in `LACM_Competitors_Current.md`...").
+* **TIP:** Develop consistent naming conventions for your TIP Documents. Manually "link" related documents by explicitly mentioning their names in the text (e.g., "As detailed in `LACM_Competitors_Current`...").
 
 ---
 
@@ -242,22 +242,22 @@ Each routine involves specific rituals and practices detailed below, leveraging 
     1.  **How (User - AI Processing):**
         * Navigate to "Run Workflows" in TIP.
         * Select the Admin-created Process Workflow: `LACM_Workflow_WeeklyAnalysis`.
-        * When prompted, select the `LACM_DailyNewsAnalysis_YYYY-MM-DD_...md` TIP Documents from the past 7 days, and the current `LACM_Strategy_Current.md`.
+        * When prompted, select the `LACM_DailyNewsAnalysis_YYYY-MM-DD_..` TIP Documents from the past 7 days, and the current `LACM_Strategy_Current`.
         * Execute the workflow.
     2.  **AI Does (via TIP Workflow `LACM_Workflow_WeeklyAnalysis`):**
         * Processes the selected daily analysis documents and the strategy document.
         * Identifies recurring themes/trends and assesses strategic relevance.
-        * Generates a new TIP Document (e.g., `LACM_KW[CurrentWeek]_WeeklyAnalysis_YYYY-MM-DD.md`).
+        * Generates a new TIP Document (e.g., `LACM_KW[CurrentWeek]_WeeklyAnalysis_YYYY-MM-DD`).
     3.  **You Do (User - Review & Commit):**
         * Open and review the AI-generated weekly analysis TIP Document.
         * Discuss findings with the team. Add any manual insights or corrections.
         * Save the document in TIP.
 * **Tools:** TIP for document selection and workflow execution.
 * **Artifacts (TIP Documents):**
-    * Input: Multiple `LACM_DailyNewsAnalysis_YYYY-MM-DD_...md` files, `LACM_Strategy_Current.md`.
-    * Output: `LACM_KW[CurrentWeek]_WeeklyAnalysis_YYYY-MM-DD.md`.
+    * Input: Multiple `LACM_DailyNewsAnalysis_YYYY-MM-DD_..` files, `LACM_Strategy_Current`.
+    * Output: `LACM_KW[CurrentWeek]_WeeklyAnalysis_YYYY-MM-DD`.
 * **Value:** Higher-level view of the external environment, informs weekly planning.
-* **TIP:** If insights are weak, check if the daily news inputs were sufficiently detailed or if the `LACM_Strategy_Current.md` needs more specific keywords/focus areas.
+* **TIP:** If insights are weak, check if the daily news inputs were sufficiently detailed or if the `LACM_Strategy_Current` needs more specific keywords/focus areas.
 
 ### 6.2. Weekly Review & Retrospective
 
@@ -269,24 +269,24 @@ Each routine involves specific rituals and practices detailed below, leveraging 
         * Navigate to "Run Workflows" in TIP.
         * Select the Admin-created Process Workflow: `LACM_Workflow_WeeklyRetroPrep`.
         * When prompted, select as inputs:
-            * The `LACM_DailyLog_YYYY-MM-DD_...md` TIP Documents from the past 7 days.
-            * The `LACM_KW[CurrentWeek-1]_WeeklyPlanPreview_....md` (the plan for the week being reviewed).
-            * Optionally, the current `LACM_Processes_Internal.md`.
+            * The `LACM_DailyLog_YYYY-MM-DD_..` TIP Documents from the past 7 days.
+            * The `LACM_KW[CurrentWeek-1]_WeeklyPlanPreview_...` (the plan for the week being reviewed).
+            * Optionally, the current `LACM_Processes_Internal`.
         * Execute the workflow.
     2.  **AI Does (via TIP Workflow `LACM_Workflow_WeeklyRetroPrep`):**
         * Analyzes the daily logs and weekly plan.
-        * Generates a `LACM_KW[CurrentWeek]_RetroPreparation_YYYY-MM-DD.md` TIP Document with data points and discussion questions.
+        * Generates a `LACM_KW[CurrentWeek]_RetroPreparation_YYYY-MM-DD` TIP Document with data points and discussion questions.
     3.  **You Do (User - Conduct Retro & Document):**
-        * Team reviews the AI-generated `LACM_KW[CurrentWeek]_RetroPreparation_YYYY-MM-DD.md`.
+        * Team reviews the AI-generated `LACM_KW[CurrentWeek]_RetroPreparation_YYYY-MM-DD`.
         * Conduct the retrospective discussion (What went well? Challenges? Learnings? Improvements?).
-        * Manually create a new TIP Document named `LACM_KW[CurrentWeek]_WeeklyRetroSummary_YYYY-MM-DD.md` using `LACM_WeeklyRetroSummary`. Capture key discussion points and agreed action items in this document.
-        * Save the summary document. If process changes are agreed, update the `LACM_Processes_Internal.md` TIP Document and save it.
-        * Manually transfer action items to `LACM_TaskList_Current.md` or your external task manager.
+        * Manually create a new TIP Document named `LACM_KW[CurrentWeek]_WeeklyRetroSummary_YYYY-MM-DD` using `LACM_WeeklyRetroSummary`. Capture key discussion points and agreed action items in this document.
+        * Save the summary document. If process changes are agreed, update the `LACM_Processes_Internal` TIP Document and save it.
+        * Manually transfer action items to `LACM_TaskList_Current` or your external task manager.
 * **Tools:** TIP for document management and workflow execution.
 * **Artifacts (TIP Documents):**
-    * Input: Multiple `LACM_DailyLog_...md` files, `LACM_KW[CurrentWeek-1]_WeeklyPlanPreview_....md`, `LACM_Processes_Internal.md`.
-    * AI Output: `LACM_KW[CurrentWeek]_RetroPreparation_YYYY-MM-DD.md`.
-    * Human Output: `LACM_KW[CurrentWeek]_WeeklyRetroSummary_YYYY-MM-DD.md`, updated `LACM_Processes_Internal.md`, updated `LACM_TaskList_Current.md`.
+    * Input: Multiple `LACM_DailyLog_..` files, `LACM_KW[CurrentWeek-1]_WeeklyPlanPreview_...`, `LACM_Processes_Internal`.
+    * AI Output: `LACM_KW[CurrentWeek]_RetroPreparation_YYYY-MM-DD`.
+    * Human Output: `LACM_KW[CurrentWeek]_WeeklyRetroSummary_YYYY-MM-DD`, updated `LACM_Processes_Internal`, updated `LACM_TaskList_Current`.
 * **Value:** Drives continuous improvement, addresses recurring issues.
 * **TIP:** Use the AI-prepared document as a starting point for discussion, not the only source. Human insights and feelings are crucial in a retrospective.
 
@@ -300,16 +300,16 @@ Each routine involves specific rituals and practices detailed below, leveraging 
         * Navigate to "Run Workflows" in TIP.
         * Select the Admin-created Process Workflow: `LACM_Workflow_WeeklyPlanPreviewGenerator`.
         * When prompted, select as inputs:
-            * Current week's `LACM_KW[CurrentWeek]_WeeklyAnalysis_YYYY-MM-DD.md`.
-            * Current week's `LACM_KW[CurrentWeek]_WeeklyRetroSummary_YYYY-MM-DD.md`.
-            * Current `LACM_Strategy_Current.md`.
-            * Current `LACM_Goals_Quarter_Q[CurrentQuarter]_[CurrentYear].md`.
-            * Current `LACM_TaskList_Current.md`.
-            * Optionally, `LACM_PrioritizedInnovationInitiatives_Current.md`.
+            * Current week's `LACM_KW[CurrentWeek]_WeeklyAnalysis_YYYY-MM-DD`.
+            * Current week's `LACM_KW[CurrentWeek]_WeeklyRetroSummary_YYYY-MM-DD`.
+            * Current `LACM_Strategy_Current`.
+            * Current `LACM_Goals_Quarter_Q[CurrentQuarter]_[CurrentYear]`.
+            * Current `LACM_TaskList_Current`.
+            * Optionally, `LACM_PrioritizedInnovationInitiatives_Current`.
         * Execute the workflow.
     2.  **AI Does (via TIP Workflow `LACM_Workflow_WeeklyPlanPreviewGenerator`):**
         * Analyzes inputs, proposes objectives for the next week.
-        * Generates a draft `LACM_KW[NextWeek]_WeeklyPlanPreview_YYYY-MM-DD.md` TIP Document.
+        * Generates a draft `LACM_KW[NextWeek]_WeeklyPlanPreview_YYYY-MM-DD` TIP Document.
     3.  **You Do (User - Review & Commit):**
         * Open and review the AI-generated draft plan. Does it capture the right focus? Are objectives clear and achievable?
         * Edit and refine the plan directly in the TIP editor.
@@ -317,7 +317,7 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Tools:** TIP for document management and workflow execution.
 * **Artifacts (TIP Documents):**
     * Inputs: Various context documents as listed above.
-    * Output: `LACM_KW[NextWeek]_WeeklyPlanPreview_YYYY-MM-DD.md`.
+    * Output: `LACM_KW[NextWeek]_WeeklyPlanPreview_YYYY-MM-DD`.
 * **Value:** Sets clear priorities for the upcoming week.
 * **TIP:** Ensure the "Why" for each objective in the preview is clear and compelling for the team.
 
@@ -335,10 +335,10 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - AI Processing):**
         * Select `LACM_Workflow_MonthlyAnalysisStrategyCheck`.
-        * Inputs: `LACM_KW*_WeeklyAnalysis_*.md` (for the month), `LACM_Strategy_Current.md`, `LACM_Goals_Quarter_Current.md`, previous month's `LACM_MonthlyAnalysisStrategyCheck_...md` (optional).
-    2.  **AI Does:** Generates `LACM_YYYY-MM_MonthlyAnalysisStrategyCheck.md`.
+        * Inputs: `LACM_KW*_WeeklyAnalysis_*` (for the month), `LACM_Strategy_Current`, `LACM_Goals_Quarter_Current`, previous month's `LACM_MonthlyAnalysisStrategyCheck_..` (optional).
+    2.  **AI Does:** Generates `LACM_YYYY-MM_MonthlyAnalysisStrategyCheck`.
     3.  **You Do:** Review, discuss, and save the document. Use as input for strategic discussions.
-* **Artifacts:** `LACM_YYYY-MM_MonthlyAnalysisStrategyCheck.md`.
+* **Artifacts:** `LACM_YYYY-MM_MonthlyAnalysisStrategyCheck`.
 * **Value:** Consolidated strategic view, data-informed reviews.
 
 ### 7.2. Context Size Management (Context Condensation)
@@ -350,9 +350,9 @@ Each routine involves specific rituals and practices detailed below, leveraging 
     1.  **How (User - AI Processing):**
         * Select `LACM_Workflow_ContextCondensation`.
         * Inputs: Select multiple older TIP documents (e.g., daily logs, weekly analyses from >60 days ago).
-    2.  **AI Does:** Generates a `LACM_CondensedContext_[Period]_[Date].md` summary document.
+    2.  **AI Does:** Generates a `LACM_CondensedContext_[Period]_[Date]` summary document.
     3.  **You Do:** **Carefully review the AI-generated summary.** Ensure no critical long-term information was lost. Save the summary. Then, *manually* decide whether to archive or delete the original detailed TIP documents (this action is outside the AI workflow and is a manual TIP operation).
-* **Artifacts:** `LACM_CondensedContext_[Period]_[Date].md`.
+* **Artifacts:** `LACM_CondensedContext_[Period]_[Date]`.
 * **Value:** Keeps knowledge base lean and relevant for AI.
 * **TIP:** This step requires significant human judgment. The AI provides a *draft* condensation. The decision to remove original documents is critical.
 
@@ -364,10 +364,10 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - AI Processing):**
         * Select `LACM_Workflow_MonthlyProcessRetroPrep`.
-        * Inputs: `LACM_KW*_WeeklyRetroSummary_*.md` (for the month), `LACM_Processes_Internal.md`.
-    2.  **AI Does:** Generates `LACM_YYYY-MM_ProcessRetroPreparation.md` summarizing process feedback.
-    3.  **You Do:** Review AI prep doc. Discuss process issues. Manually update the `LACM_Processes_Internal.md` TIP Document with agreed improvements. Save the changes.
-* **Artifacts:** `LACM_YYYY-MM_ProcessRetroPreparation.md`, updated `LACM_Processes_Internal.md`.
+        * Inputs: `LACM_KW*_WeeklyRetroSummary_*` (for the month), `LACM_Processes_Internal`.
+    2.  **AI Does:** Generates `LACM_YYYY-MM_ProcessRetroPreparation` summarizing process feedback.
+    3.  **You Do:** Review AI prep doc. Discuss process issues. Manually update the `LACM_Processes_Internal` TIP Document with agreed improvements. Save the changes.
+* **Artifacts:** `LACM_YYYY-MM_ProcessRetroPreparation`, updated `LACM_Processes_Internal`.
 * **Value:** Systematic improvement of core operational workflows.
 
 ---
@@ -384,10 +384,10 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - AI Processing):**
         * Select `LACM_Workflow_QuarterlyReviewPrep`.
-        * Inputs: `LACM_YYYY-MM_MonthlyAnalysisStrategyCheck.md` (for the quarter), expiring `LACM_Goals_Quarter_Current.md`, `LACM_Strategy_Current.md`, `LACM_SalesHandbook_Internal.md` (optional), `LACM_PrioritizedInnovationInitiatives_Current.md` (optional), other user-created performance summary TIP documents.
-    2.  **AI Does:** Generates `LACM_Q[CurrentQuarter]_[Year]_ReviewPreparation_DraftOKRs_Q[NextQuarter].md`.
-    3.  **You Do:** Use AI prep doc for strategic discussion. Manually create/finalize the official `LACM_Goals_Quarter_Q[NextQuarter]_[Year].md` using `LACM_QuarterlyGoals`. Update `LACM_Strategy_Current.md` if major shifts. Save all documents.
-* **Artifacts:** `LACM_Q[CurrentQuarter]_[Year]_ReviewPreparation_DraftOKRs_Q[NextQuarter].md`, new `LACM_Goals_Quarter_Q[NextQuarter]_[Year].md`, potentially updated `LACM_Strategy_Current.md`.
+        * Inputs: `LACM_YYYY-MM_MonthlyAnalysisStrategyCheck` (for the quarter), expiring `LACM_Goals_Quarter_Current`, `LACM_Strategy_Current`, `LACM_SalesHandbook_Internal` (optional), `LACM_PrioritizedInnovationInitiatives_Current` (optional), other user-created performance summary TIP documents.
+    2.  **AI Does:** Generates `LACM_Q[CurrentQuarter]_[Year]_ReviewPreparation_DraftOKRs_Q[NextQuarter]`.
+    3.  **You Do:** Use AI prep doc for strategic discussion. Manually create/finalize the official `LACM_Goals_Quarter_Q[NextQuarter]_[Year]` using `LACM_QuarterlyGoals`. Update `LACM_Strategy_Current` if major shifts. Save all documents.
+* **Artifacts:** `LACM_Q[CurrentQuarter]_[Year]_ReviewPreparation_DraftOKRs_Q[NextQuarter]`, new `LACM_Goals_Quarter_Q[NextQuarter]_[Year]`, potentially updated `LACM_Strategy_Current`.
 * **Value:** Data-driven quarterly planning, strategic alignment, clear 90-day direction.
 
 ### 8.2. Innovation Management: Idea Generation & Evaluation
@@ -398,13 +398,13 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - Idea Generation - AI Processing):**
         * Select `LACM_Workflow_InnovationIdeaGeneration`.
-        * Inputs: Recent analysis TIP documents, `LACM_Competitors_Current.md`, `LACM_CustomerFeedback_Log.md`, `LACM_IdeaBacklog.md`, `LACM_Strategy_Current.md`.
-    2.  **AI Does:** Generates `LACM_NewIdeas_Q[CurrentQuarter]_YYYY-MM-DD.md`.
+        * Inputs: Recent analysis TIP documents, `LACM_Competitors_Current`, `LACM_CustomerFeedback_Log`, `LACM_IdeaBacklog`, `LACM_Strategy_Current`.
+    2.  **AI Does:** Generates `LACM_NewIdeas_Q[CurrentQuarter]_YYYY-MM-DD`.
     3.  **You Do (Manual Evaluation & Prioritization):**
-        * Review AI-generated ideas and add any human-generated ideas to the `LACM_IdeaBacklog.md` TIP Document (using `LACM_IdeaBacklog`).
+        * Review AI-generated ideas and add any human-generated ideas to the `LACM_IdeaBacklog` TIP Document (using `LACM_IdeaBacklog`).
         * Periodically evaluate ideas in the backlog.
-        * Update the `LACM_PrioritizedInnovationInitiatives_Current.md` TIP Document (using `LACM_PrioritizedInnovationInitiatives`) with promising initiatives. Save all documents.
-* **Artifacts:** `LACM_NewIdeas_Q[CurrentQuarter]_YYYY-MM-DD.md`, updated `LACM_IdeaBacklog.md`, updated `LACM_PrioritizedInnovationInitiatives_Current.md`.
+        * Update the `LACM_PrioritizedInnovationInitiatives_Current` TIP Document (using `LACM_PrioritizedInnovationInitiatives`) with promising initiatives. Save all documents.
+* **Artifacts:** `LACM_NewIdeas_Q[CurrentQuarter]_YYYY-MM-DD`, updated `LACM_IdeaBacklog`, updated `LACM_PrioritizedInnovationInitiatives_Current`.
 * **Value:** Structured approach to innovation.
 
 ### 8.3. Annual Strategy Review & Long-Term Planning
@@ -415,14 +415,14 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Process in TIP:**
     1.  **How (User - AI Processing):**
         * Select `LACM_Workflow_AnnualStrategyAnalysisPrep`.
-        * Inputs: All `LACM_Q*_ReviewPreparation_*.md` files for the year, any annual financial/market summary TIP documents, expiring `LACM_Strategy_Current.md`.
-    2.  **AI Does:** Generates `LACM_[Year]_AnnualStrategyAnalysisInput.md`.
+        * Inputs: All `LACM_Q*_ReviewPreparation_*` files for the year, any annual financial/market summary TIP documents, expiring `LACM_Strategy_Current`.
+    2.  **AI Does:** Generates `LACM_[Year]_AnnualStrategyAnalysisInput`.
     3.  **You Do (Strategic Review & Documentation):**
         * Use AI analysis for deep strategic discussions.
         * Make fundamental decisions about vision, mission, strategy.
-        * Manually create/update the main `LACM_Strategy_Current.md` for the *next year*. This is a critical manual step.
-        * Optionally create a `LACM_YYYY_AnnualReport_Strategy.md` to summarize the review. Save all documents.
-* **Artifacts:** `LACM_[Year]_AnnualStrategyAnalysisInput.md`, significantly updated `LACM_Strategy_NextYear.md` (renaming current to previous year, and new one becomes current).
+        * Manually create/update the main `LACM_Strategy_Current` for the *next year*. This is a critical manual step.
+        * Optionally create a `LACM_YYYY_AnnualReport_Strategy` to summarize the review. Save all documents.
+* **Artifacts:** `LACM_[Year]_AnnualStrategyAnalysisInput`, significantly updated `LACM_Strategy_NextYear` (renaming current to previous year, and new one becomes current).
 * **Value:** Ensures long-term strategic relevance and direction.
 
 ---
@@ -432,7 +432,7 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 * **Purpose:** To leverage AI (via general-purpose TIP Workflows) for specific, focused tasks like drafting content, brainstorming, or analyzing text segments as part of daily work or other rituals.
 * **Cadence & Format:** As needed by individual team members.
 * **Process in TIP:**
-    1.  **Prepare Input:** Create a new TIP Document (e.g., `LACM_PairInput_[TaskDescription]_[Date].md`). In this document, clearly state your request for the AI and provide any necessary context, text to be analyzed, or keywords. Use a simple structure (e.g., "Request: Draft an introduction for X.", "Text to Analyze: ...").
+    1.  **Prepare Input:** Create a new TIP Document (e.g., `LACM_PairInput_[TaskDescription]_[Date]`). In this document, clearly state your request for the AI and provide any necessary context, text to be analyzed, or keywords. Use a simple structure (e.g., "Request: Draft an introduction for X.", "Text to Analyze: ...").
     2.  **Select Workflow:** In TIP, go to "Run Workflows" and choose an appropriate general-purpose workflow like:
         * `LACM_Workflow_DraftSection`
         * `LACM_Workflow_BrainstormIdeas`
@@ -442,7 +442,7 @@ Each routine involves specific rituals and practices detailed below, leveraging 
         * Edit your input TIP Document (`LACM_PairInput_...`) with more specific instructions or refined context and re-run the workflow.
         * Directly edit the AI's output TIP Document.
     5.  **Log & Document (Optional but Recommended):**
-        * Consider using `LACM_PairWorkingSessionLog` (from `LACM Templates Library for TIP`) to create a `LACM_PairLog_[TaskDescription]_[Date].md` to note effective prompts/inputs and AI responses for future reference or to share patterns.
+        * Consider using `LACM_PairWorkingSessionLog` (from `LACM Templates Library for TIP`) to create a `LACM_PairLog_[TaskDescription]_[Date]` to note effective prompts/inputs and AI responses for future reference or to share patterns.
 * **Value:** Accelerates specific tasks, helps overcome writer's block, provides analytical assistance.
 
 ---
@@ -452,8 +452,8 @@ Each routine involves specific rituals and practices detailed below, leveraging 
 ### 10.1. Document Naming Conventions
 
 Consistent naming of TIP Documents is crucial for organization and for the `inputDocumentSelectors` in TIP Workflows to function correctly. Adopt conventions like:
-* `LACM_[Purpose]_[Date/Period/Identifier].md`
-* Examples: `LACM_Strategy_Current.md`, `LACM_ManualNewsInput_2025-05-11.md`, `LACM_DailyLog_2025-05-11.md`, `LACM_Goals_Q2_2025.md`, `LACM_KW20_WeeklyAnalysis_2025-W20.md`.
+* `LACM_[Purpose]_[Date/Period/Identifier]`
+* Examples: `LACM_Strategy_Current`, `LACM_ManualNewsInput_2025-05-11`, `LACM_DailyLog_2025-05-11`, `LACM_Goals_Q2_2025`, `LACM_KW20_WeeklyAnalysis_2025-W20`.
 * Keep "Current" documents (like Strategy, TaskList) as single, living documents, frequently updated (TIP's versioning will track history). Dated documents are created for each instance (e.g., each day's log).
 
 ### 10.2. Using TIP Workflows

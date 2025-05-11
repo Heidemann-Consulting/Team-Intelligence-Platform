@@ -38,7 +38,7 @@
   - [**9. Progression to Phase 2 (Readiness Criteria for TIP Users)**](#9-progression-to-phase-2-readiness-criteria-for-tip-users)
   - [**10. Appendices**](#10-appendices)
     - [**10.1 TIP Ritual Templates Library Reference**](#101-tip-ritual-templates-library-reference)
-    - [**10.2 TIP Workflow Library Reference**](#102-tip-workflow-library-reference)
+    - [**10.2 TIP Workflow Library Reference**](#102-library-reference)
     - [**10.3 Facilitation Guides (High-Level for TIP)**](#103-facilitation-guides-high-level-for-tip)
     - [**10.4 Measurement Framework Details**](#104-measurement-framework-details)
 

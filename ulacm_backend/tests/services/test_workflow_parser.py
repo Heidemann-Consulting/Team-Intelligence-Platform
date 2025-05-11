@@ -13,7 +13,7 @@ from app.services.workflow_parser import WorkflowDefinitionParser, WorkflowParsi
 VALID_YAML_MINIMAL = """
 processWorkFlowName: Minimal Test Workflow
 trigger: manual
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 model: ollama/test-model
 outputName: Output_{{Year}}.md
 prompt: |
@@ -23,7 +23,7 @@ prompt: |
 VALID_YAML_FULL = """
 processWorkFlowName: Full Test Workflow
 trigger: manual
-inputDocumentSelector: "Daily_Log_*.md"
+inputDocumentSelector: "Daily_Log_*"
 inputDateSelector: olderThanDays 30
 model: ollama/llama3:latest
 temperature: 0.9
@@ -51,7 +51,7 @@ prompt: |
 INVALID_YAML_SYNTAX = """
 processWorkFlowName: Invalid Syntax
 trigger: manual
-  inputDocumentSelector: "*.md" # Indentation error
+  inputDocumentSelector: "*" # Indentation error
 model: ollama/test-model
 outputName: Output.md
 prompt: Fail me
@@ -69,13 +69,13 @@ trigger: manual
 outputName: Output.md
 prompt: |
   This will fail validation.
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 """
 
 INVALID_YAML_WRONG_TYPE = """
 processWorkFlowName: Wrong Type
 trigger: manual
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 model: ollama/test-model
 temperature: "not-a-number" # Should be float
 outputName: Output.md
@@ -85,7 +85,7 @@ prompt: Process this.
 INVALID_YAML_BAD_TRIGGER = """
 processWorkFlowName: Bad Trigger
 trigger: scheduled # Invalid trigger value
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 model: ollama/test-model
 outputName: Output.md
 prompt: Process this.
@@ -94,7 +94,7 @@ prompt: Process this.
 INVALID_YAML_BAD_DATE_SELECTOR_1 = """
 processWorkFlowName: Bad Date Selector 1
 trigger: manual
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 inputDateSelector: olderThan 60 # Missing "Days"
 model: ollama/test-model
 outputName: Output.md
@@ -104,7 +104,7 @@ prompt: Process this.
 INVALID_YAML_BAD_DATE_SELECTOR_2 = """
 processWorkFlowName: Bad Date Selector 2
 trigger: manual
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 inputDateSelector: between_2023-01-01 # Missing end date
 model: ollama/test-model
 outputName: Output.md
@@ -114,7 +114,7 @@ prompt: Process this.
 INVALID_YAML_BAD_DATE_SELECTOR_3 = """
 processWorkFlowName: Bad Date Selector 3
 trigger: manual
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 inputDateSelector: between_2023-02-30_2023-03-15 # Invalid date Feb 30
 model: ollama/test-model
 outputName: Output.md
@@ -123,7 +123,7 @@ prompt: Process this.
 INVALID_YAML_BAD_DATE_SELECTOR_4 = """
 processWorkFlowName: Bad Date Selector 4
 trigger: manual
-inputDocumentSelector: "*.md"
+inputDocumentSelector: "*"
 inputDateSelector: between_2023-05-01_2023-04-01 # Start date after end date
 model: ollama/test-model
 outputName: Output.md
@@ -138,9 +138,9 @@ def test_parse_valid_minimal():
     assert isinstance(result, ValidatedWorkflowDefinition)
     assert result.processWorkFlowName == "Minimal Test Workflow"
     assert result.trigger == "manual"
-    assert result.inputDocumentSelector == "*.md"
+    assert result.inputDocumentSelector == "*"
     assert result.model == "ollama/test-model"
-    assert result.outputName == "Output_{{Year}}.md"
+    assert result.outputName == "Output_{{Year}}"
     assert result.prompt.strip() == "Process this context: {{DocumentContext}}"
     assert result.temperature == 0.7 # Default value
     assert result.inputDateSelector is None
@@ -151,11 +151,11 @@ def test_parse_valid_full():
     assert isinstance(result, ValidatedWorkflowDefinition)
     assert result.processWorkFlowName == "Full Test Workflow"
     assert result.trigger == "manual"
-    assert result.inputDocumentSelector == "Daily_Log_*.md"
+    assert result.inputDocumentSelector == "Daily_Log_*"
     assert result.inputDateSelector == "olderThanDays 30"
     assert result.model == "ollama/llama3:latest"
     assert result.temperature == 0.9
-    assert result.outputName == "Summary_{{Year}}-{{Month}}_{{WorkflowName}}.md"
+    assert result.outputName == "Summary_{{Year}}-{{Month}}_{{WorkflowName}}"
     assert "SYSTEM: You are an assistant." in result.prompt
 
 def test_parse_valid_between_dates():

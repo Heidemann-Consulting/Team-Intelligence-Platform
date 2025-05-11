@@ -35,7 +35,7 @@
 
 This library provides standard templates for creating and managing documents within the Team Intelligence Platform (TIP) as part of the Lean AI Co-Management (LACM) process. These templates are designed to be set up by a TIP Administrator. Team Users will then use these Admin-created "Document Templates" to create new TIP Documents.
 
-The naming convention for documents created from these templates would typically be: `LACM_[TemplatePurpose]_[Date/Identifier].md` (e.g., `LACM_Strategy_2025-05-11.md`, `LACM_DailyLogInput_2025-05-11.md`). Consistent naming is crucial in TIP due to the absence of a user-managed folder structure.
+The naming convention for documents created from these templates would typically be: `LACM_[TemplatePurpose]_[Date/Identifier]` (e.g., `LACM_Strategy_2025-05-11`, `LACM_DailyLogInput_2025-05-11`). Consistent naming is crucial in TIP due to the absence of a user-managed folder structure.
 
 **Note on AI Interaction:** Since LLMs in TIP cannot access the internet or external tools, any information required by an AI Process Workflow (e.g., news, specific data) must be manually gathered by the user and placed into a TIP Document using an appropriate template (like `LACM_ManualNewsInput`). The AI workflow then processes this document.
 
@@ -47,7 +47,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 1. `LACM_Strategy`
 * **Purpose:** Defines the high-level direction, goals, and operational context. Primary input for AI analysis and planning.
-* **TIP Document Name Example:** `LACM_Strategy_YYYY-MM-DD.md`
+* **TIP Document Name Example:** `LACM_Strategy_YYYY-MM-DD`
 
 ```markdown
 # LACM Strategy - Effective Date: {{CurrentDate_YYYY-MM-DD}}
@@ -90,7 +90,7 @@ These templates are for foundational documents that provide context to the AI an
   - Value:
 
 ## 8. Competitive Landscape Overview
-*Who are your main competitors and what is your general positioning against them? (Detailed analysis in `LACM_Competitors_YYYY-MM-DD.md`)*
+*Who are your main competitors and what is your general positioning against them? (Detailed analysis in `LACM_Competitors_YYYY-MM-DD`)*
 - Competitor A:
 - Competitor B:
 
@@ -106,7 +106,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 2. `LACM_ManualNewsInput`
 * **Purpose:** For users to manually input news summaries, articles, or links that will serve as the primary source for the "Daily News & Environment Analysis" AI workflow.
-* **TIP Document Name Example:** `LACM_ManualNewsInput_YYYY-MM-DD.md`
+* **TIP Document Name Example:** `LACM_ManualNewsInput_YYYY-MM-DD`
 
 ```markdown
 # LACM Manual News & External Information Input - {{CurrentDate_YYYY-MM-DD}}
@@ -115,7 +115,7 @@ These templates are for foundational documents that provide context to the AI an
 * Manually research and gather relevant news, articles, blog posts, social media trends, or other external information from the last 24-48 hours.
 * Focus on items potentially impacting your strategy, competitors, target markets, or ongoing projects.
 * For each item, provide a source (if applicable), a brief summary or the full text if concise, and optionally, your initial thoughts on its relevance.
-* This document will be processed by an AI workflow to generate the `LACM_DailyNewsAnalysis_YYYY-MM-DD.md`.
+* This document will be processed by an AI workflow to generate the `LACM_DailyNewsAnalysis_YYYY-MM-DD`.
 
 ---
 
@@ -142,7 +142,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 3. `LACM_Competitors`
 * **Purpose:** Provides context about main competitors for analysis and strategic reviews.
-* **TIP Document Name Example:** `LACM_Competitors_YYYY-MM-DD.md` (updated periodically)
+* **TIP Document Name Example:** `LACM_Competitors_YYYY-MM-DD` (updated periodically)
 
 ```markdown
 # LACM Competitor Analysis - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -174,7 +174,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 4. `LACM_TargetMarkets`
 * **Purpose:** Defines target customers/users to inform AI analysis relevance.
-* **TIP Document Name Example:** `LACM_TargetMarkets_YYYY-MM-DD.md` (updated periodically)
+* **TIP Document Name Example:** `LACM_TargetMarkets_YYYY-MM-DD` (updated periodically)
 
 ```markdown
 # LACM Target Market Analysis - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -198,13 +198,13 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 5. `LACM_QuarterlyGoals`
 * **Purpose:** Defines specific, measurable Objectives and Key Results (OKRs) for the current quarter.
-* **TIP Document Name Example:** `LACM_Goals_Q[Number]_[Year].md` (e.g., `LACM_Goals_Q2_2025.md`)
+* **TIP Document Name Example:** `LACM_Goals_Q[Number]_[Year]` (e.g., `LACM_Goals_Q2_2025`)
 
 ```markdown
 # LACM Quarterly Goals - Q{{CurrentQuarterNumber}} / {{CurrentYear}}
 
 ## Objective 1: [Clear, Ambitious, Qualitative Objective Title]
-*Alignment: Links to Strategic Pillar/Goal X from `LACM_Strategy_YYYY-MM-DD.md`*
+*Alignment: Links to Strategic Pillar/Goal X from `LACM_Strategy_YYYY-MM-DD`*
 - **Key Result 1.1:** [Specific, Measurable, Achievable, Relevant, Time-bound (SMART) Key Result]
   - Target:
   - Current:
@@ -216,7 +216,7 @@ These templates are for foundational documents that provide context to the AI an
   - Current:
 
 ## Objective 2: [Clear, Ambitious, Qualitative Objective Title]
-*Alignment: Links to Strategic Pillar/Goal Y from `LACM_Strategy_YYYY-MM-DD.md`*
+*Alignment: Links to Strategic Pillar/Goal Y from `LACM_Strategy_YYYY-MM-DD`*
 - **Key Result 2.1:** [SMART Key Result]
   - Target:
   - Current:
@@ -232,7 +232,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 6. `LACM_WeeklyPlanPreview_Initial`
 * **Purpose:** Sets the focus for the *very first week* of using LACM, guiding Daily Planning. This is a bridging document until the first full weekly planning cycle.
-* **TIP Document Name Example:** `LACM_KW[WeekNo]_WeeklyPlanPreview_YYYY-MM-DD.md`
+* **TIP Document Name Example:** `LACM_KW[WeekNo]_WeeklyPlanPreview_YYYY-MM-DD`
 
 ```markdown
 # LACM Weekly Plan Preview - Week {{CurrentWeekNumber}} / {{CurrentYear}} (Initial Setup Focus)
@@ -251,11 +251,11 @@ These templates are for foundational documents that provide context to the AI an
 ## Key Tasks / Projects Requiring Focus in Week {{CurrentWeekNumber}}
 - **Task/Project:** Create initial versions of all required LACM setup documents (Strategy, Competitors, Target Markets, Initial Quarterly Goals, etc.).
   *Related Objective(s):* 1
-- **Task/Project:** Populate `LACM_ManualNewsInput_YYYY-MM-DD.md` with relevant information for the first AI-driven Daily Analysis.
+- **Task/Project:** Populate `LACM_ManualNewsInput_YYYY-MM-DD` with relevant information for the first AI-driven Daily Analysis.
   *Related Objective(s):* 2
 - **Task/Project:** Execute the "Daily News & Environment Analysis" AI Workflow for the first time on [Target Day].
   *Related Objective(s):* 2
-- **Task/Project:** Conduct the "Daily Review & Context Capture" (manual input to `LACM_DailyLogInput_YYYY-MM-DD.md`, then AI processing) for the first time on [Target Day].
+- **Task/Project:** Conduct the "Daily Review & Context Capture" (manual input to `LACM_DailyLogInput_YYYY-MM-DD`, then AI processing) for the first time on [Target Day].
   *Related Objective(s):* 2
 - **Task/Project:** Conduct "Daily Planning" (using AI Workflow based on logs, analysis, this weekly plan) for the first time on [Target Day].
   *Related Objective(s):* 2
@@ -267,7 +267,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 7. `LACM_TaskList`
 * **Purpose:** Central list of tasks or backlog. Input for AI-assisted daily planning.
-* **TIP Document Name Example:** `LACM_TaskList_YYYY-MM-DD.md` (can be one persistent document, frequently updated)
+* **TIP Document Name Example:** `LACM_TaskList_YYYY-MM-DD` (can be one persistent document, frequently updated)
 
 ```markdown
 # LACM Task List - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -302,7 +302,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 8. `LACM_AvailableTime`
 * **Purpose:** Helps AI propose realistic daily plans by considering estimated available focused work time.
-* **TIP Document Name Example:** `LACM_AvailableTime_YYYY-MM-DD.md` (updated daily or weekly)
+* **TIP Document Name Example:** `LACM_AvailableTime_YYYY-MM-DD` (updated daily or weekly)
 
 ```markdown
 # LACM Estimated Available Focused Work Time - Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -327,7 +327,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 9. `LACM_Processes`
 * **Purpose:** Documents key operational processes, steps, roles, and KPIs. Basis for process retrospectives and improvements.
-* **TIP Document Name Example:** `LACM_Processes_Internal.md` (a living document)
+* **TIP Document Name Example:** `LACM_Processes_Internal` (a living document)
 
 ```markdown
 # LACM Key Operational Processes - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -368,7 +368,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 10. `LACM_IdeaBacklog`
 * **Purpose:** Captures new ideas, their status, potential, and feasibility. Input for innovation management.
-* **TIP Document Name Example:** `LACM_IdeaBacklog.md` (a living document)
+* **TIP Document Name Example:** `LACM_IdeaBacklog` (a living document)
 
 ```markdown
 # LACM Idea Backlog - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -404,13 +404,13 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 11. `LACM_PrioritizedInnovationInitiatives`
 * **Purpose:** Lists innovation ideas that have been evaluated and prioritized for potential inclusion in quarterly planning.
-* **TIP Document Name Example:** `LACM_PrioritizedInnovationInitiatives_YYYY-MM-DD.md` (updated quarterly or as needed)
+* **TIP Document Name Example:** `LACM_PrioritizedInnovationInitiatives_YYYY-MM-DD` (updated quarterly or as needed)
 
 ```markdown
 # LACM Prioritized Innovation Initiatives - As of: {{CurrentDate_YYYY-MM-DD}}
 
 ## Prioritized Initiative 1: [Title from Idea Backlog]
-- **Idea ID:** [Link to `LACM_IdeaBacklog.md` entry]
+- **Idea ID:** [Link to `LACM_IdeaBacklog` entry]
 - **Brief Description:**
 - **Strategic Rationale for Prioritization:**
 - **Key Success Metrics (if defined):**
@@ -430,7 +430,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 12. `LACM_CustomerFeedback`
 * **Purpose:** Collects and structures feedback from customers for service/product improvement and strategic review.
-* **TIP Document Name Example:** `LACM_CustomerFeedback_Log.md` (a living document)
+* **TIP Document Name Example:** `LACM_CustomerFeedback_Log` (a living document)
 
 ```markdown
 # LACM Customer Feedback Log - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -467,7 +467,7 @@ These templates are for foundational documents that provide context to the AI an
 
 ### 13. `LACM_SalesHandbook`
 * **Purpose:** Details sales philosophy, targets, processes, pricing, etc. Relevant for market-facing activities.
-* **TIP Document Name Example:** `LACM_SalesHandbook_Internal.md` (a living document)
+* **TIP Document Name Example:** `LACM_SalesHandbook_Internal` (a living document)
 
 ```markdown
 # LACM Sales Handbook - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -476,11 +476,11 @@ These templates are for foundational documents that provide context to the AI an
 -
 
 ## 2. Target Customers & Ideal Customer Profile (ICP)
-*(Reference `LACM_TargetMarkets_YYYY-MM-DD.md`)*
+*(Reference `LACM_TargetMarkets_YYYY-MM-DD`)*
 -
 
 ## 3. Product/Service Offerings & Pricing
-*(Reference Core Offerings in `LACM_Strategy_YYYY-MM-DD.md`)*
+*(Reference Core Offerings in `LACM_Strategy_YYYY-MM-DD`)*
 - **Offering A:**
   - Description:
   - Key Benefits:
@@ -515,7 +515,7 @@ These templates are for foundational documents that provide context to the AI an
   - Response:
 
 ## 8. Competitive Positioning (Sales Focused)
-*(Reference `LACM_Competitors_YYYY-MM-DD.md`)*
+*(Reference `LACM_Competitors_YYYY-MM-DD`)*
 - How we differentiate from Competitor X:
 - Key selling points against Competitor Y:
 
@@ -529,8 +529,8 @@ These templates are for foundational documents that provide context to the AI an
 These templates support the daily operational cycle.
 
 ### 1. `LACM_DailyLogInput`
-* **Purpose:** For team members to manually input their daily review information (accomplishments, challenges, learnings, etc.) before it's processed by an AI workflow into the structured `LACM_DailyLog_YYYY-MM-DD.md`.
-* **TIP Document Name Example:** `LACM_DailyLogInput_TeamMemberA_YYYY-MM-DD.md` (or a combined one for the team)
+* **Purpose:** For team members to manually input their daily review information (accomplishments, challenges, learnings, etc.) before it's processed by an AI workflow into the structured `LACM_DailyLog_YYYY-MM-DD`.
+* **TIP Document Name Example:** `LACM_DailyLogInput_TeamMemberA_YYYY-MM-DD` (or a combined one for the team)
 
 ```markdown
 # LACM Daily Log - Input Data for {{CurrentDate_YYYY-MM-DD}}
@@ -564,13 +564,13 @@ These templates support the daily operational cycle.
 -
 -
 
-## 6. Relevant External Context Items (from `LACM_DailyNewsAnalysis_YYYY-MM-DD.md` or manual input)
+## 6. Relevant External Context Items (from `LACM_DailyNewsAnalysis_YYYY-MM-DD` or manual input)
 *Any specific news or external factors that influenced your day or plans?*
 -
 ```
 
 ### 2. `LACM_DailyPlanReview`
-* **Purpose:** For human review and adjustment of the AI-generated `LACM_DailyPlan_YYYY-MM-DD.md`. This template isn't used to create a new document from scratch, but rather as a mental checklist or structure if one were to manually draft/override the AI's plan. The AI's output format is defined by its prompt.
+* **Purpose:** For human review and adjustment of the AI-generated `LACM_DailyPlan_YYYY-MM-DD`. This template isn't used to create a new document from scratch, but rather as a mental checklist or structure if one were to manually draft/override the AI's plan. The AI's output format is defined by its prompt.
 * **This template serves more as a "Standard Structure for Daily Plan Output" which an Admin would configure in the relevant AI Workflow prompt.**
 
 ```markdown
@@ -584,13 +584,13 @@ These templates support the daily operational cycle.
 | High     | [Specific, actionable task 2]         | [Name] | [S/M/L]|                    |
 | Medium   | [Specific, actionable task 3]         | [Name] | [S/M/L]|                    |
 | Low      | [Specific, actionable task 4]         | [Name] | [S/M/L]|                    |
-*Feasibility Check: Proposed effort roughly aligns with `LACM_AvailableTime_YYYY-MM-DD.md`.*
+*Feasibility Check: Proposed effort roughly aligns with `LACM_AvailableTime_YYYY-MM-DD`.*
 
-## Outlook Next 7 Days (Focus on KW{{CurrentWeekNumber}} Objectives from `LACM_KW[Num]_WeeklyPlanPreview.md`)
+## Outlook Next 7 Days (Focus on KW{{CurrentWeekNumber}} Objectives from `LACM_KW[Num]_WeeklyPlanPreview`)
 - [Key Task/Theme 1 from Weekly Plan Preview]
 - [Key Task/Theme 2 from Weekly Plan Preview]
 
-## Outlook Next 31 Days (Strategic Focus from `LACM_Goals_Q[Num]_[Year].md` or `LACM_Strategy.md`)
+## Outlook Next 31 Days (Strategic Focus from `LACM_Goals_Q[Num]_[Year]` or `LACM_Strategy`)
 - [Key Strategic Theme/Milestone 1]
 
 ## Review Notes (Human):
@@ -604,7 +604,7 @@ These templates support the daily operational cycle.
 
 ### 1. `LACM_WeeklyRetroSummary`
 * **Purpose:** For the team to manually summarize the outcomes of their Weekly Retrospective discussion. This is human-generated, potentially after reviewing AI-prepared data.
-* **TIP Document Name Example:** `LACM_KW[WeekNo]_WeeklyRetroSummary_YYYY-MM-DD.md`
+* **TIP Document Name Example:** `LACM_KW[WeekNo]_WeeklyRetroSummary_YYYY-MM-DD`
 
 ```markdown
 # LACM Weekly Retrospective Summary - Week {{CurrentWeekNumber}} ({{DateRangeOfWeek}})
@@ -625,7 +625,7 @@ These templates support the daily operational cycle.
 -
 -
 
-## 4. Action Items for Improvement (To be added to `LACM_TaskList.md`)
+## 4. Action Items for Improvement (To be added to `LACM_TaskList`)
 - **Action 1:**
   - Owner:
   - Due Date:
@@ -635,7 +635,7 @@ These templates support the daily operational cycle.
   - Due Date:
   - Success Metric (Optional):
 
-## 5. Process Improvement Notes (Potential updates for `LACM_Processes_Internal.md`)
+## 5. Process Improvement Notes (Potential updates for `LACM_Processes_Internal`)
 -
 
 ## Overall Mood / Sentiment for the Week:
@@ -650,7 +650,7 @@ These can be used ad-hoc as needed.
 
 ### 1. `LACM_MeetingSummary`
 * **Purpose:** Standard format for summarizing meetings. Can be used as input for an AI workflow that helps draft it, or filled manually.
-* **TIP Document Name Example:** `LACM_MeetingSummary_[Topic]_[YYYY-MM-DD].md`
+* **TIP Document Name Example:** `LACM_MeetingSummary_[Topic]_[YYYY-MM-DD]`
 
 ```markdown
 # LACM Meeting Summary - {{CurrentDate_YYYY-MM-DD}}
@@ -692,7 +692,7 @@ These can be used ad-hoc as needed.
 
 ### 2. `LACM_DecisionLog`
 * **Purpose:** To log important decisions made by the team for future reference and traceability.
-* **TIP Document Name Example:** `LACM_DecisionLog_TeamX.md` (a living document for a team)
+* **TIP Document Name Example:** `LACM_DecisionLog_TeamX` (a living document for a team)
 
 ```markdown
 # LACM Team Decision Log - Last Updated: {{CurrentDate_YYYY-MM-DD}}
@@ -708,7 +708,7 @@ These can be used ad-hoc as needed.
 - **Key Stakeholders / People Involved in Decision:**
 - **Expected Outcome / Impact:**
 - **Follow-up Actions (if any, link to Task List):**
-  - [Task ID from `LACM_TaskList.md`]
+  - [Task ID from `LACM_TaskList`]
 - **Review Date (Optional):**
 
 ## Decision ID: [DEC-2025-002]
