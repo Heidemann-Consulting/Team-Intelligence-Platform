@@ -38,7 +38,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     <div className="flex h-screen bg-ulacm-gray-50">
       <aside className="w-64 flex-shrink-0 bg-white border-r border-ulacm-gray-200 flex flex-col shadow-sm">
         <div className="h-16 flex items-center justify-center px-4 border-b border-ulacm-gray-200">
-          <Link to="/admin/dashboard" className="flex items-center text-xl font-bold text-ulacm-secondary hover:opacity-80 transition-opacity">
+          <Link to="/admin/dashboard" className="flex items-center text-xl font-bold text-ulacm-primary hover:opacity-80 transition-opacity">
             <img src="../tip-logo-only-32-transparent.png" alt="TIP Logo"/>Team Intelligence Platform Admin
           </Link>
         </div>

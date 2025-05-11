@@ -1,25 +1,29 @@
 # File: ulacm_backend/app/crud/crud_search.py
 # Purpose: CRUD operations for searching content items using PostgreSQL FTS.
-# Updated to include ts_headline for snippet generation.
 
 from typing import List, Optional, Tuple
 from uuid import UUID as PyUUID
-from datetime import date, datetime, timedelta # <-- Import timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func, or_, and_, text, desc, cast, TEXT # Import FTS functions and desc
-from sqlalchemy.dialects.postgresql import TSQUERY, TSVECTOR # Import specific PG types
+from sqlalchemy import func, or_, and_, desc, false as sql_false # Import false
+from sqlalchemy.dialects.postgresql import TSQUERY, TSVECTOR
 
-from app.db.models.content_item import ContentItem, ContentItemTypeEnum
+from app.db.models.content_item import ContentItem, ContentItemTypeEnum # Correct Enum import
 from app.db.models.content_version import ContentVersion
 from sqlalchemy.orm import aliased, joinedload, contains_eager
+from app.core.config import settings
 
-# Define the text search configuration (e.g., 'english')
 FTS_CONFIG = 'english'
-# Define highlight markers for ts_headline
-FTS_START_SEL = '<mark class="search-highlight">' # Start highlight HTML tag
-FTS_STOP_SEL = '</mark>' # End highlight HTML tag
+
+# Use single quotes for HTML attributes to avoid issues with nested double quotes
+FTS_START_SEL = "<mark class='search-highlight'>"
+FTS_STOP_SEL = "</mark>"
+FTS_MAX_WORDS = 35
+FTS_MIN_WORDS = 15
+FTS_SHORT_WORD = 3
+FTS_HIGHLIGHT_ALL = "TRUE" # PostgreSQL ts_headline option is boolean but passed as string 'TRUE' or 'FALSE'
 
 async def search_content_items_complex(
     db: AsyncSession,
@@ -30,158 +34,178 @@ async def search_content_items_complex(
     created_after_filter: Optional[date] = None,
     created_before_filter: Optional[date] = None,
     skip: int = 0,
-    limit: int = 20
-) -> Tuple[List[Tuple[ContentItem, Optional[str]]], int]: # Return type changed to include snippet string
+    limit: int = 20,
+    sort_by: str = "updated_at",
+    sort_order: str = "desc"
+) -> Tuple[List[Tuple[ContentItem, Optional[str]]], int]:
     """
     Performs a complex search across content items using PostgreSQL Full-Text Search.
-    Includes snippet generation using ts_headline. FR-SRCH-004.
-
-    Args:
-        db: The SQLAlchemy async session.
-        team_id: The ID of the team performing the search (for visibility).
-        search_query_text: Text to search in item name or full-text content.
-        item_types_filter: List of item types to filter by.
-        created_after_filter: Filter items created after this date.
-        created_before_filter: Filter items created before this date.
-        skip: Pagination offset.
-        limit: Pagination limit.
-
-    Returns:
-        A tuple containing a list of tuples (ContentItem object, Optional[snippet string])
-        and the total count of matching items.
+    Includes snippet generation using ts_headline.
     """
-    # Alias ContentVersion for joining to current version's content
+
     CurrentVersion = aliased(ContentVersion)
 
-    # Base query joining ContentItem with its current version
-    # Selecting the ContentItem model directly
-    base_query = (
-        select(ContentItem) # Select the main model
+    # Base query structure
+    base_select_entities = [ContentItem]
+    # Initial base_query setup
+    # The select entities will be re-defined later if FTS is active
+    current_base_query = (
+        select(*base_select_entities)
         .join(CurrentVersion, ContentItem.current_version_id == CurrentVersion.version_id)
-        .options(contains_eager(ContentItem.current_version.of_type(CurrentVersion))) # Eager load current version data efficiently
-        .where(
-            or_( # Visibility filter
-                ContentItem.team_id == team_id,
-                ContentItem.is_globally_visible == True
-            )
+        .options(
+            contains_eager(ContentItem.current_version.of_type(CurrentVersion))
+            .joinedload(CurrentVersion.saving_team),
+            joinedload(ContentItem.owner_team)
         )
     )
 
-    # Base query for counting results
-    count_query = (
+    # Initial count_query setup
+    current_count_query = (
         select(func.count(ContentItem.item_id))
         .select_from(ContentItem)
-        .join(CurrentVersion, ContentItem.current_version_id == CurrentVersion.version_id) # Join needed for FTS filter
-        .where(
-            or_( # Visibility filter
-                ContentItem.team_id == team_id,
-                ContentItem.is_globally_visible == True
-            )
-        )
+        .join(CurrentVersion, ContentItem.current_version_id == CurrentVersion.version_id)
     )
 
-    # Apply standard filters
+    final_conditions = []
+
+    team_documents_condition = and_(
+        ContentItem.item_type == ContentItemTypeEnum.DOCUMENT, # Corrected here
+        ContentItem.team_id == team_id
+    )
+    global_documents_condition = and_(
+        ContentItem.item_type == ContentItemTypeEnum.DOCUMENT, # Corrected here
+        ContentItem.is_globally_visible == True,
+        ContentItem.team_id != settings.ADMIN_SYSTEM_TEAM_ID
+    )
+    admin_templates_condition = and_(
+        ContentItem.item_type == ContentItemTypeEnum.TEMPLATE, # Corrected here
+        ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID,
+        ContentItem.is_globally_visible == True
+    )
+    admin_workflows_condition = and_(
+        ContentItem.item_type == ContentItemTypeEnum.WORKFLOW, # Corrected here
+        ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID,
+        ContentItem.is_globally_visible == True
+    )
+
     if item_types_filter:
-        base_query = base_query.where(ContentItem.item_type.in_(item_types_filter))
-        count_query = count_query.where(ContentItem.item_type.in_(item_types_filter))
+        type_specific_or_conditions = []
+        if ContentItemTypeEnum.DOCUMENT in item_types_filter: # Corrected here
+            type_specific_or_conditions.append(team_documents_condition)
+            type_specific_or_conditions.append(global_documents_condition)
+        if ContentItemTypeEnum.TEMPLATE in item_types_filter: # Corrected here
+            type_specific_or_conditions.append(admin_templates_condition)
+        if ContentItemTypeEnum.WORKFLOW in item_types_filter: # Corrected here
+            type_specific_or_conditions.append(admin_workflows_condition)
+
+        if type_specific_or_conditions:
+            final_conditions.append(or_(*type_specific_or_conditions))
+        else:
+            final_conditions.append(sql_false())
+    else:
+        final_conditions.append(or_(
+            team_documents_condition,
+            global_documents_condition,
+            admin_templates_condition,
+            admin_workflows_condition
+        ))
+
+    if final_conditions:
+        merged_conditions = and_(*final_conditions)
+        current_base_query = current_base_query.where(merged_conditions)
+        current_count_query = current_count_query.where(merged_conditions)
+    else:
+        current_base_query = current_base_query.where(sql_false())
+        current_count_query = current_count_query.where(sql_false())
 
     if created_after_filter:
-        # Start of the day
         start_dt = datetime.combine(created_after_filter, datetime.min.time())
-        base_query = base_query.where(ContentItem.created_at >= start_dt)
-        count_query = count_query.where(ContentItem.created_at >= start_dt)
+        current_base_query = current_base_query.where(ContentItem.created_at >= start_dt)
+        current_count_query = current_count_query.where(ContentItem.created_at >= start_dt)
 
     if created_before_filter:
-        # End of the day (exclusive)
-        # Use timedelta directly
         end_dt = datetime.combine(created_before_filter + timedelta(days=1), datetime.min.time())
-        base_query = base_query.where(ContentItem.created_at < end_dt)
-        count_query = count_query.where(ContentItem.created_at < end_dt)
+        current_base_query = current_base_query.where(ContentItem.created_at < end_dt)
+        current_count_query = current_count_query.where(ContentItem.created_at < end_dt)
 
-    # --- Full-Text Search Logic ---
     fts_rank_column = None
     snippet_column = None
-    ts_query = None
+    ts_query_obj = None
 
     if search_query_text and search_query_text.strip():
-        # Use plainto_tsquery for safer handling of user input
-        ts_query = func.plainto_tsquery(FTS_CONFIG, search_query_text)
+        ts_query_obj = func.plainto_tsquery(FTS_CONFIG, search_query_text)
 
-        # Use pre-calculated tsvector column if available (Recommended)
-        if hasattr(CurrentVersion, 'content_tsv'):
-            match_condition = or_(
-                func.to_tsvector(FTS_CONFIG, ContentItem.name).op('@@')(ts_query), # FTS on name
-                CurrentVersion.content_tsv.op('@@')(ts_query) # FTS on pre-calculated content vector
-            )
-            # Calculate rank based on content and name vectors
-            fts_rank_column = (
-                func.ts_rank_cd(CurrentVersion.content_tsv, ts_query) * 0.8 +
-                func.ts_rank_cd(func.to_tsvector(FTS_CONFIG, ContentItem.name), ts_query) * 0.2
-            ).label("rank")
-            # Define snippet generation using ts_headline on the original content column
-            snippet_column = func.ts_headline(
-                FTS_CONFIG, # Configuration
-                CurrentVersion.markdown_content, # Original content column
-                ts_query, # The query
-                f'StartSel="{FTS_START_SEL}", StopSel="{FTS_STOP_SEL}", MaxWords=35, MinWords=15, ShortWord=3, HighlightAll=TRUE' # Options
-            ).label("snippet")
-        else:
-            # Fallback: Calculate tsvector on-the-fly (Less performant)
-            print("Warning: Pre-calculated 'content_tsv' column not found. Using on-the-fly tsvector calculation for content search.") # Replace with logger
-            ts_vector_content = func.to_tsvector(FTS_CONFIG, CurrentVersion.markdown_content)
-            ts_vector_name = func.to_tsvector(FTS_CONFIG, ContentItem.name)
-            match_condition = or_(
-                ts_vector_name.op('@@')(ts_query),
-                ts_vector_content.op('@@')(ts_query)
-            )
-            # Calculate rank
-            fts_rank_column = (
-                func.ts_rank_cd(ts_vector_content, ts_query) * 0.8 +
-                func.ts_rank_cd(ts_vector_name, ts_query) * 0.2
-            ).label("rank")
-            # Define snippet generation
-            snippet_column = func.ts_headline(
-                FTS_CONFIG,
-                CurrentVersion.markdown_content,
-                ts_query,
-                f'StartSel="{FTS_START_SEL}", StopSel="{FTS_STOP_SEL}", MaxWords=35, MinWords=15, ShortWord=3, HighlightAll=TRUE'
-            ).label("snippet")
+        match_condition = or_(
+            func.to_tsvector(FTS_CONFIG, ContentItem.name).op('@@')(ts_query_obj),
+            CurrentVersion.content_tsv.op('@@')(ts_query_obj)
+        )
 
-        # Add the snippet and rank columns to the select query
-        base_query = base_query.add_columns(fts_rank_column, snippet_column)
-        # Add the FTS match condition to WHERE clause
-        base_query = base_query.where(match_condition)
-        count_query = count_query.where(match_condition)
+        fts_rank_column = (
+            func.ts_rank_cd(CurrentVersion.content_tsv, ts_query_obj) * 0.8 +
+            func.ts_rank_cd(func.to_tsvector(FTS_CONFIG, ContentItem.name), ts_query_obj) * 0.2
+        ).label("rank")
 
-    # --- Ordering ---
-    if fts_rank_column is not None:
-        # Order primarily by rank, then by update timestamp as a tie-breaker
-        base_query = base_query.order_by(desc(fts_rank_column), desc(ContentItem.updated_at))
+        options_str_for_pg = (
+            f'StartSel="{FTS_START_SEL}", StopSel="{FTS_STOP_SEL}", '
+            f'MaxWords={FTS_MAX_WORDS}, MinWords={FTS_MIN_WORDS}, ShortWord={FTS_SHORT_WORD}, HighlightAll={FTS_HIGHLIGHT_ALL}'
+        )
+
+        snippet_column = func.ts_headline(
+            FTS_CONFIG,
+            CurrentVersion.markdown_content,
+            ts_query_obj,
+            options_str_for_pg
+        ).label("snippet")
+
+        # Reconstruct select to include ContentItem entity and the new FTS columns
+        # Start from the FROM clause of the current_base_query to keep joins
+        # and apply existing WHERE clauses before the match_condition for FTS
+        select_from_target = current_base_query.froms[0]
+
+        # Get existing WHERE clause from current_base_query
+        existing_where_clause = current_base_query._whereclause # Accessing internal attribute, might need adjustment if API changes
+
+        reconstructed_query = select(ContentItem, fts_rank_column, snippet_column).select_from(select_from_target)
+
+        # Re-apply options
+        reconstructed_query = reconstructed_query.options(
+            contains_eager(ContentItem.current_version.of_type(CurrentVersion))
+            .joinedload(CurrentVersion.saving_team),
+            joinedload(ContentItem.owner_team)
+        )
+
+        if existing_where_clause is not None:
+            reconstructed_query = reconstructed_query.where(existing_where_clause)
+
+        current_base_query = reconstructed_query.where(match_condition) # Add FTS match condition
+        current_count_query = current_count_query.where(match_condition)
+
+
+    sort_field = None
+    if sort_by == "rank" and fts_rank_column is not None:
+        sort_field = fts_rank_column
+    elif sort_by == "name":
+        sort_field = ContentItem.name
     else:
-        # Default sort if no search query is provided
-        base_query = base_query.order_by(desc(ContentItem.updated_at))
+        sort_field = ContentItem.updated_at
 
-    # --- Count Execution ---
-    total_count_result = await db.execute(count_query)
+    order_expression = sort_field.asc() if sort_order.lower() == "asc" else sort_field.desc()
+    current_base_query = current_base_query.order_by(order_expression)
+
+    total_count_result = await db.execute(current_count_query)
     total_count = total_count_result.scalar_one()
 
-    # --- Main Query Execution with Pagination ---
-    base_query = base_query.offset(skip).limit(limit)
-    items_result = await db.execute(base_query)
+    current_base_query = current_base_query.offset(skip).limit(limit)
+    items_result = await db.execute(current_base_query)
 
-    # Process results
     items_with_snippets: List[Tuple[ContentItem, Optional[str]]] = []
-    if snippet_column is not None:
-        # Results contain tuples of (ContentItem, rank, snippet)
-        # Need to handle potential duplicates due to join if not using .unique() properly
-        # Using unique() on the results processor
-        processed_results = items_result.unique().all()
-        for item, rank, snippet_text in processed_results:
-            items_with_snippets.append((item, snippet_text))
+    if fts_rank_column is not None and snippet_column is not None:
+        for row_tuple in items_result.all():
+            item_entity = row_tuple[0]
+            snippet_text = row_tuple[2]
+            items_with_snippets.append((item_entity, snippet_text))
     else:
-        # Results contain only ContentItem objects
-        processed_results = items_result.scalars().unique().all()
-        for item in processed_results:
-            items_with_snippets.append((item, None)) # No snippet generated
+        for item_entity in items_result.scalars().all():
+            items_with_snippets.append((item_entity, None))
 
     return items_with_snippets, total_count

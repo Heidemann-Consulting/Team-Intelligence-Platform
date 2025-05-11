@@ -6,11 +6,15 @@ import { FolderGit2, Play, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Se
 import toast from 'react-hot-toast';
 
 import { ContentItemBase, ContentItemType, PaginatedResponse, RunWorkflowResponse } from '@/types/api';
-import contentService from '@/services/contentService';
+import contentService from '@/services/contentService'; // Import SearchParams type if it's exported from here
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import RunWorkflowModal from '@/components/content/RunWorkflowModal';
-// import { useAuth } from '@/contexts/AuthContext';
+
 import { useNavigate } from 'react-router-dom';
+
+// Define the type for params passed to getItems more explicitly
+type GetItemsParams = Parameters<typeof contentService.getItems>[0];
+
 
 const ExecuteWorkflowPage: React.FC = () => {
   const [workflows, setWorkflows] = useState<ContentItemBase[]>([]);
@@ -25,22 +29,23 @@ const ExecuteWorkflowPage: React.FC = () => {
   const [showRunModal, setShowRunModal] = useState(false);
   const [runWorkflowOutput, setRunWorkflowOutput] = useState<RunWorkflowResponse | { error: string } | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(''); // For filtering displayed workflows
+  const [searchTerm, setSearchTerm] = useState('');
 
-//   const { currentTeam } = useAuth(); // Not strictly needed here as API handles team context for execution
+
   const navigate = useNavigate();
 
   const fetchWorkflows = useCallback(async (offset = 0) => {
     setIsLoading(true);
     setError(null);
     try {
-      const params = {
+      // Explicitly type the params object
+      const params: GetItemsParams = {
         item_type: ContentItemType.WORKFLOW,
         offset,
         limit: pagination.limit,
-        sort_by: 'name', // Sort by name for easier finding
-        sort_order: 'asc',
-        for_usage: true, // Critical: This tells backend to fetch Admin-System-Team owned, globally visible workflows
+        sort_by: 'name',
+        sort_order: 'asc', // This is now correctly typed as 'asc' | 'desc' | undefined
+        for_usage: true,
       };
       const data: PaginatedResponse<ContentItemBase> = await contentService.getItems(params);
       setWorkflows(data.items);

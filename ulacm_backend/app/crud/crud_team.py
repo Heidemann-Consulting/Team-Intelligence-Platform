@@ -1,10 +1,5 @@
 # File: ulacm_backend/app/crud/crud_team.py
 # Purpose: CRUD operations for Team model.
-# Changes:
-# - Removed await from result.scalar_one_or_none() and similar calls.
-#   This is based on logs indicating result might be a synchronous CursorResult/ChunkedIteratorResult,
-#   which would make its methods synchronous. This directly addresses the TypeError.
-#   The root cause of why AsyncSession might yield such results with a correct DSN needs further investigation.
 
 from typing import Any, Dict, Optional, Union, List, Tuple
 
@@ -17,6 +12,7 @@ from .base import CRUDBase
 from app.db.models.team import Team
 from app.schemas.team import TeamCreate, TeamUpdate
 from app.core.security import get_password_hash
+from app.core.config import settings # Import settings
 import logging
 
 log = logging.getLogger(__name__)
@@ -27,26 +23,24 @@ class CRUDTeam(CRUDBase[Team, TeamCreate, TeamUpdate]):
     """
     async def get_by_username(self, db: AsyncSession, *, username: str) -> Optional[Team]:
         query = select(self.model).where(func.lower(self.model.username) == func.lower(username))
-        log.debug(f"Executing query for username: {username}") # Ensure this prints
+        log.debug(f"Executing query for username: {username}")
         result = await db.execute(query)
-        log.debug(f"DEBUG: db.execute result type in get_by_username: {type(result)}") # CRUCIAL LOG
-        # Assuming result is CursorResult/ChunkedIteratorResult based on logs,
-        # making scalar_one_or_none() a synchronous call.
-        return result.scalar_one_or_none() # type: ignore
+        log.debug(f"DEBUG: db.execute result type in get_by_username: {type(result)}")
+        return result.scalar_one_or_none()
 
 
     async def get_by_team_name(self, db: AsyncSession, *, team_name: str) -> Optional[Team]:
         statement = select(self.model).where(func.lower(self.model.team_name) == func.lower(team_name))
         result = await db.execute(statement)
         log.debug(f"DEBUG: db.execute result type in get_by_team_name: {type(result)}")
-        return result.scalar_one_or_none() # type: ignore
+        return result.scalar_one_or_none()
 
 
     async def get_by_id(self, db: AsyncSession, *, team_id: PyUUID) -> Optional[Team]:
         statement = select(self.model).where(self.model.team_id == team_id)
         result = await db.execute(statement)
         log.debug(f"DEBUG: db.execute result type in get_by_id: {type(result)}")
-        return result.scalar_one_or_none() # type: ignore
+        return result.scalar_one_or_none()
 
 
     async def create(self, db: AsyncSession, *, obj_in: TeamCreate) -> Team:
@@ -81,7 +75,19 @@ class CRUDTeam(CRUDBase[Team, TeamCreate, TeamUpdate]):
     async def get_all_teams(
         self, db: AsyncSession, *, skip: int = 0, limit: int = 100
     ) -> Tuple[List[Team], int]:
-        return await super().get_multi_with_total_count(db, skip=skip, limit=limit)
+        """
+        Get multiple team records with pagination, excluding the ADMIN_SYSTEM_TEAM_ID.
+        """
+        query = select(self.model).where(self.model.team_id != settings.ADMIN_SYSTEM_TEAM_ID)
+        count_query = select(func.count()).select_from(self.model).where(self.model.team_id != settings.ADMIN_SYSTEM_TEAM_ID)
+
+        total_count_result = await db.execute(count_query)
+        total_count = total_count_result.scalar_one()
+
+        items_result = await db.execute(query.offset(skip).limit(limit).order_by(self.model.team_name))
+        items = items_result.scalars().all()
+
+        return items, total_count
 
     async def activate_deactivate_team(
         self, db: AsyncSession, *, team: Team, is_active: bool
@@ -93,10 +99,15 @@ class CRUDTeam(CRUDBase[Team, TeamCreate, TeamUpdate]):
         return team
 
     async def remove_team(self, db: AsyncSession, *, team_id: PyUUID) -> Optional[Team]:
+        # Ensure ADMIN_SYSTEM_TEAM_ID cannot be deleted
+        if team_id == settings.ADMIN_SYSTEM_TEAM_ID:
+            log.warning(f"Attempt to delete ADMIN_SYSTEM_TEAM_ID ({team_id}) was blocked.")
+            return None
+
         statement = select(self.model).where(self.model.team_id == team_id)
         result = await db.execute(statement)
         log.debug(f"DEBUG: db.execute result type in remove_team: {type(result)}")
-        obj = result.scalar_one_or_none() # type: ignore
+        obj = result.scalar_one_or_none()
         if obj:
             await db.delete(obj)
             await db.commit()

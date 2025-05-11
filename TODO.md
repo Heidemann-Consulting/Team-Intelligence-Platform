@@ -18,16 +18,15 @@
 * ✅ Add TIP Logo to Web-Pages (Dashboards & Logins) and to Website-Favicon
 
 * ✅ Remove separate search view
-* In Listview behind each version tag display the creation date of that version
-* Integrate search in each element overview list to select visible documents based on full text search
-* Integrate sort in each element overview list so that users can sort ascending and descending for name and for latest version creation date
+* ✅ In Document, Template and Workflow List-Views behind each version tag display the creation date of that version
+* ✅ Integrate search in each element list views to select visible documents based on full text search
+* ✅ Integrate sort in each element list views so that users can sort ascending and descending for name and for latest version creation date
+* ✅ Hide Admin-Team in Teamlistview (so that it cannot be removed or changed)
 
-* Hide Admin-Team in Teamlistview (so that it cannot be removed or changed)
+* The modal "create a new document" window shall show a preview of the selected template
 
 * Under each workflow in the team user view show which documents it uses as input and which document it creates as output
 * Test that each workflow can indeed take multiple different kinds of document as input
-
-* The modal "create a new document" window shall show a preview of the selected template
 
 * Create initial wave of templates and workflows
 * Export initial wave of templates and workflows in ulacm_backend/init_db.sql
