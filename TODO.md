@@ -41,13 +41,19 @@
 
 ## Prio 2
 
-* Rework the api endpoint /api/v1/items to enable filtering directly via the query, so that there is no problem when the amount of documents exceeds 100. Also rework all occasions where this endpoint is used in order to take advantage of the new filtering functionality (and move filtering / search from frontend to backend).
+* ✅ Rework the api endpoint /api/v1/items to enable filtering directly via the query, so that there is no problem when the amount of documents exceeds 100. Also rework all occasions where this endpoint is used in order to take advantage of the new filtering functionality (and move filtering / search from frontend to backend).
 combin with:
-* Performance: Using ContentItemWithCurrentVersion for lists means that for every item, its current version's details (including potentially large markdown_content) are loaded and serialized. Because lists could become very long or performance becomes an issue, create a more lightweight schema specifically for list items that includes item_id, name, item_type, current_version_number, and other essential list view fields, but omits the full markdown_content.
+* ✅ Performance: Using ContentItemWithCurrentVersion for lists means that for every item, its current version's details (including potentially large markdown_content) are loaded and serialized. Because lists could become very long or performance becomes an issue, create a more lightweight schema specifically for list items that includes item_id, name, item_type, current_version_number, and other essential list view fields, but omits the full markdown_content.
+
+* Document default name (the prefilled entry for the document name) should always correspond to "Templatename_YYYY_MM_DD" with YYYY_MM_DD being the current date.
+
+* Fix search api endpoint gives unauthorized for admin users
+
+* Filtering via search should adjust amount of pages according to results
 
 * The API endpoint (/run) would immediately acknowledge the request (e.g., HTTP 202 Accepted), possibly returning a task/job ID.
-The actual workflow processing would happen in the background (e.g., using FastAPI's BackgroundTasks for simple cases, or a dedicated task queue like Celery for more robust needs).
-The frontend could then poll a status endpoint or use WebSockets to get updates on the workflow's progress and retrieve the results when ready. This is a more significant architectural change but leads to a much more responsive and robust application. The PRD and SRS (FR-WFEX-001, SRS 8.7.1) currently imply a synchronous request-response for the manual trigger. If such long processing times are common, you might consider revisiting this requirement for a better user experience.
+The actual workflow processing would happen in the background (use a dedicated task queue like Celery for more robust needs).
+The frontend could then poll a status endpoint or use WebSockets to get updates on the workflow's progress and retrieve the results when ready. This is a more significant architectural change but leads to a much more responsive and robust application.
 
 * When auth cookie expires:
 Abrupt Redirects: A sudden redirect can be jarring if the user is in the middle of something.

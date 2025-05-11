@@ -2,32 +2,35 @@
 # Purpose: API endpoints for managing ContentItems.
 # Updated: Handles parsing of workflow definitions within endpoint handlers.
 # Updated: Refined _convert_orm_to_schema_with_parsed_workflow to prevent MissingGreenlet error.
+# Updated: List endpoint now uses ContentItemListItem and supports new filters.
+# Corrected: Changed ContentItemSchema import to ContentItem.
+# Fixed: Added missing 'created_at' field to list_item_data for ContentItemListItem.
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Union, Type
 from uuid import UUID as PyUUID
+from datetime import date as DateObject, datetime # For type hinting query params
 
 from app.db.database import get_db
 from app.db.models.team import Team as TeamModel
 from app.db.models.content_item import ContentItemTypeEnum, ContentItem as ContentItemDBModel
 from app.api.v1.deps import (
     get_current_team_user,
-    get_current_admin_user,
     get_current_user_or_admin_marker,
     get_requesting_user_is_admin,
-    ensure_admin_user
 )
 from app.crud import crud_content_item
 from app.schemas import (
-    ContentItemSchema,
+    ContentItem,
     ContentItemCreate,
     ContentItemUpdateMeta,
     ContentItemWithCurrentVersion,
     ContentItemListResponse,
     ContentItemDuplicatePayload,
-    ContentItemSearchResult, # Added for search endpoint if needed
+    ContentItemSearchResult,
+    ContentItemListItem,
     Msg,
     TokenPayload
 )
@@ -39,34 +42,33 @@ log = logging.getLogger(__name__)
 router = APIRouter()
 
 def _get_parsed_workflow_definition(item_db: ContentItemDBModel) -> Optional[WorkflowDefinition]:
-    """Helper function to parse workflow definition if item is a workflow."""
+    """
+    Helper function to parse workflow definition if item is a workflow.
+    Returns a Pydantic WorkflowDefinition model instance or None.
+    """
     parsed_def = None
     if item_db.item_type == ContentItemTypeEnum.WORKFLOW and \
        item_db.current_version and \
        item_db.current_version.markdown_content:
         try:
-            # Ensure WorkflowDefinitionParser is imported where this function is defined or called
             parsed_def = WorkflowDefinitionParser.parse_and_validate(
                 item_db.current_version.markdown_content
             )
         except WorkflowParsingError as e:
             log.warning(
-                f"Endpoint: Failed to parse workflow definition for item {item_db.item_id}: {e}"
+                f"Endpoint Helper: Failed to parse workflow definition for item {item_db.item_id}: {e}"
             )
     return parsed_def
 
-def _convert_orm_to_pydantic_schema(
+def _convert_orm_to_detail_schema(
     item_db: ContentItemDBModel,
     schema_class: Type[Union[ContentItemWithCurrentVersion, ContentItemSearchResult]]
 ) -> Union[ContentItemWithCurrentVersion, ContentItemSearchResult]:
     """
-    Converts an ORM ContentItemDBModel to the specified Pydantic schema,
+    Converts an ORM ContentItemDBModel to ContentItemWithCurrentVersion or ContentItemSearchResult,
     handling workflow parsing and population of parsed_workflow_definition_internal.
-    This version explicitly lists attributes to copy to avoid triggering lazy loads.
     """
-
     item_dict = {
-        # Attributes from ContentItemInDBBase (via ContentItem)
         "item_id": item_db.item_id,
         "team_id": item_db.team_id,
         "item_type": item_db.item_type,
@@ -75,25 +77,20 @@ def _convert_orm_to_pydantic_schema(
         "current_version_id": item_db.current_version_id,
         "created_at": item_db.created_at,
         "updated_at": item_db.updated_at,
-
-        # For ContentItemWithCurrentVersion's alias and computed fields
-        # It expects 'current_version' to be available for the alias 'current_version_for_computed_fields'.
-        # The CRUD operations should have eagerly loaded 'current_version'.
         "current_version": item_db.current_version if hasattr(item_db, 'current_version') else None,
-
-        # For ContentItemSearchResult, if it also has a snippet
-        "snippet": getattr(item_db, 'snippet', None) if schema_class == ContentItemSearchResult else None,
     }
+    if schema_class == ContentItemSearchResult:
+        item_dict["snippet"] = getattr(item_db, 'snippet', None)
+        if item_db.current_version:
+            item_dict["current_version_number"] = item_db.current_version.version_number
 
-    parsed_def = _get_parsed_workflow_definition(item_db)
-    item_dict['parsed_workflow_definition_internal'] = parsed_def
-
+    item_dict['parsed_workflow_definition_internal'] = _get_parsed_workflow_definition(item_db)
     return schema_class.model_validate(item_dict)
 
 
 @router.post(
     "",
-    response_model=ContentItemSchema,
+    response_model=ContentItem,
     status_code=status.HTTP_201_CREATED,
     summary="Create New Content Item (Document by Team, Template/Workflow by Admin)"
 )
@@ -109,16 +106,13 @@ async def create_content_item_endpoint(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     actor_team_id: Optional[PyUUID] = None
-    effective_owner_id: PyUUID
-
     log_actor = "Admin" if is_admin_actor else f"Team {current_user_session.team_id if isinstance(current_user_session, TeamModel) else 'Unknown'}"
 
     if item_in.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
         if not is_admin_actor:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Admins can create Templates or Workflows.")
         if item_in.template_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id should not be provided for Templates or Workflows.")
-        effective_owner_id = settings.ADMIN_SYSTEM_TEAM_ID
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id should not be provided when creating Templates or Workflows.")
         actor_team_id = None
     elif item_in.item_type == ContentItemTypeEnum.DOCUMENT:
         if is_admin_actor:
@@ -126,13 +120,12 @@ async def create_content_item_endpoint(
         if not isinstance(current_user_session, TeamModel) or not current_user_session.team_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Team context required for creating documents.")
         actor_team_id = current_user_session.team_id
-        effective_owner_id = actor_team_id
         if not item_in.template_id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id is required when creating a Document.")
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid item_type.")
 
-    log.info(f"{log_actor} attempting to create {item_in.item_type.value}: Name='{item_in.name}' to be owned by {effective_owner_id}")
+    log.info(f"{log_actor} attempting to create {item_in.item_type.value}: Name='{item_in.name}'")
 
     try:
         new_item_db = await crud_content_item.content_item.create_item_for_team_or_admin(
@@ -148,22 +141,26 @@ async def create_content_item_endpoint(
         log.exception(f"Error creating content item: Name='{item_in.name}'")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create content item.")
 
-    response_item = ContentItemSchema.model_validate(new_item_db)
+    response_item = ContentItem.model_validate(new_item_db)
     return response_item
 
 
 @router.get(
     "",
     response_model=ContentItemListResponse,
-    summary="List Content Items"
+    summary="List Content Items with Filtering"
 )
 async def list_content_items_endpoint(
     request: Request,
     db: AsyncSession = Depends(get_db),
-    item_type: Optional[ContentItemTypeEnum] = Query(None, description="Filter by item type"),
+    item_type: Optional[ContentItemTypeEnum] = Query(None, description="Filter by item type (DOCUMENT, TEMPLATE, WORKFLOW)"),
+    name_query: Optional[str] = Query(None, description="Filter by item name (case-insensitive, partial match)"),
+    created_after: Optional[DateObject] = Query(None, description="Filter by creation date (YYYY-MM-DD format, inclusive start)"),
+    created_before: Optional[DateObject] = Query(None, description="Filter by creation date (YYYY-MM-DD format, inclusive end)"),
+    is_globally_visible_filter: Optional[bool] = Query(None, alias="is_globally_visible", description="Filter by global visibility status"),
     offset: int = Query(0, ge=0),
     limit: int = Query(15, ge=1, le=100),
-    sort_by: str = Query("updated_at", enum=["name", "created_at", "updated_at"]),
+    sort_by: str = Query("updated_at", enum=["name", "created_at", "updated_at", "item_type"]),
     sort_order: str = Query("desc", enum=["asc", "desc"]),
     current_user_session: Union[TeamModel, TokenPayload, None] = Depends(get_current_user_or_admin_marker),
     is_admin_actor: bool = Depends(get_requesting_user_is_admin),
@@ -174,21 +171,57 @@ async def list_content_items_endpoint(
 
     requesting_actor_team_id = current_user_session.team_id if isinstance(current_user_session, TeamModel) else None
     log_actor = "Admin" if is_admin_actor else f"Team {requesting_actor_team_id}"
-    log.info(f"{log_actor} listing items: Type={item_type}, ForUsage={for_usage}, Offset={offset}, Limit={limit}")
+    log.info(
+        f"{log_actor} listing items: Type={item_type}, NameQuery='{name_query}', "
+        f"CreatedAfter={created_after}, CreatedBefore={created_before}, "
+        f"GlobalFilter={is_globally_visible_filter}, ForUsage={for_usage}, "
+        f"Offset={offset}, Limit={limit}, SortBy={sort_by}, SortOrder={sort_order}"
+    )
+
+    created_after_dt: Optional[datetime] = None
+    if created_after:
+        created_after_dt = datetime.combine(created_after, datetime.min.time())
+
+    created_before_dt: Optional[datetime] = None
+    if created_before:
+        created_before_dt = datetime.combine(created_before, datetime.min.time())
 
     items_db_orm_list, total_count = await crud_content_item.content_item.get_items_for_team_or_admin(
         db=db,
         requesting_actor_team_id=requesting_actor_team_id,
         is_admin_actor=is_admin_actor,
         item_type_filter=item_type,
+        name_query=name_query,
+        created_after=created_after_dt,
+        created_before=created_before_dt,
+        is_globally_visible_filter=is_globally_visible_filter,
         list_for_team_usage=for_usage if not is_admin_actor else False,
         skip=offset, limit=limit, sort_by=sort_by, sort_order=sort_order
     )
 
-    response_items_schemas: List[ContentItemWithCurrentVersion] = []
+    response_items_schemas: List[ContentItemListItem] = []
     for item_db_obj in items_db_orm_list:
-        # Use the refined helper that explicitly copies attributes
-        schema_item = _convert_orm_to_pydantic_schema(item_db_obj, ContentItemWithCurrentVersion)
+        list_item_data = {
+            "item_id": item_db_obj.item_id,
+            "team_id": item_db_obj.team_id,
+            "item_type": item_db_obj.item_type,
+            "name": item_db_obj.name,
+            "is_globally_visible": item_db_obj.is_globally_visible,
+            "current_version_id": item_db_obj.current_version_id,
+            "created_at": item_db_obj.created_at, # Ensure this is included
+            "updated_at": item_db_obj.updated_at,
+            "current_version_number": item_db_obj.current_version.version_number if item_db_obj.current_version else None,
+            "workflow_input_document_selectors": None,
+            "workflow_output_name_template": None,
+        }
+
+        if item_db_obj.item_type == ContentItemTypeEnum.WORKFLOW:
+            parsed_workflow_def = _get_parsed_workflow_definition(item_db_obj)
+            if parsed_workflow_def:
+                list_item_data["workflow_input_document_selectors"] = parsed_workflow_def.inputDocumentSelectors
+                list_item_data["workflow_output_name_template"] = parsed_workflow_def.outputName
+
+        schema_item = ContentItemListItem.model_validate(list_item_data)
         response_items_schemas.append(schema_item)
 
     return ContentItemListResponse(
@@ -234,13 +267,13 @@ async def get_content_item_details_endpoint(
         log.warning(f"{log_actor} access denied for full details of item {item_id} (type: {item_db.item_type}, owner: {item_db.team_id}).")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access full details of this item.")
 
-    response_data = _convert_orm_to_pydantic_schema(item_db, ContentItemWithCurrentVersion)
+    response_data = _convert_orm_to_detail_schema(item_db, ContentItemWithCurrentVersion)
     return response_data
 
 
 @router.put(
     "/{item_id}/meta",
-    response_model=ContentItemSchema,
+    response_model=ContentItem,
     summary="Update Content Item Metadata (Name, Visibility)"
 )
 async def update_content_item_metadata_endpoint(
@@ -278,7 +311,7 @@ async def update_content_item_metadata_endpoint(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this item's metadata.")
 
     log.info(f"Successfully updated metadata for item: '{updated_item_db.name}' ({item_id})")
-    response_item = ContentItemSchema.model_validate(updated_item_db)
+    response_item = ContentItem.model_validate(updated_item_db)
     return response_item
 
 
@@ -352,7 +385,7 @@ async def duplicate_content_item_endpoint(
         log.warning(f"Content item duplication for {item_id} failed validation or permission: {ve}")
         if "not found" in str(ve).lower():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
-        elif "not authorized" in str(ve).lower() or "cannot duplicate" in str(ve).lower():
+        elif "not authorized" in str(ve).lower() or "cannot duplicate" in str(ve).lower() or "not permitted" in str(ve).lower():
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(ve))
         elif "already exists" in str(ve).lower():
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(ve))
@@ -361,5 +394,5 @@ async def duplicate_content_item_endpoint(
         log.exception(f"Error duplicating item {item_id}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to duplicate content item.")
 
-    response_data = _convert_orm_to_pydantic_schema(final_duplicated_item_orm, ContentItemWithCurrentVersion)
+    response_data = _convert_orm_to_detail_schema(final_duplicated_item_orm, ContentItemWithCurrentVersion)
     return response_data

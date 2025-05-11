@@ -1,6 +1,8 @@
 # File: ulacm_backend/app/schemas/content_item.py
 # Purpose: Pydantic schemas for ContentItem data (Documents, Templates, Workflows).
 # Updated: Relaxed template_id validation for DOCUMENT type to support programmatic creation.
+# Updated: Refined ContentItemListItem for lightweight list responses.
+# Fixed: ContentItemListItem now inherits from ContentItemInDBBase to include created_at.
 
 from pydantic import (
     BaseModel,
@@ -18,7 +20,7 @@ import uuid
 import logging
 
 from app.db.models.content_item import ContentItemTypeEnum
-from .content_version import ContentVersionDetails
+from .content_version import ContentVersionDetails # Used by ContentItemWithCurrentVersion
 # Forward reference will be used for WorkflowDefinition
 
 log = logging.getLogger(__name__)
@@ -35,9 +37,6 @@ class ContentItemCreate(ContentItemBase):
         None,
         description="For Documents created by users: the template to use. For Admin T/W creation or programmatic document creation (e.g., workflow output): not used or optional.",
     )
-    # owner_team_id is not part of this Pydantic model, it's handled by the CRUD/service layer.
-    # The original validator concerning owner_team_id was effectively always checking against
-    # a None value for owner_team_id from the model's perspective.
 
     @field_validator("template_id")
     @classmethod
@@ -53,13 +52,6 @@ class ContentItemCreate(ContentItemBase):
 
     @model_validator(mode="after")
     def check_document_and_template_logic(self) -> "ContentItemCreate":
-        # User-initiated document creation via the API endpoint (`content_items.py`)
-        # already enforces that `item_in.template_id` must be provided.
-        # This Pydantic model validator was too strict for programmatic document creation
-        # (e.g., workflow outputs from workflow_service.py) where a template_id is not applicable.
-
-        # The only validation that remains relevant at this Pydantic model level is ensuring
-        # that template_id is *only* provided for DOCUMENT types if it is provided at all.
         if self.item_type != ContentItemTypeEnum.DOCUMENT and self.template_id:
             raise ValueError(
                 "template_id should only be provided when item_type is 'Document'."
@@ -77,17 +69,20 @@ class ContentItemInDBBase(ContentItemBase):
     team_id: UUID4
     is_globally_visible: bool
     current_version_id: Optional[UUID4] = None
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime.datetime # Item's creation timestamp
+    updated_at: datetime.datetime # Item's last update timestamp
 
     model_config = {"from_attributes": True}
 
 
 class ContentItem(ContentItemInDBBase):
+    """Basic representation of a content item, often used for metadata updates or simple returns."""
     pass
 
 
 class ContentItemWithCurrentVersion(ContentItem):
+    """Detailed representation of a content item, including its current version's details.
+    Used when full content is needed, e.g., for the editor view or single item retrieval."""
     current_version_for_computed_fields: Optional[ContentVersionDetails] = Field(
         default=None, alias="current_version", exclude=True
     )
@@ -145,6 +140,25 @@ class ContentItemWithCurrentVersion(ContentItem):
     }
 
 
+class ContentItemListItem(ContentItemInDBBase): # Changed inheritance from ContentItemBase
+    """
+    Lightweight representation of a content item for list views.
+    Inherits item_id, team_id, item_type, name, is_globally_visible,
+    current_version_id, created_at, updated_at from ContentItemInDBBase.
+    Omits full markdown_content. Includes essential fields for display in lists.
+    Workflow-specific fields are populated if the item is a workflow.
+    """
+    current_version_number: Optional[int] = None # Explicitly defined here
+
+    # For workflows, these are populated by the endpoint/conversion logic if applicable
+    workflow_input_document_selectors: Optional[List[str]] = None
+    workflow_output_name_template: Optional[str] = None
+
+    model_config = {
+        "from_attributes": True,
+    }
+
+
 class ContentItemDuplicatePayload(BaseModel):
     new_name: constr(min_length=1, max_length=255)
     source_version_id: Optional[UUID4] = None
@@ -154,17 +168,17 @@ class ContentItemDuplicatePayload(BaseModel):
     )
 
 
-class ContentItemSearchResult(ContentItemBase):
+class ContentItemSearchResult(ContentItemBase): # Search result can also be lightweight
+    """Schema for items returned in search results. Includes a snippet."""
     item_id: UUID4
     team_id: UUID4
     is_globally_visible: bool
     current_version_id: Optional[UUID4] = None
-    created_at: datetime.datetime
+    created_at: datetime.datetime # Ensure created_at is here for search results too
     updated_at: datetime.datetime
     current_version_number: Optional[int] = None
     snippet: Optional[str] = None
 
-    # Absolute path string literal for forward reference
     parsed_workflow_definition_internal: Optional['app.schemas.workflow_definition.WorkflowDefinition'] = Field(default=None, exclude=True)
 
     @computed_field
@@ -190,14 +204,7 @@ class ContentItemListResponse(BaseModel):
     total_count: int
     offset: int
     limit: int
-    items: List[
-        Union[
-            ContentItem,
-            ContentItemWithCurrentVersion,
-            ContentItemSearchResult,
-            ContentItemBase,
-        ]
-    ]
+    items: List[ContentItemListItem]
 
 
 class SearchResultsResponse(BaseModel):

@@ -1,6 +1,7 @@
 # File: ulacm_backend/app/crud/crud_content_item.py
 # Purpose: CRUD operations for ContentItem model.
 # Updated: Parse workflow definition for WORKFLOW type items to populate schema fields.
+# Updated: Enhanced get_items_for_team_or_admin with more filtering capabilities.
 
 from typing import Any, Dict, Optional, Union, List, Tuple
 from uuid import UUID as PyUUID
@@ -8,13 +9,18 @@ from datetime import datetime, timezone # Added timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func, or_, and_, update as sqlalchemy_update
+from sqlalchemy import func, or_, and_, update as sqlalchemy_update, cast, String as SQLString
 from sqlalchemy.orm import joinedload, selectinload # Added selectinload
 
 from app.crud.base import CRUDBase
 from app.db.models.content_item import ContentItem, ContentItemTypeEnum
 from app.db.models.content_version import ContentVersion
-from app.schemas.content_item import ContentItemCreate, ContentItemUpdateMeta, ContentItemWithCurrentVersion, ContentItemDuplicatePayload
+from app.schemas.content_item import (
+    ContentItemCreate,
+    ContentItemUpdateMeta,
+    ContentItemDuplicatePayload,
+    # ContentItemListItem, # Not directly used for return type here, but for context
+)
 from app.schemas.content_version import ContentVersionCreate
 from app.core.config import settings
 from app.services.workflow_parser import WorkflowDefinitionParser, WorkflowParsingError, ValidatedWorkflowDefinition
@@ -43,7 +49,6 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
         """
         Get a content item by its ID, joining with current version, its saving team, and owner team.
         Access control should be handled by the calling service/endpoint.
-        If the item is a workflow, its definition will be parsed.
         """
         statement = select(self.model).where(self.model.item_id == item_id).options(
             joinedload(self.model.current_version).joinedload(ContentVersion.saving_team),
@@ -51,51 +56,39 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
         )
         result = await db.execute(statement)
         item = result.scalar_one_or_none()
-
-        if item:
-            # For ContentItemWithCurrentVersion schema, we need to ensure _parsed_workflow_definition_internal is set
-            # This is typically done when the schema is instantiated from the ORM object.
-            # The schema's model_validator will attempt to use this if present.
-            # To ensure it's available for the schema, we can add it as a temporary attribute to the ORM model instance
-            # *before* it's passed to Pydantic for validation, or ensure the schema validator has access.
-            # The Pydantic schema now handles this via its model_validator if the CRUD passes the raw ORM model.
-            # Let's ensure the schema has what it needs or handle it during schema creation in the endpoint.
-            # For directness here, if we return the ORM model, the schema will handle it.
-            # If we were converting to a dict first, we'd add it to the dict.
-            # The new schema ContentItemWithCurrentVersion has a model_validator that will call the parser.
-            # To make it available more explicitly for the schema's computed_fields,
-            # we can pre-populate it on the schema object if needed, or rely on the schema validator.
-            # The schema expects _parsed_workflow_definition_internal for its computed fields.
-            # Let's ensure this is available if the schema is directly instantiated from the model.
-            # Pydantic's from_orm/model_validate will try to access attributes.
-            # We need to ensure the parsing happens transparently for the schema.
-            # The schema validator will handle this now by looking at current_version.markdown_content.
-            pass # Parsing is handled by the schema's validator now.
-
         return item
 
     async def get_by_id_for_team_or_admin_usage(
         self, db: AsyncSession, *, item_id: PyUUID, requesting_team_id: Optional[PyUUID], is_admin_request: bool
     ) -> Optional[ContentItem]:
-        item = await self.get_by_id(db, item_id=item_id) # This already calls the modified get_by_id
+        # This method was specific to a previous access pattern.
+        # For general fetching with authorization, rely on get_by_id and endpoint-level checks,
+        # or refine this method if a specific "usage" access pattern is still needed distinctly.
+        # For now, we assume get_by_id is the primary fetch, and endpoints handle access logic.
+        item = await self.get_by_id(db, item_id=item_id)
 
         if not item:
             return None
 
         if is_admin_request:
-            return item
+            return item # Admins can access any item by ID directly via this CRUD
 
-        if item.item_type == ContentItemTypeEnum.DOCUMENT:
-            if item.team_id == requesting_team_id or item.is_globally_visible:
-                return item
-        elif item.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
-            if item.team_id == settings.ADMIN_SYSTEM_TEAM_ID and item.is_globally_visible:
-                return item
-            elif item.team_id == requesting_team_id and item.is_globally_visible:
-                log.warning(f"Team {requesting_team_id} accessing a Template/Workflow they own (item_id: {item.item_id}). This is legacy or for 'use if visible'.")
-                return item
+        # Team user access logic
+        if requesting_team_id:
+            if item.item_type == ContentItemTypeEnum.DOCUMENT:
+                if item.team_id == requesting_team_id or item.is_globally_visible:
+                    return item
+            elif item.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
+                # Teams can access globally visible Admin System Templates/Workflows
+                if item.team_id == settings.ADMIN_SYSTEM_TEAM_ID and item.is_globally_visible:
+                    return item
+                # Legacy case: Team accessing a T/W they somehow "own" (should not happen with ADMIN_SYSTEM_TEAM_ID model)
+                # or a globally visible T/W not owned by ADMIN_SYSTEM_TEAM_ID (also unlikely)
+                elif item.team_id == requesting_team_id and item.is_globally_visible:
+                    log.warning(f"Team {requesting_team_id} accessing a Template/Workflow they own (item_id: {item.item_id}). This is legacy or for 'use if visible'.")
+                    return item
 
-        log.warning(f"Team {requesting_team_id} access denied or item {item_id} not found under allowed conditions for usage.")
+        log.warning(f"Team {requesting_team_id} access denied for item {item_id} (type: {item.item_type}, owner: {item.team_id}) via get_by_id_for_team_or_admin_usage.")
         return None
 
 
@@ -110,10 +103,12 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
         if is_admin_actor and obj_in.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
             item_owner_team_id = settings.ADMIN_SYSTEM_TEAM_ID
             db_obj_data["team_id"] = item_owner_team_id
-            db_obj_data["is_globally_visible"] = True
+            db_obj_data["is_globally_visible"] = True # Admin T/W are global by default
         elif not is_admin_actor and actor_team_id and obj_in.item_type == ContentItemTypeEnum.DOCUMENT:
             item_owner_team_id = actor_team_id
             db_obj_data["team_id"] = item_owner_team_id
+            # Documents are private by default unless explicitly set, which ContentItemCreate doesn't support.
+            # Default is_globally_visible is False in the model.
             db_obj_data.setdefault('is_globally_visible', False)
         else:
             raise ValueError("Invalid parameters for item creation: role, type, or team_id mismatch.")
@@ -128,16 +123,11 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
                     template_id_for_doc_creation = PyUUID(obj_in.template_id)
                 except ValueError:
                     raise ValueError("Invalid template_id format for Document creation.")
-            else:
+            else: # Is already UUID4
                 template_id_for_doc_creation = obj_in.template_id # type: ignore
 
-            if "template_id" in db_obj_data:
+            if "template_id" in db_obj_data: # template_id is not a DB column on ContentItem
                 del db_obj_data["template_id"]
-
-        # For new Templates/Workflows by Admins, markdown content might be part of obj_in if frontend allows direct content input on create.
-        # If so, it needs to be passed to create_new_version.
-        # Currently, obj_in (ContentItemCreate) doesn't have markdown_content.
-        # It's assumed content for T/W is added via a subsequent version save.
 
         db_item = self.model(**db_obj_data)
         db.add(db_item)
@@ -145,45 +135,48 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
 
         initial_content_for_version = ""
         if obj_in.item_type == ContentItemTypeEnum.DOCUMENT and template_id_for_doc_creation and actor_team_id:
+            # Fetch the template to get its content
             template_item_stmt = select(ContentItem).where(
                 ContentItem.item_id == template_id_for_doc_creation,
                 ContentItem.item_type == ContentItemTypeEnum.TEMPLATE,
-                ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID,
-                ContentItem.is_globally_visible == True
-            ).options(joinedload(ContentItem.current_version))
+                ContentItem.team_id == settings.ADMIN_SYSTEM_TEAM_ID, # Templates are admin-owned
+                ContentItem.is_globally_visible == True # Must be usable by team
+            ).options(joinedload(ContentItem.current_version)) # Eager load its current version
+
             template_result = await db.execute(template_item_stmt)
             template_item_db = template_result.scalar_one_or_none()
 
             if template_item_db and template_item_db.current_version:
                 initial_content_for_version = template_item_db.current_version.markdown_content
             elif not template_item_db:
-                await db.rollback()
+                await db.rollback() # Rollback the item creation if template is invalid
                 raise ValueError(f"Selected Template (ID: {template_id_for_doc_creation}) not found or not an accessible Admin System Template.")
 
-        # Create initial version for Documents, or if content is provided for new T/W (future enhancement)
-        if obj_in.item_type == ContentItemTypeEnum.DOCUMENT or \
-           (obj_in.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and initial_content_for_version):
-            # The second part of OR is for future if T/W can be created with initial content directly
+        # For new Templates/Workflows by Admins, or Documents by teams.
+        # An initial version is created. For T/W, content is often default, for Docs, from template.
+        # The `contentService.createItem` in frontend for Admin T/W creation navigates to EditorViewPage
+        # where the first save will create the first version with actual content.
+        # So, for Admin T/W, initial_content_for_version might be empty here, and that's okay.
+        # For Documents, it must come from a template.
 
-            from app.crud.crud_content_version import content_version as crud_version_module
-            version_payload = ContentVersionCreate(markdown_content=initial_content_for_version)
+        from app.crud.crud_content_version import content_version as crud_version_module # Local import
+        version_payload = ContentVersionCreate(markdown_content=initial_content_for_version)
 
-            if db_item.item_id is None: # Should not happen after flush
-                 await db.rollback()
-                 raise RuntimeError("Failed to get item_id for new item after flush.")
+        if db_item.item_id is None: # Should not happen after flush
+             await db.rollback()
+             raise RuntimeError("Failed to get item_id for new item after flush.")
 
-            # Determine who saves the first version
-            version_saver_id = actor_team_id if obj_in.item_type == ContentItemTypeEnum.DOCUMENT else settings.ADMIN_SYSTEM_TEAM_ID
+        version_saver_id = actor_team_id if obj_in.item_type == ContentItemTypeEnum.DOCUMENT else settings.ADMIN_SYSTEM_TEAM_ID
 
-            await crud_version_module.create_new_version(
-                db,
-                item_id=db_item.item_id,
-                version_in=version_payload,
-                saved_by_team_id=version_saver_id,
-                is_initial_version=True
-            )
+        await crud_version_module.create_new_version(
+            db,
+            item_id=db_item.item_id,
+            version_in=version_payload,
+            saved_by_team_id=version_saver_id,
+            is_initial_version=True
+        )
 
-        await db.commit()
+        await db.commit() # Commit after item and its initial version are created
         await db.refresh(db_item, attribute_names=['current_version', 'owner_team'])
         return db_item
 
@@ -194,6 +187,10 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
         requesting_actor_team_id: Optional[PyUUID],
         is_admin_actor: bool,
         item_type_filter: Optional[ContentItemTypeEnum] = None,
+        name_query: Optional[str] = None,
+        created_after: Optional[datetime] = None,
+        created_before: Optional[datetime] = None,
+        is_globally_visible_filter: Optional[bool] = None,
         list_for_team_usage: bool = False, # True if team is listing T/W to use (not manage)
         skip: int = 0,
         limit: int = 50,
@@ -206,27 +203,36 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
 
         query = select(self.model)
         count_query = select(func.count(self.model.item_id)).select_from(self.model)
+
         conditions = []
 
+        # Primary access control based on role
         if is_admin_actor:
-            if item_type_filter: # Admin listing specific type
+            # Admin can see all items, but filters apply
+            if item_type_filter:
                 conditions.append(self.model.item_type == item_type_filter)
+                # If admin is listing T/W, they are usually interested in Admin System owned ones
                 if item_type_filter in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
                     conditions.append(self.model.team_id == settings.ADMIN_SYSTEM_TEAM_ID)
-                # For Documents, admin sees all teams' documents if item_type_filter is DOCUMENT
-            # If no item_type_filter, admin sees all items (typically UI filters this)
+            # If no item_type_filter, admin sees all types. UI usually filters this.
         else: # Team user request
-            if not requesting_actor_team_id: return [], 0
+            if not requesting_actor_team_id:
+                return [], 0 # Should not happen if endpoint requires auth
 
             if list_for_team_usage and item_type_filter in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
+                # Team listing T/W to use: must be Admin System owned and globally visible
                 conditions.append(self.model.item_type == item_type_filter)
                 conditions.append(self.model.team_id == settings.ADMIN_SYSTEM_TEAM_ID)
                 conditions.append(self.model.is_globally_visible == True)
             elif item_type_filter == ContentItemTypeEnum.DOCUMENT:
+                # Team listing their own documents or globally visible documents from other teams
                 conditions.append(self.model.item_type == ContentItemTypeEnum.DOCUMENT)
                 conditions.append(or_(
                     self.model.team_id == requesting_actor_team_id,
-                    and_(self.model.is_globally_visible == True, self.model.team_id != settings.ADMIN_SYSTEM_TEAM_ID)
+                    and_(
+                        self.model.is_globally_visible == True,
+                        self.model.team_id != settings.ADMIN_SYSTEM_TEAM_ID # Exclude admin system items unless explicitly asked for usage
+                    )
                 ))
             elif not item_type_filter: # Team's general list (their Documents)
                 conditions.append(self.model.item_type == ContentItemTypeEnum.DOCUMENT)
@@ -234,39 +240,52 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
             else: # Team trying to list non-document types for management (should yield nothing for T/W)
                 return [], 0
 
+        # Apply additional filters
+        if name_query:
+            conditions.append(self.model.name.ilike(f"%{name_query}%"))
+        if created_after:
+            conditions.append(self.model.created_at >= created_after)
+        if created_before:
+            # Add 1 day to created_before to make the range inclusive of the end date
+            # or adjust comparison to be strictly less than the day after created_before
+            conditions.append(self.model.created_at < (created_before + timezone.timedelta(days=1)))
+        if is_globally_visible_filter is not None:
+            conditions.append(self.model.is_globally_visible == is_globally_visible_filter)
+
         if conditions:
             query = query.where(and_(*conditions))
             count_query = count_query.where(and_(*conditions))
 
-        total_count = (await db.execute(count_query)).scalar_one()
+        total_count_result = await db.execute(count_query)
+        total_count = total_count_result.scalar_one()
 
         query = query.order_by(sort_attr.asc() if sort_order.lower() == "asc" else sort_attr.desc())
         query = query.offset(skip).limit(limit).options(
             joinedload(self.model.current_version).joinedload(ContentVersion.saving_team),
             joinedload(self.model.owner_team)
         )
-        items_orm = (await db.execute(query)).scalars().unique().all()
 
-        # The Pydantic schema ContentItemWithCurrentVersion will handle parsing
-        # when instantiated with from_attributes=True or model_validate.
-        # So, we return the ORM items directly.
+        items_orm_result = await db.execute(query)
+        items_orm = items_orm_result.scalars().unique().all()
+
         return items_orm, total_count
 
 
     async def check_name_uniqueness(
         self, db: AsyncSession, *, name: str, item_type: ContentItemTypeEnum,
-        team_id: PyUUID,
+        team_id: PyUUID, # This is the prospective owner's ID
         exclude_item_id: Optional[PyUUID] = None
     ) -> bool:
         query = select(func.count(self.model.item_id)).where(
-            func.lower(self.model.name) == func.lower(name),
+            func.lower(self.model.name) == func.lower(name), # Case-insensitive check
             self.model.item_type == item_type,
-            self.model.team_id == team_id
+            self.model.team_id == team_id # Check against the specific owner
         )
         if exclude_item_id:
             query = query.where(self.model.item_id != exclude_item_id)
 
-        count = (await db.execute(query)).scalar_one()
+        count_result = await db.execute(query)
+        count = count_result.scalar_one()
         return count == 0
 
     async def update_item_meta_for_owner_or_admin(
@@ -274,20 +293,20 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
         requesting_actor_team_id: Optional[PyUUID],
         is_admin_actor: bool
     ) -> Optional[ContentItem]:
-        # Fetch with relationships needed for schema validation if it re-parses workflow
-        db_obj = await self.get_by_id(db, item_id=item_id)
+        db_obj = await self.get_by_id(db, item_id=item_id) # Fetches with relationships
         if not db_obj:
             return None
 
         can_update = False
-        effective_item_owner_id = db_obj.team_id
+        effective_item_owner_id = db_obj.team_id # The actual owner of the item
 
         if is_admin_actor:
-            if db_obj.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and db_obj.team_id == settings.ADMIN_SYSTEM_TEAM_ID:
-                can_update = True
-            elif db_obj.item_type == ContentItemTypeEnum.DOCUMENT:
+            # Admin can update metadata of their own T/W or any Document
+            if (db_obj.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and db_obj.team_id == settings.ADMIN_SYSTEM_TEAM_ID) \
+               or db_obj.item_type == ContentItemTypeEnum.DOCUMENT:
                 can_update = True
         elif requesting_actor_team_id and db_obj.team_id == requesting_actor_team_id:
+            # Team user can update metadata of their own Documents
             if db_obj.item_type == ContentItemTypeEnum.DOCUMENT:
                 can_update = True
 
@@ -296,47 +315,57 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
             return None
 
         update_data = item_in.model_dump(exclude_unset=True)
+        item_updated = False
 
         if "name" in update_data and update_data["name"].lower() != db_obj.name.lower():
             if not await self.check_name_uniqueness(
                 db, name=update_data["name"], item_type=db_obj.item_type,
-                team_id=effective_item_owner_id,
+                team_id=effective_item_owner_id, # Check uniqueness against actual owner
                 exclude_item_id=db_obj.item_id
             ):
                 raise ValueError(f"{db_obj.item_type.value} with name '{update_data['name']}' already exists for the owner.")
             setattr(db_obj, "name", update_data["name"])
+            item_updated = True
 
-        if "is_globally_visible" in update_data:
+        if "is_globally_visible" in update_data and update_data["is_globally_visible"] != db_obj.is_globally_visible:
+            # Permission to change visibility depends on who is acting and what item type
             can_change_visibility = False
-            if is_admin_actor and db_obj.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and db_obj.team_id == settings.ADMIN_SYSTEM_TEAM_ID:
+            if is_admin_actor: # Admin can change visibility for their T/W or any Document
                 can_change_visibility = True
-            elif not is_admin_actor and requesting_actor_team_id and db_obj.team_id == requesting_actor_team_id and db_obj.item_type == ContentItemTypeEnum.DOCUMENT:
+            elif requesting_actor_team_id and db_obj.team_id == requesting_actor_team_id and db_obj.item_type == ContentItemTypeEnum.DOCUMENT:
+                # Team user can change visibility for their own documents
                 can_change_visibility = True
 
             if can_change_visibility:
                 setattr(db_obj, "is_globally_visible", update_data["is_globally_visible"])
+                item_updated = True
             elif "is_globally_visible" in update_data: # Tried to update but not allowed
                 log.warning(f"User (Admin: {is_admin_actor}, TeamID: {requesting_actor_team_id}) not allowed to change visibility for item {item_id}")
+                # Optionally raise an error or just ignore the change for this field
+                # For now, we ignore if not permitted, only applying allowed changes.
 
-        db_obj.updated_at = datetime.now(timezone.utc)
-        db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj, attribute_names=['current_version', 'owner_team'])
+        if item_updated:
+            db_obj.updated_at = datetime.now(timezone.utc) # Manually set updated_at
+            db.add(db_obj)
+            await db.commit()
+            await db.refresh(db_obj, attribute_names=['current_version', 'owner_team'])
         return db_obj
 
     async def remove_item_for_owner_or_admin(
         self, db: AsyncSession, *, item_id: PyUUID, requesting_actor_team_id: Optional[PyUUID], is_admin_actor: bool
     ) -> Optional[ContentItem]:
-        item_to_delete = await self.get_by_id(db, item_id=item_id)
+        item_to_delete = await self.get_by_id(db, item_id=item_id) # Fetches with relationships
         if not item_to_delete:
             return None
 
         can_delete = False
         if is_admin_actor:
+            # Admin can delete their own T/W or any Document
             if (item_to_delete.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and item_to_delete.team_id == settings.ADMIN_SYSTEM_TEAM_ID) \
                or item_to_delete.item_type == ContentItemTypeEnum.DOCUMENT:
                 can_delete = True
         elif requesting_actor_team_id and item_to_delete.team_id == requesting_actor_team_id:
+             # Team user can delete their own Documents
              if item_to_delete.item_type == ContentItemTypeEnum.DOCUMENT:
                 can_delete = True
 
@@ -344,7 +373,7 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
             log.warning(f"Delete item failed: User (Admin: {is_admin_actor}, TeamID: {requesting_actor_team_id}) cannot delete item {item_id} of type {item_to_delete.item_type} owned by {item_to_delete.team_id}")
             return None
 
-        await db.delete(item_to_delete)
+        await db.delete(item_to_delete) # SQLAlchemy handles cascade deletes based on model relationships
         await db.commit()
         return item_to_delete
 
@@ -360,92 +389,93 @@ class CRUDContentItem(CRUDBase[ContentItem, ContentItemCreate, ContentItemUpdate
         if not source_item:
             raise ValueError("Source item not found.")
 
-        # Determine owner of the new duplicated item
         new_owner_id: PyUUID
+        new_item_type = source_item.item_type # Default to same type
+
         if is_admin_actor:
             if source_item.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
                 new_owner_id = settings.ADMIN_SYSTEM_TEAM_ID # Admin duplicates their own T/W
             elif source_item.item_type == ContentItemTypeEnum.DOCUMENT:
                 # Admin duplicating a doc. If target_owner_team_id is provided, use it. Else, duplicate for source item's team.
                 new_owner_id = payload.target_owner_team_id or source_item.team_id
-            else: # Should not happen
+            else:
                 raise ValueError("Invalid item type for admin duplication.")
         else: # Team actor
+            if not requesting_actor_team_id:
+                raise ValueError("Requesting team ID is required for team duplication.")
+
             if source_item.item_type == ContentItemTypeEnum.DOCUMENT and source_item.team_id == requesting_actor_team_id:
                 new_owner_id = requesting_actor_team_id # Team duplicates their own document
-            elif source_item.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and \
+            elif source_item.item_type == ContentItemTypeEnum.TEMPLATE and \
                  source_item.team_id == settings.ADMIN_SYSTEM_TEAM_ID and source_item.is_globally_visible:
-                # Team duplicating an Admin System T/W into a new Document for themselves
-                if source_item.item_type == ContentItemTypeEnum.WORKFLOW:
-                     raise ValueError("Teams cannot directly duplicate Workflows into new Workflows. They can execute them to produce Documents.")
-                # For TEMPLATE, it becomes a new DOCUMENT for the team
-                new_owner_id = requesting_actor_team_id # type: ignore
-            else:
+                # Team duplicating an Admin System Template into a new Document for themselves
+                new_owner_id = requesting_actor_team_id
+                new_item_type = ContentItemTypeEnum.DOCUMENT # Result is a Document
+            elif source_item.item_type == ContentItemTypeEnum.WORKFLOW and \
+                 source_item.team_id == settings.ADMIN_SYSTEM_TEAM_ID and source_item.is_globally_visible:
+                # Teams cannot duplicate Workflows directly. They execute them.
+                raise ValueError("Teams execute Workflows, not duplicate them directly. This action is not permitted.")
+            else: # Other cases, e.g. trying to duplicate a global doc not owned by them, or a non-global T/W
                 raise ValueError("Not authorized to duplicate this item or invalid duplication scenario.")
 
-        # Check name uniqueness for the new owner
-        if not await self.check_name_uniqueness(db, name=payload.new_name, item_type=source_item.item_type, team_id=new_owner_id):
-            raise ValueError(f"{source_item.item_type.value} with name '{payload.new_name}' already exists for the target owner.")
+        if not await self.check_name_uniqueness(db, name=payload.new_name, item_type=new_item_type, team_id=new_owner_id):
+            raise ValueError(f"{new_item_type.value} with name '{payload.new_name}' already exists for the target owner.")
 
-        # Create new ContentItem (metadata)
         duplicated_item_data = {
             "name": payload.new_name,
-            "item_type": source_item.item_type,
+            "item_type": new_item_type,
             "team_id": new_owner_id,
-            "is_globally_visible": source_item.is_globally_visible if new_owner_id == source_item.team_id else False, # New docs are private by default
+            # New items are private by default, unless admin duplicates their own global T/W
+            "is_globally_visible": (is_admin_actor and \
+                                    source_item.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and \
+                                    source_item.is_globally_visible and \
+                                    new_owner_id == settings.ADMIN_SYSTEM_TEAM_ID)
         }
-        # If team duplicates an Admin Template, the new item is a DOCUMENT
-        if not is_admin_actor and source_item.item_type == ContentItemTypeEnum.TEMPLATE:
-            duplicated_item_data["item_type"] = ContentItemTypeEnum.DOCUMENT
-            duplicated_item_data["is_globally_visible"] = False # New doc is private
-
 
         new_db_item = ContentItem(**duplicated_item_data)
         db.add(new_db_item)
         await db.flush() # Get new_db_item.item_id
 
-        # Determine which version's content to copy
         content_to_copy = ""
         version_to_copy_from: Optional[ContentVersion] = None
 
-        if payload.source_version_id: # User specified a version
+        if payload.source_version_id:
             version_to_copy_from = await crud_content_version.content_version.get_by_id(db, version_id=payload.source_version_id)
             if not version_to_copy_from or version_to_copy_from.item_id != source_item_id:
                 raise ValueError("Specified source version not found or does not belong to the source item.")
-        elif source_item.current_version: # Default to current version
+        elif source_item.current_version:
             version_to_copy_from = source_item.current_version
 
         if version_to_copy_from:
             content_to_copy = version_to_copy_from.markdown_content
-        elif source_item.item_type == ContentItemTypeEnum.DOCUMENT: # Document must have content
-             raise ValueError("Source document has no content to duplicate.")
+        elif new_item_type == ContentItemTypeEnum.DOCUMENT: # Document must have content
+             raise ValueError("Source item for duplication has no content.")
 
-
-        # Create the first version for the duplicated item
-        if new_db_item.item_id is None: # Should not happen after flush
+        if new_db_item.item_id is None:
             await db.rollback()
             raise RuntimeError("Failed to get item_id for duplicated item after flush.")
 
         version_payload = ContentVersionCreate(markdown_content=content_to_copy)
         # The saver of the first version of the duplicate is the actor performing the duplication
-        version_saver_id = requesting_actor_team_id if not is_admin_actor else settings.ADMIN_SYSTEM_TEAM_ID
-        if not is_admin_actor and source_item.item_type == ContentItemTypeEnum.TEMPLATE: # Team duplicating template
-            version_saver_id = requesting_actor_team_id # type: ignore
+        # If admin duplicates, saved_by_team_id is ADMIN_SYSTEM_TEAM_ID
+        # If team duplicates (a template into a doc, or their own doc), saved_by_team_id is their team_id
+        version_saver_id = settings.ADMIN_SYSTEM_TEAM_ID if is_admin_actor else requesting_actor_team_id
 
+        if version_saver_id is None: # Should not happen due to logic above
+            await db.rollback()
+            raise ValueError("Could not determine saver ID for duplicated item's first version.")
 
         await crud_content_version.content_version.create_new_version(
             db, item_id=new_db_item.item_id, version_in=version_payload,
-            saved_by_team_id=version_saver_id, # type: ignore
+            saved_by_team_id=version_saver_id,
             is_initial_version=True
         )
 
         await db.commit()
-        # Refresh to get all relationships, including current_version for schema
         await db.refresh(new_db_item, attribute_names=['current_version', 'owner_team'])
-        if new_db_item.current_version:
+        if new_db_item.current_version: # Ensure saving_team is loaded for the new version
             await db.refresh(new_db_item.current_version, attribute_names=['saving_team'])
 
         return new_db_item
-
 
 content_item = CRUDContentItem(ContentItem)

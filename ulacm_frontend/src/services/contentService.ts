@@ -1,6 +1,7 @@
 // File: ulacm_frontend/src/services/contentService.ts
 // Purpose: Service for API calls related to content items, versions, and workflow execution.
 // Updated: Modified runWorkflow to accept an optional payload with input_document_ids.
+// Updated: Modified getItems params to include new filtering options.
 
 import apiClient from './apiClient';
 import {
@@ -10,10 +11,10 @@ import {
   PaginatedResponse,
   SearchResultsResponseApi,
   ContentItemSearchResult,
-  RunWorkflowResponse, // Make sure this is imported from api.ts or similar
+  RunWorkflowResponse,
   ContentItemDuplicatePayload,
   ContentItemListed,
-} from '@/types/api'; // Ensure RunWorkflowResponse is correctly typed here
+} from '@/types/api';
 import {
     ContentVersionDetails,
     SaveVersionResponse,
@@ -35,6 +36,20 @@ export interface ContentVersionCreatePayload {
   markdown_content: string;
 }
 
+export interface GetItemsParams {
+  item_type?: ContentItemType;
+  offset?: number;
+  limit?: number;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+  for_usage?: boolean; // For teams listing Admin T/W
+  // New filter parameters
+  name_query?: string; // For filtering by name
+  created_after?: string; // YYYY-MM-DD
+  created_before?: string; // YYYY-MM-DD
+  is_globally_visible?: boolean; // For filtering by global visibility status
+}
+
 export interface SearchParams {
     query?: string;
     item_types?: string; // Comma-separated
@@ -46,22 +61,28 @@ export interface SearchParams {
     sort_order?: 'asc' | 'desc';
 }
 
-// New interface for the payload of runWorkflow
 export interface RunWorkflowPayload {
   input_document_ids?: string[];
 }
 
 const contentService = {
-  getItems: async (params: {
-    item_type?: ContentItemType;
-    offset?: number;
-    limit?: number;
-    sort_by?: string;
-    sort_order?: 'asc' | 'desc';
-    for_usage?: boolean;
-    name_query?: string;
-  }): Promise<PaginatedResponse<ContentItemListed>> => {
-    const response = await apiClient.get<PaginatedResponse<ContentItemListed>>('/items', { params });
+  // Updated getItems to accept new filter parameters
+  getItems: async (params: GetItemsParams): Promise<PaginatedResponse<ContentItemListed>> => {
+    // Filter out undefined params before sending to ensure clean query string
+    const filteredParams: Record<string, any> = {};
+    for (const key in params) {
+        if (params[key as keyof GetItemsParams] !== undefined && params[key as keyof GetItemsParams] !== null && params[key as keyof GetItemsParams] !== '') {
+            // Special handling for boolean is_globally_visible:
+            // If it's explicitly set (true or false), include it.
+            // If it's undefined/null, don't include the param (backend won't filter by it).
+            if (key === 'is_globally_visible' && typeof params[key as keyof GetItemsParams] === 'boolean') {
+                 filteredParams[key] = params[key as keyof GetItemsParams];
+            } else if (key !== 'is_globally_visible') {
+                 filteredParams[key] = params[key as keyof GetItemsParams];
+            }
+        }
+    }
+    const response = await apiClient.get<PaginatedResponse<ContentItemListed>>('/items', { params: filteredParams });
     return response.data;
   },
 
@@ -110,14 +131,12 @@ const contentService = {
      return {
          total_count: response.data.total_count,
          offset: params.offset ?? 0,
-         limit: params.limit ?? 20,
+         limit: params.limit ?? 20, // Default limit for search results if not provided
          items: response.data.items
      };
   },
 
   runWorkflow: async (workflowItemId: string, payload?: RunWorkflowPayload): Promise<RunWorkflowResponse> => {
-    // If payload is provided (i.e., contains input_document_ids), it will be sent as the request body.
-    // If payload is undefined, no request body will be sent (matching the previous behavior for workflows not requiring input).
     const response = await apiClient.post<RunWorkflowResponse>(`/workflows/${workflowItemId}/run`, payload);
     return response.data;
   },

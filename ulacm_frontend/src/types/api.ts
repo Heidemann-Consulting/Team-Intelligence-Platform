@@ -1,6 +1,6 @@
 // File: ulacm_frontend/src/types/api.ts
 // Purpose: TypeScript types for API request/response structures.
-// Updated: Added workflow_input_document_selectors and workflow_output_name_template to relevant types.
+// Updated: Adjusted ContentItemListed to match backend's lightweight ContentItemListItem.
 
 import { Team } from './auth';
 
@@ -32,38 +32,43 @@ export interface ContentItemBaseCore {
   name: string;
   is_globally_visible: boolean;
   current_version_id?: string | null;
-  current_version_number?: number;
+  current_version_number?: number; // Current version number of the item
   created_at: string; // Item creation date
   updated_at: string; // Item last updated date (includes new versions, meta changes)
 }
 
-// This is the primary type used in ContentListPage and ExecuteWorkflowPage for listed items.
-// It includes fields from ContentItemWithCurrentVersion (backend) that are relevant for listing.
+// Lightweight representation for list views.
+// Corresponds to backend's ContentItemListItem.
 export interface ContentItemListed extends ContentItemBaseCore {
-  // Fields derived from the current version
-  markdown_content?: string | null; // Current version's markdown (might be too heavy for general lists, often on detail)
-  version_created_at?: string | null; // Current version's creation date (save time of current version)
-  version_saved_by_team_id?: string | null; // Current version's saver
+  // Inherits item_id, team_id, item_type, name, is_globally_visible,
+  // current_version_id, current_version_number, created_at, updated_at.
 
-  // Workflow-specific fields, populated if item_type is WORKFLOW
+  // Workflow-specific fields, populated if item_type is WORKFLOW.
+  // These are directly on the ContentItemListItem if it's a workflow.
   workflow_input_document_selectors?: string[] | null;
   workflow_output_name_template?: string | null;
 }
 
 
-export interface ContentItemDetail extends ContentItemListed {
-  // ContentItemListed already includes most necessary fields.
-  // markdown_content is definitely needed for detail view.
-  markdown_content: string | null; // Ensure it's present, even if null
+// Detailed representation, used for editor view or single item retrieval.
+// Corresponds to backend's ContentItemWithCurrentVersion.
+export interface ContentItemDetail extends ContentItemBaseCore {
+  // Fields from ContentItemBaseCore are inherited.
 
-  // version_created_at and version_saved_by_team_id are already in ContentItemListed
-  // workflow_input_document_selectors and workflow_output_name_template are also in ContentItemListed
+  // Fields from the current version, typically included in detail views.
+  markdown_content: string | null; // Current version's markdown content.
+  version_created_at?: string | null; // Current version's creation date (save time).
+  version_saved_by_team_id?: string | null; // Team ID of who saved the current version.
+
+  // Workflow-specific fields, populated if item_type is WORKFLOW.
+  // These are derived from the current_version's content.
+  workflow_input_document_selectors?: string[] | null;
+  workflow_output_name_template?: string | null;
 }
 
 
 export interface ContentItemForUsage extends Omit<ContentItemBaseCore, 'team_id' | 'is_globally_visible'> {
-  description?: string; // Example of a field specific to this usage context
-  // May also need workflow_input_document_selectors and workflow_output_name_template if used for workflows
+  description?: string;
   workflow_input_document_selectors?: string[] | null;
   workflow_output_name_template?: string | null;
 }
@@ -71,13 +76,19 @@ export interface ContentItemForUsage extends Omit<ContentItemBaseCore, 'team_id'
 export interface ContentItemDuplicatePayload {
   new_name: string;
   source_version_id?: string;
-  target_owner_team_id?: string; // Optional: For admin to assign duplicate to a different team
+  target_owner_team_id?: string;
 }
 
-export interface ContentItemSearchResult extends ContentItemListed {
-    snippet?: string | null;
-    // Inherits workflow_input_document_selectors and workflow_output_name_template from ContentItemListed
-    // if search results are to include this data (would require backend search to parse workflow content)
+// Schema for items returned in search results.
+// Corresponds to backend's ContentItemSearchResult.
+export interface ContentItemSearchResult extends ContentItemBaseCore {
+  // Inherits item_id, team_id, item_type, name, is_globally_visible,
+  // current_version_id, current_version_number, created_at, updated_at.
+  snippet?: string | null;
+
+  // Workflow-specific fields, populated if item_type is WORKFLOW and search result includes them.
+  workflow_input_document_selectors?: string[] | null;
+  workflow_output_name_template?: string | null;
 }
 
 // This type might be specific to the backend's direct response for search
@@ -85,10 +96,7 @@ export interface SearchResultsResponseApi extends PaginatedResponse<ContentItemS
 
 
 export interface WorkflowExecutionOutputDocument extends ContentItemDetail {
-    // ContentItemDetail now includes workflow_input_document_selectors and workflow_output_name_template
-    // if the output document itself is a workflow (which is not typical).
-    // For a Document output, these workflow-specific fields would be null/undefined.
-    markdown_content: string; // Ensure this is always present for the output document's content
+    markdown_content: string;
     current_version_number: number;
 }
 

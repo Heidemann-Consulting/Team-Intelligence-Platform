@@ -1,42 +1,34 @@
 // File: ulacm_frontend/src/pages/team/ContentListPage.tsx
-// Purpose: Page for listing items.
+// Purpose: Page for listing items with enhanced filtering.
 // - For Teams: Primarily lists their Documents.
-// - For Admins: Lists Templates or Workflows (owned by ADMIN_SYSTEM_TEAM_ID) or Documents.
+// - For Admins: Lists Templates or Workflows or Documents.
+// Updated: Integrated new filtering for name, creation date, and global visibility.
+// Fixed: Added robust date parsing and validation for display.
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FileText, FileCode2, FolderGit2, PlusCircle, RefreshCw, AlertCircle,
   Eye, Globe, Edit3, Trash2, Copy, ChevronLeft, ChevronRight, Settings,
-  Search as SearchIcon, X as ClearSearchIcon, ArrowDownUp, SortAsc, SortDesc
+  Search as SearchIcon, X as ClearSearchIcon, ArrowDownUp, SortAsc, SortDesc, Filter as FilterIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow, format, isValid, parseISO } from 'date-fns'; // Added parseISO and isValid
 
-import { ContentItemListed, ContentItemType, ContentItemDuplicatePayload, ContentItemSearchResult } from '@/types/api'; // Use ContentItemListed
-import contentService, { SearchParams } from '@/services/contentService';
+import { ContentItemListed, ContentItemType, ContentItemDuplicatePayload } from '@/types/api';
+import contentService, { GetItemsParams } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import CreateDocumentModal from '@/components/content/CreateDocumentModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { ADMIN_SYSTEM_TEAM_ID_STRING } from '@/utils/constants';
 
-const highlightStyle = `
-  .search-highlight {
-    background-color: #fef08a; /* yellow-200 */
-    padding: 0.1em 0.1em;
-    margin: 0 -0.1em;
-    border-radius: 0.2em;
-    font-style: normal;
-    font-weight: 600; /* Semibold */
-  }
-`;
-
-type SortOption = 'name' | 'updated_at'; // updated_at for item maps to latest version date
+type SortOption = 'name' | 'updated_at' | 'created_at' | 'item_type';
 type SortOrder = 'asc' | 'desc';
+type VisibilityFilterOption = "all" | "global" | "private";
 
 const ContentListPage: React.FC = () => {
-  const [items, setItems] = useState<(ContentItemListed | ContentItemSearchResult)[]>([]); // Can hold both types
+  const [items, setItems] = useState<ContentItemListed[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -45,7 +37,7 @@ const ContentListPage: React.FC = () => {
     total_count: 0,
   });
   const [itemTypeForPage, setItemTypeForPage] = useState<ContentItemType | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState<ContentItemListed | ContentItemSearchResult | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<ContentItemListed | null>(null);
   const [showCreateDocModal, setShowCreateDocModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
@@ -53,12 +45,17 @@ const ContentListPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentTeam, isAdminAuthenticated } = useAuth();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  // Filtering State
+  const [nameFilterInput, setNameFilterInput] = useState('');
+  const [debouncedNameFilter, setDebouncedNameFilter] = useState('');
+  const nameFilterInputRef = useRef<HTMLInputElement>(null);
+  const [dateAfterFilter, setDateAfterFilter] = useState('');
+  const [dateBeforeFilter, setDateBeforeFilter] = useState('');
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilterOption>("all");
 
   const [sortBy, setSortBy] = useState<SortOption>('updated_at');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [showFilters, setShowFilters] = useState(false);
 
 
   useEffect(() => {
@@ -74,20 +71,22 @@ const ContentListPage: React.FC = () => {
     if (itemTypeForPage !== type) {
       setItemTypeForPage(type);
       setPagination(p => ({ ...p, offset: 0 }));
-      setSearchQuery(''); // Reset search on type change
-      setDebouncedSearchQuery('');
+      setNameFilterInput('');
+      setDebouncedNameFilter('');
+      setDateAfterFilter('');
+      setDateBeforeFilter('');
+      setVisibilityFilter("all");
       setItems([]);
     }
   }, [location.pathname, isAdminAuthenticated, itemTypeForPage]);
 
-  // Debounce search query
   useEffect(() => {
     const timerId = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-      setPagination(p => ({ ...p, offset: 0 })); // Reset pagination on new search
+      setDebouncedNameFilter(nameFilterInput);
+      setPagination(p => ({ ...p, offset: 0 }));
     }, 500);
     return () => clearTimeout(timerId);
-  }, [searchQuery]);
+  }, [nameFilterInput]);
 
 
   const fetchItems = useCallback(async (offset = 0, showLoadingIndicator = true) => {
@@ -105,35 +104,21 @@ const ContentListPage: React.FC = () => {
     setError(null);
 
     try {
-      const effectiveItemType = itemTypeForPage; // Use itemTypeForPage for filtering if not searching
-                                                 // or if search should be constrained to the current page type.
-
-      if (debouncedSearchQuery.trim()) {
-        // Perform search
-        const searchParams: SearchParams = {
-          query: debouncedSearchQuery.trim(),
-          item_types: effectiveItemType ? effectiveItemType : undefined, // Search within current type or all if no type context
-          offset,
-          limit: pagination.limit,
-          sort_by: sortBy, // Add sort to search
-          sort_order: sortOrder,
-        };
-        const data = await contentService.searchItems(searchParams);
-        setItems(data.items);
-        setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
-      } else {
-        // Perform regular listing
-        const listParams: Parameters<typeof contentService.getItems>[0] = {
-          item_type: effectiveItemType ?? undefined, // Handle null case properly
-          offset,
-          limit: pagination.limit,
-          sort_by: sortBy,
-          sort_order: sortOrder,
-        };
-        const data = await contentService.getItems(listParams);
-        setItems(data.items);
-        setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
-      }
+      const params: GetItemsParams = {
+        item_type: itemTypeForPage ?? undefined,
+        offset,
+        limit: pagination.limit,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        name_query: debouncedNameFilter.trim() || undefined,
+        created_after: dateAfterFilter || undefined,
+        created_before: dateBeforeFilter || undefined,
+        is_globally_visible: visibilityFilter === "global" ? true : visibilityFilter === "private" ? false : undefined,
+        for_usage: (itemTypeForPage === ContentItemType.TEMPLATE || itemTypeForPage === ContentItemType.WORKFLOW) && !isAdminAuthenticated ? true : undefined,
+      };
+      const data = await contentService.getItems(params);
+      setItems(data.items);
+      setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
     } catch (err: any) {
       console.error("Failed to fetch content items:", err);
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to load items.';
@@ -141,32 +126,25 @@ const ContentListPage: React.FC = () => {
     } finally {
       if (showLoadingIndicator) setIsLoading(false);
     }
-  }, [itemTypeForPage, isAdminAuthenticated, location.pathname, pagination.limit, debouncedSearchQuery, sortBy, sortOrder]);
+  }, [itemTypeForPage, isAdminAuthenticated, location.pathname, pagination.limit, sortBy, sortOrder, debouncedNameFilter, dateAfterFilter, dateBeforeFilter, visibilityFilter]);
 
   useEffect(() => {
      if (itemTypeForPage || (isAdminAuthenticated && location.pathname.includes('/documents'))) {
-        fetchItems(pagination.offset, true); // Show full loading indicator on initial load or type change
+        fetchItems(pagination.offset, true);
      }
-  }, [fetchItems, pagination.offset, itemTypeForPage, isAdminAuthenticated, location.pathname, debouncedSearchQuery, sortBy, sortOrder]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.offset, itemTypeForPage, isAdminAuthenticated, location.pathname, debouncedNameFilter, sortBy, sortOrder, dateAfterFilter, dateBeforeFilter, visibilityFilter]);
 
 
   const handleNewItemClick = () => {
     if (isAdminAuthenticated) {
-        if (itemTypeForPage === ContentItemType.TEMPLATE) {
-            navigate('/admin/templates/new');
-        } else if (itemTypeForPage === ContentItemType.WORKFLOW) {
-            navigate('/admin/workflows/new');
-        } else if (itemTypeForPage === ContentItemType.DOCUMENT) {
-            toast.error("Admin document creation not directly supported here. Manage team documents or system templates/workflows.");
-        } else {
-            toast.error("Select a content type section (Templates or Workflows) to create new admin content.");
-        }
+        if (itemTypeForPage === ContentItemType.TEMPLATE) navigate('/admin/templates/new');
+        else if (itemTypeForPage === ContentItemType.WORKFLOW) navigate('/admin/workflows/new');
+        else if (itemTypeForPage === ContentItemType.DOCUMENT) toast.error("Admin document creation not directly supported here.");
+        else toast.error("Select a content type section (Templates or Workflows) to create new admin content.");
     } else {
-        if (itemTypeForPage === ContentItemType.DOCUMENT) {
-            setShowCreateDocModal(true);
-        } else {
-            toast.error("Teams can only create Documents. Templates and Workflows are managed by Admins.");
-        }
+        if (itemTypeForPage === ContentItemType.DOCUMENT) setShowCreateDocModal(true);
+        else toast.error("Teams can only create Documents.");
     }
   };
 
@@ -196,15 +174,12 @@ const ContentListPage: React.FC = () => {
   };
 
   const handlePageChange = (newOffset: number) => {
-     if (newOffset >= 0 && newOffset < pagination.total_count) {
+     if (newOffset >= 0 && (newOffset < pagination.total_count || pagination.total_count === 0) ) {
         setPagination(prev => ({ ...prev, offset: newOffset }));
-        // Fetch will be triggered by useEffect watching pagination.offset
      }
   };
 
-  const handleDeleteItem = (item: ContentItemListed | ContentItemSearchResult) => {
-    setShowDeleteModal(item);
-  };
+  const handleDeleteItem = (item: ContentItemListed) => setShowDeleteModal(item);
 
   const confirmDeleteItem = async () => {
      if (!showDeleteModal) return;
@@ -216,8 +191,7 @@ const ContentListPage: React.FC = () => {
      try {
        await contentService.deleteItem(itemToDelete.item_id);
        toast.success(`${itemToDelete.item_type} "${itemToDelete.name}" deleted.`, { id: toastId });
-       // Re-fetch items for the current page after deletion
-       fetchItems(pagination.offset, false); // false to avoid full page loading indicator
+       fetchItems(pagination.offset, false);
      } catch (err: any) {
        console.error(`Failed to delete ${itemToDelete.item_type}`, err);
        toast.error(err.message || `Failed to delete ${itemToDelete.item_type}.`);
@@ -226,7 +200,7 @@ const ContentListPage: React.FC = () => {
      }
   };
 
-  const handleDuplicateItem = (item: ContentItemListed | ContentItemSearchResult) => {
+  const handleDuplicateItem = (item: ContentItemListed) => {
       const newName = prompt(`Enter a name for the duplicated ${item.item_type}:`, `Copy of ${item.name}`);
       if (newName) {
           setActionLoading(prev => ({ ...prev, [item.item_id]: true }));
@@ -246,53 +220,89 @@ const ContentListPage: React.FC = () => {
       }
   };
 
-  const totalPages = Math.ceil(pagination.total_count / pagination.limit);
+  const totalPages = Math.max(1, Math.ceil(pagination.total_count / pagination.limit));
   const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
   const { title: pageTitle, icon: PageIcon } = getPageTitleAndIcon;
 
-  const getEditPath = (item: ContentItemListed | ContentItemSearchResult) => {
+  const getEditPath = (item: ContentItemListed) => {
     const typePath = item.item_type.toLowerCase() + 's';
     if (isAdminAuthenticated) {
         if (item.item_type === ContentItemType.TEMPLATE || item.item_type === ContentItemType.WORKFLOW) {
             return `/admin/${typePath}/${item.item_id}`;
         } else if (item.item_type === ContentItemType.DOCUMENT) {
-            return `/app/${typePath}/${item.item_id}`; // Admins view documents in team context
+            return `/app/${typePath}/${item.item_id}`;
         }
     } else {
         if (item.item_type === ContentItemType.DOCUMENT) {
             return `/app/${typePath}/${item.item_id}`;
         }
     }
-    return '#'; // Should not happen for accessible items
+    return '#';
   };
 
-  const canEditItem = (item: ContentItemListed | ContentItemSearchResult): boolean => {
+  const canEditItem = (item: ContentItemListed): boolean => {
     if (isAdminAuthenticated) {
         return (item.item_type === ContentItemType.TEMPLATE && item.team_id === ADMIN_SYSTEM_TEAM_ID_STRING) ||
                (item.item_type === ContentItemType.WORKFLOW && item.team_id === ADMIN_SYSTEM_TEAM_ID_STRING) ||
-               item.item_type === ContentItemType.DOCUMENT; // Admin can view/potentially edit metadata of any document
+               item.item_type === ContentItemType.DOCUMENT;
     }
     return item.item_type === ContentItemType.DOCUMENT && item.team_id === currentTeam?.team_id;
   };
 
-  const canDeleteItem = (item: ContentItemListed | ContentItemSearchResult): boolean => {
-    return canEditItem(item); // Same logic for now
-  };
+  const canDeleteItem = (item: ContentItemListed): boolean => canEditItem(item);
 
   const handleSortChange = (newSortBy: SortOption) => {
     if (sortBy === newSortBy) {
       setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortBy(newSortBy);
-      setSortOrder('asc'); // Default to ascending when changing column
+      setSortOrder('asc');
     }
-    setPagination(p => ({ ...p, offset: 0 })); // Reset to first page on sort change
+    setPagination(p => ({ ...p, offset: 0 }));
   };
 
   const renderSortIcon = (column: SortOption) => {
     if (sortBy !== column) return <ArrowDownUp size={14} className="ml-1 text-ulacm-gray-400" />;
     return sortOrder === 'asc' ? <SortAsc size={14} className="ml-1 text-ulacm-primary" /> : <SortDesc size={14} className="ml-1 text-ulacm-primary" />;
   };
+
+  const handleClearFilters = () => {
+    setNameFilterInput('');
+    setDebouncedNameFilter('');
+    setDateAfterFilter('');
+    setDateBeforeFilter('');
+    setVisibilityFilter("all");
+    setPagination(p => ({ ...p, offset: 0 }));
+  };
+
+  const formatDateSafe = (dateString: string | undefined | null, formatToken: string): string => {
+    if (!dateString) return 'N/A';
+    try {
+        const parsedDate = parseISO(dateString);
+        if (isValid(parsedDate)) {
+            if (formatToken === 'relative') {
+                return formatDistanceToNow(parsedDate, { addSuffix: true });
+            }
+            return format(parsedDate, formatToken);
+        }
+    } catch (e) {
+        console.warn(`Error parsing date string: ${dateString}`, e);
+    }
+    return 'Invalid date';
+  };
+
+  const getLocaleStringSafe = (dateString: string | undefined | null): string => {
+    if (!dateString) return 'N/A';
+    try {
+        const parsedDate = parseISO(dateString);
+        if (isValid(parsedDate)) {
+            return parsedDate.toLocaleString();
+        }
+    } catch (e) {
+        console.warn(`Error parsing date string for toLocaleString: ${dateString}`, e);
+    }
+    return 'Invalid date';
+  }
 
 
   if (!itemTypeForPage && !error && !(isAdminAuthenticated && location.pathname.includes('/documents'))) {
@@ -301,7 +311,6 @@ const ContentListPage: React.FC = () => {
     } else if (!isAdminAuthenticated && location.pathname.startsWith("/app/documents")) {
       return <div className="flex justify-center items-center py-20"><LoadingSpinner size="lg" /></div>;
     }
-    // If no specific type is determined and not an admin viewing all documents, show an error or guidance.
     return (
         <div className="text-center py-10">
             <AlertCircle size={48} className="mx-auto text-yellow-500 mb-4" />
@@ -311,10 +320,8 @@ const ContentListPage: React.FC = () => {
     );
   }
 
-
   return (
     <div className="space-y-6">
-      <style>{highlightStyle}</style> {/* Inject highlight styles */}
       <div className="flex flex-col gap-4 md:flex-row justify-between md:items-center">
         <h1 className="text-3xl font-bold text-ulacm-gray-800 flex items-center">
             {PageIcon && <PageIcon size={30} className="mr-3 text-ulacm-primary"/>} {pageTitle}
@@ -342,34 +349,82 @@ const ContentListPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Input */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <SearchIcon className="h-5 w-5 text-ulacm-gray-400" aria-hidden="true" />
-        </div>
-        <input
-          ref={searchInputRef}
-          type="search"
-          name="search"
-          id="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="block w-full pl-10 pr-10 py-2 border border-ulacm-gray-300 rounded-md leading-5 bg-white placeholder-ulacm-gray-500 focus:outline-none focus:placeholder-ulacm-gray-400 focus:ring-1 focus:ring-ulacm-primary focus:border-ulacm-primary sm:text-sm shadow-sm"
-          placeholder={`Search ${pageTitle.toLowerCase()}...`}
-        />
-        {searchQuery && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+      <div className="bg-white p-4 rounded-xl shadow-lg border border-ulacm-gray-100 space-y-4">
+        <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-ulacm-gray-700 flex items-center">
+                <FilterIcon size={20} className="mr-2 text-ulacm-primary" /> Filters
+            </h2>
             <button
-              onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
-              className="text-ulacm-gray-400 hover:text-ulacm-gray-600"
-              title="Clear search"
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-sm text-ulacm-primary hover:text-ulacm-primary-dark font-medium"
             >
-              <ClearSearchIcon className="h-5 w-5" />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-          </div>
+        </div>
+
+        {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-3 border-t border-ulacm-gray-200">
+                <div>
+                    <label htmlFor="nameFilter" className="block text-xs font-medium text-ulacm-gray-600 mb-1">Filter by Name</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon className="h-4 w-4 text-ulacm-gray-400" />
+                        </div>
+                        <input
+                            ref={nameFilterInputRef}
+                            type="search"
+                            id="nameFilter"
+                            value={nameFilterInput}
+                            onChange={(e) => setNameFilterInput(e.target.value)}
+                            className="block w-full pl-9 pr-3 py-2 border border-ulacm-gray-300 rounded-md text-sm placeholder-ulacm-gray-400 focus:outline-none focus:ring-1 focus:ring-ulacm-primary focus:border-ulacm-primary"
+                            placeholder="Enter name..."
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label htmlFor="dateAfterFilter" className="block text-xs font-medium text-ulacm-gray-600 mb-1">Created After</label>
+                    <input
+                        type="date"
+                        id="dateAfterFilter"
+                        value={dateAfterFilter}
+                        onChange={(e) => { setDateAfterFilter(e.target.value); setPagination(p => ({ ...p, offset: 0 }));}}
+                        className="block w-full py-2 px-3 border border-ulacm-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ulacm-primary focus:border-ulacm-primary"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="dateBeforeFilter" className="block text-xs font-medium text-ulacm-gray-600 mb-1">Created Before</label>
+                    <input
+                        type="date"
+                        id="dateBeforeFilter"
+                        value={dateBeforeFilter}
+                        onChange={(e) => { setDateBeforeFilter(e.target.value); setPagination(p => ({ ...p, offset: 0 }));}}
+                        className="block w-full py-2 px-3 border border-ulacm-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ulacm-primary focus:border-ulacm-primary"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="visibilityFilter" className="block text-xs font-medium text-ulacm-gray-600 mb-1">Visibility</label>
+                    <select
+                        id="visibilityFilter"
+                        value={visibilityFilter}
+                        onChange={(e) => { setVisibilityFilter(e.target.value as VisibilityFilterOption); setPagination(p => ({ ...p, offset: 0 }));}}
+                        className="block w-full py-2 px-3 border border-ulacm-gray-300 bg-white rounded-md shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-ulacm-primary focus:border-ulacm-primary"
+                    >
+                        <option value="all">All</option>
+                        <option value="global">Global</option>
+                        <option value="private">Private</option>
+                    </select>
+                </div>
+                <div className="md:col-span-2 lg:col-span-1 flex items-end">
+                     <button
+                        onClick={handleClearFilters}
+                        className="w-full text-sm py-2 px-4 rounded-md border border-ulacm-gray-300 bg-white hover:bg-ulacm-gray-50 text-ulacm-gray-700 flex items-center justify-center"
+                    >
+                        <ClearSearchIcon size={16} className="mr-1.5" /> Clear All Filters
+                    </button>
+                </div>
+            </div>
         )}
       </div>
-
 
       {isLoading && items.length === 0 && (
            <div className="flex justify-center items-center py-20 bg-white rounded-xl shadow-md border border-ulacm-gray-100">
@@ -381,9 +436,7 @@ const ContentListPage: React.FC = () => {
       {error && !isLoading && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow">
           <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
-            </div>
+            <div className="flex-shrink-0"><AlertCircle className="h-5 w-5 text-red-400" /></div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Failed to Load {pageTitle}</h3>
               <div className="mt-2 text-sm text-red-700"><p>{error}</p></div>
@@ -413,7 +466,12 @@ const ContentListPage: React.FC = () => {
                     <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider">Version</th>
                     <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider">
                        <button onClick={() => handleSortChange('updated_at')} className="flex items-center hover:text-ulacm-primary">
-                        Last Updated / Version Date {renderSortIcon('updated_at')}
+                        Last Updated {renderSortIcon('updated_at')}
+                      </button>
+                    </th>
+                     <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider">
+                       <button onClick={() => handleSortChange('created_at')} className="flex items-center hover:text-ulacm-primary">
+                        Created {renderSortIcon('created_at')}
                       </button>
                     </th>
                     <th scope="col" className="relative px-6 py-3.5"><span className="sr-only">Actions</span></th>
@@ -425,12 +483,8 @@ const ContentListPage: React.FC = () => {
                     const itemCanBeEdited = canEditItem(item);
                     const itemCanBeDeleted = canDeleteItem(item);
 
-                    // Use version_created_at if available (from ContentItemListed), otherwise item's updated_at (from ContentItemSearchResult)
-                    const displayDate = item.version_created_at || item.updated_at;
-                    const displayDateTitle = item.version_created_at ?
-                                             `Version created at ${new Date(item.version_created_at).toLocaleString()}` :
-                                             `Item updated at ${new Date(item.updated_at).toLocaleString()}`;
-
+                    const displayDateTitle = `Item updated at ${getLocaleStringSafe(item.updated_at)}`;
+                    const createdDateTitle = `Item created at ${getLocaleStringSafe(item.created_at)}`;
 
                     return (
                         <tr key={item.item_id} className={`hover:bg-ulacm-gray-50 transition-opacity duration-150 ${actionLoading[item.item_id] ? 'opacity-60' : ''}`}>
@@ -448,14 +502,12 @@ const ContentListPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-ulacm-gray-600">
                              v{item.current_version_number ?? 0}
-                             {item.version_created_at && (
-                                <span className="ml-1 text-ulacm-gray-400 text-xs" title={`Version created: ${format(new Date(item.version_created_at), 'PP p')}`}>
-                                    ({format(new Date(item.version_created_at), 'MMM d, yyyy')})
-                                </span>
-                             )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-ulacm-gray-600" title={displayDateTitle}>
-                            {formatDistanceToNow(new Date(displayDate), { addSuffix: true })}
+                            {formatDateSafe(item.updated_at, 'relative')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-ulacm-gray-600" title={createdDateTitle}>
+                            {formatDateSafe(item.created_at, 'PP')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
                             <Link to={editPath} title={itemCanBeEdited ? "View / Edit" : "View"} className={`inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors ${itemCanBeEdited ? 'text-ulacm-primary hover:text-ulacm-primary-dark hover:bg-ulacm-primary/10' : 'text-ulacm-gray-400 cursor-not-allowed'}`}>
@@ -490,11 +542,11 @@ const ContentListPage: React.FC = () => {
               </table>
               {items.length === 0 && !isLoading && (
                 <div className="text-center py-12 px-6">
-                    {debouncedSearchQuery ? (
+                    {debouncedNameFilter || dateAfterFilter || dateBeforeFilter || visibilityFilter !== "all" ? (
                         <>
                             <SearchIcon size={48} className="mx-auto text-ulacm-gray-300"/>
-                            <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">No results found for "{debouncedSearchQuery}"</h3>
-                            <p className="mt-1 text-sm text-ulacm-gray-500">Try adjusting your search query.</p>
+                            <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">No items match your filters</h3>
+                            <p className="mt-1 text-sm text-ulacm-gray-500">Try adjusting your filter criteria or clearing them.</p>
                         </>
                     ) : (
                         <>
@@ -504,7 +556,7 @@ const ContentListPage: React.FC = () => {
                         </>
                     )}
                     {((isAdminAuthenticated && (itemTypeForPage === ContentItemType.TEMPLATE || itemTypeForPage === ContentItemType.WORKFLOW)) ||
-                     (!isAdminAuthenticated && itemTypeForPage === ContentItemType.DOCUMENT)) && !debouncedSearchQuery && (
+                     (!isAdminAuthenticated && itemTypeForPage === ContentItemType.DOCUMENT)) && !(debouncedNameFilter || dateAfterFilter || dateBeforeFilter || visibilityFilter !== "all") && (
                         <div className="mt-6">
                             <button
                                 onClick={handleNewItemClick}
