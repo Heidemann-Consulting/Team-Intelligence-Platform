@@ -1,9 +1,12 @@
 // File: ulacm_frontend/src/components/content/SelectInputDocumentsModal.tsx
 // Purpose: Modal for selecting input documents for a workflow.
+// Updated: Added client-side filtering based on workflow.inputDocumentSelectors.
 
+// import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import React, { useState, useEffect, useCallback } from 'react';
 // import toast from 'react-hot-toast';
-import { X, CheckCircle, AlertTriangle, FileText, ChevronRight, ChevronLeft, Info } from 'lucide-react';
+// import { X, CheckCircle, AlertTriangle, FileText, ChevronRight, ChevronLeft, Info, ListFilter } from 'lucide-react';
+import { X, CheckCircle, AlertTriangle, FileText, ChevronRight, ChevronLeft, ListFilter } from 'lucide-react';
 import { ContentItemListed, ContentItemType, PaginatedResponse } from '@/types/api';
 import contentService from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -15,43 +18,76 @@ interface SelectInputDocumentsModalProps {
   onConfirm: (selectedDocumentIds: string[]) => void; // Passes the selected document IDs
 }
 
+// Helper function to convert simple glob patterns to RegExp
+function globToRegex(glob: string): RegExp {
+  const regexString = glob
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&') // Escape regex special chars
+    .replace(/\*/g, '.*') // Convert * to .*
+    .replace(/\?/g, '.'); // Convert ? to .
+  return new RegExp(`^${regexString}$`, 'i'); // Case-insensitive match for the whole string
+}
+
 const SelectInputDocumentsModal: React.FC<SelectInputDocumentsModalProps> = ({
   isOpen,
   workflow,
   onClose,
   onConfirm,
 }) => {
-  const [availableDocuments, setAvailableDocuments] = useState<ContentItemListed[]>([]);
+  const [allFetchedDocuments, setAllFetchedDocuments] = useState<ContentItemListed[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<ContentItemListed[]>([]);
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
   const [isLoadingDocs, setIsLoadingDocs] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [docsPagination, setDocsPagination] = useState({
     offset: 0,
-    limit: 10, // Adjust as needed
-    total_count: 0,
+    limit: 100, // Fetch a larger set for client-side filtering, or implement server-side pagination for filtered list
+    total_count: 0, // This will be total of initially fetched, not filtered
+  });
+   // Pagination for the displayed (filtered) list
+   const [displayPagination, setDisplayPagination] = useState({
+    currentPage: 1,
+    itemsPerPage: 10,
   });
 
-  const fetchApplicableDocuments = useCallback(async (offset = 0) => {
+
+  const applyClientSideFilters = useCallback((documents: ContentItemListed[]): ContentItemListed[] => {
+    if (!workflow.workflow_input_document_selectors || workflow.workflow_input_document_selectors.length === 0) {
+      return documents; // No selectors, return all documents
+    }
+    const selectorsRegex = workflow.workflow_input_document_selectors.map(globToRegex);
+    return documents.filter(doc => selectorsRegex.some(regex => regex.test(doc.name)));
+  }, [workflow.workflow_input_document_selectors]);
+
+
+  const fetchApplicableDocuments = useCallback(async () => {
     if (!isOpen) return;
     setIsLoadingDocs(true);
     setError(null);
     try {
+      // Fetch all team documents first
       const params = {
-        item_type: ContentItemType.DOCUMENT, // Fetch only documents
-        limit: docsPagination.limit,
-        offset: offset,
-        sort_by: 'name', // Alphabetical sort
+        item_type: ContentItemType.DOCUMENT,
+        limit: docsPagination.limit, // Fetch a large number for client filtering
+        offset: 0, // Always fetch from start for client filtering context
+        sort_by: 'name',
         sort_order: 'asc' as 'asc',
-        // Potentially add more filters here based on workflow.inputDocumentSelectors
-        // This would require backend support for more complex filtering or frontend filtering.
-        // For now, listing all team documents.
       };
       const data: PaginatedResponse<ContentItemListed> = await contentService.getItems(params);
-      setAvailableDocuments(data.items);
-      setDocsPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
-      if (data.items.length === 0 && offset === 0) {
-        // No documents found at all on the first page
+      setAllFetchedDocuments(data.items); // Store all fetched for potential re-filter
+
+      const currentFiltered = applyClientSideFilters(data.items);
+      setFilteredDocuments(currentFiltered);
+      // Update total_count for display pagination based on the filtered list
+      setDocsPagination(prev => ({ ...prev, total_count: data.items.length, offset:0 })); // total_count of all docs of team
+      setDisplayPagination(prev => ({ ...prev, currentPage: 1 }));
+
+
+      if (data.items.length === 0) {
+        // No documents owned by team at all
+      } else if (currentFiltered.length === 0 && workflow.workflow_input_document_selectors && workflow.workflow_input_document_selectors.length > 0) {
+        // Documents exist, but none match selectors
       }
+
     } catch (err: any) {
       console.error("Failed to fetch applicable documents:", err);
       const errorMessage = err.message || 'Failed to load documents.';
@@ -59,14 +95,14 @@ const SelectInputDocumentsModal: React.FC<SelectInputDocumentsModalProps> = ({
     } finally {
       setIsLoadingDocs(false);
     }
-  }, [isOpen, docsPagination.limit]);
+  }, [isOpen, docsPagination.limit, applyClientSideFilters, workflow.workflow_input_document_selectors]);
 
   useEffect(() => {
     if (isOpen) {
-      fetchApplicableDocuments(0); // Fetch on open, reset to first page
-      setSelectedDocumentIds([]); // Clear previous selections
+      fetchApplicableDocuments();
+      setSelectedDocumentIds([]);
     }
-  }, [isOpen, fetchApplicableDocuments]);
+  }, [isOpen, fetchApplicableDocuments]); // fetchApplicableDocuments dependency ensures it re-runs if selectors change (though workflow prop is stable per modal instance)
 
 
   const handleDocumentSelection = (docId: string) => {
@@ -78,24 +114,27 @@ const SelectInputDocumentsModal: React.FC<SelectInputDocumentsModalProps> = ({
   };
 
   const handleConfirmSelection = () => {
-    if (availableDocuments.length === 0 && selectedDocumentIds.length === 0) {
-      // This is the "run anyway" scenario if no documents were found.
-      // Or, if user explicitly deselects all and confirms.
-    }
     onConfirm(selectedDocumentIds);
   };
 
-  const handlePageChange = (newOffset: number) => {
-    if (newOffset >= 0 && newOffset < docsPagination.total_count) {
-      fetchApplicableDocuments(newOffset);
+  // Calculate documents for the current display page
+  const indexOfLastDoc = displayPagination.currentPage * displayPagination.itemsPerPage;
+  const indexOfFirstDoc = indexOfLastDoc - displayPagination.itemsPerPage;
+  const currentDisplayDocuments = filteredDocuments.slice(indexOfFirstDoc, indexOfLastDoc);
+  const totalDisplayPages = Math.ceil(filteredDocuments.length / displayPagination.itemsPerPage);
+
+  const handleDisplayPageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalDisplayPages) {
+      setDisplayPagination(prev => ({ ...prev, currentPage: newPage }));
     }
   };
 
-  const totalPages = Math.ceil(docsPagination.total_count / docsPagination.limit);
-  const currentPage = Math.floor(docsPagination.offset / docsPagination.limit) + 1;
-
 
   if (!isOpen) return null;
+
+  const noDocumentsMatchSelectors = filteredDocuments.length === 0 && allFetchedDocuments.length > 0 &&  workflow.workflow_input_document_selectors && workflow.workflow_input_document_selectors.length > 0;
+  const noDocumentsAtAll = filteredDocuments.length === 0 && allFetchedDocuments.length === 0;
+
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
@@ -137,23 +176,38 @@ const SelectInputDocumentsModal: React.FC<SelectInputDocumentsModalProps> = ({
             </div>
           )}
 
-          {!isLoadingDocs && !error && availableDocuments.length === 0 && (
+          {workflow.workflow_input_document_selectors && workflow.workflow_input_document_selectors.length > 0 && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                <p className="font-semibold text-blue-700 flex items-center"><ListFilter size={16} className="mr-1.5"/> Document Filter Applied:</p>
+                <p className="text-blue-600 text-xs mt-1">
+                    This workflow is configured to use documents matching:
+                    <code className="ml-1 bg-blue-100 px-1 py-0.5 rounded text-blue-700 font-mono">
+                        {workflow.workflow_input_document_selectors.join(', ')}
+                    </code>
+                </p>
+            </div>
+          )}
+
+
+          {!isLoadingDocs && !error && (noDocumentsMatchSelectors || noDocumentsAtAll) && (
             <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-lg text-center">
               <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-              <h4 className="text-md font-semibold text-yellow-800 mb-1">No Applicable Documents Found</h4>
+              <h4 className="text-md font-semibold text-yellow-800 mb-1">
+                {noDocumentsAtAll ? "No Documents Available" : "No Documents Match Workflow Filters"}
+              </h4>
               <p className="text-sm text-yellow-700">
-                There are no documents available for selection based on the current criteria.
-                You can choose to run the workflow without input documents or cancel.
+                {noDocumentsAtAll ? "Your team currently has no documents to select from." : "No documents were found matching the workflow's input criteria."}
+                <br/>You can still choose to run the workflow without specific input documents or cancel.
               </p>
             </div>
           )}
 
-          {!isLoadingDocs && !error && availableDocuments.length > 0 && (
-            <div className="space-y-3 max-h-96 overflow-y-auto border border-ulacm-gray-200 rounded-lg p-3 bg-ulacm-gray-50">
+          {!isLoadingDocs && !error && currentDisplayDocuments.length > 0 && (
+            <div className="space-y-3 max-h-80 overflow-y-auto border border-ulacm-gray-200 rounded-lg p-3 bg-ulacm-gray-50">
               <p className="text-sm text-ulacm-gray-600 mb-2">
-                Select the documents to use as input for the workflow. Documents are sorted alphabetically.
+                Select the documents to use as input. Documents are sorted alphabetically. Showing {currentDisplayDocuments.length} of {filteredDocuments.length} matching documents.
               </p>
-              {availableDocuments.map(doc => (
+              {currentDisplayDocuments.map(doc => (
                 <label
                   key={doc.item_id}
                   htmlFor={`doc-${doc.item_id}`}
@@ -170,47 +224,35 @@ const SelectInputDocumentsModal: React.FC<SelectInputDocumentsModalProps> = ({
                   <span className="text-sm font-medium text-ulacm-gray-700 truncate" title={doc.name}>
                     {doc.name}
                   </span>
-                  {/* Add more info like version or date if needed */}
                 </label>
               ))}
-               {/* Pagination for documents list */}
-                {docsPagination.total_count > docsPagination.limit && (
-                    <div className="mt-4 flex items-center justify-between text-xs text-ulacm-gray-500 pt-2 border-t border-ulacm-gray-200">
-                    <div>
-                        Showing {docsPagination.offset + 1}-{Math.min(docsPagination.offset + docsPagination.limit, docsPagination.total_count)} of {docsPagination.total_count}
-                    </div>
-                    <div className="flex items-center space-x-1">
-                        <button
-                        onClick={() => handlePageChange(docsPagination.offset - docsPagination.limit)}
-                        disabled={currentPage === 1 || isLoadingDocs}
-                        className="p-1 rounded hover:bg-ulacm-gray-200 disabled:opacity-50"
-                        >
-                        <ChevronLeft size={16} />
-                        </button>
-                        <span>Page {currentPage}/{totalPages}</span>
-                        <button
-                        onClick={() => handlePageChange(docsPagination.offset + docsPagination.limit)}
-                        disabled={currentPage === totalPages || isLoadingDocs}
-                        className="p-1 rounded hover:bg-ulacm-gray-200 disabled:opacity-50"
-                        >
-                        <ChevronRight size={16} />
-                        </button>
-                    </div>
-                    </div>
-                )}
             </div>
+          )}
+          {!isLoadingDocs && !error && filteredDocuments.length > displayPagination.itemsPerPage && (
+             <div className="mt-4 flex items-center justify-between text-xs text-ulacm-gray-500 pt-2 border-t border-ulacm-gray-200">
+                <div>
+                    Showing {indexOfFirstDoc + 1}-{Math.min(indexOfLastDoc, filteredDocuments.length)} of {filteredDocuments.length} matching documents
+                </div>
+                <div className="flex items-center space-x-1">
+                    <button
+                    onClick={() => handleDisplayPageChange(displayPagination.currentPage - 1)}
+                    disabled={displayPagination.currentPage === 1 || isLoadingDocs}
+                    className="p-1 rounded hover:bg-ulacm-gray-200 disabled:opacity-50"
+                    >
+                    <ChevronLeft size={16} />
+                    </button>
+                    <span>Page {displayPagination.currentPage}/{totalDisplayPages}</span>
+                    <button
+                    onClick={() => handleDisplayPageChange(displayPagination.currentPage + 1)}
+                    disabled={displayPagination.currentPage === totalDisplayPages || isLoadingDocs}
+                    className="p-1 rounded hover:bg-ulacm-gray-200 disabled:opacity-50"
+                    >
+                    <ChevronRight size={16} />
+                    </button>
+                </div>
+                </div>
           )}
 
-          {workflow.workflow_input_document_selectors && workflow.workflow_input_document_selectors.length > 0 && (
-            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                <p className="font-semibold text-blue-700 flex items-center"><Info size={16} className="mr-1.5"/> Workflow Input Expectation:</p>
-                <p className="text-blue-600 text-xs mt-1">This workflow is configured to look for documents matching:
-                    <code className="ml-1 bg-blue-100 px-1 py-0.5 rounded text-blue-700">
-                        {workflow.workflow_input_document_selectors.join(', ')}
-                    </code>
-                </p>
-            </div>
-          )}
 
         </div>
 
@@ -220,11 +262,11 @@ const SelectInputDocumentsModal: React.FC<SelectInputDocumentsModalProps> = ({
           <button
             type="button"
             onClick={handleConfirmSelection}
-            disabled={isLoadingDocs} // Disable if still loading initial docs. Enable even if no docs selected for "Run Anyway"
+            disabled={isLoadingDocs}
             className="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-5 py-2.5 text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-500 disabled:opacity-70"
           >
             <CheckCircle size={18} className="mr-1.5" />
-            {availableDocuments.length === 0 ? 'Run Workflow Anyway' : (selectedDocumentIds.length === 0 ? 'Run Without Inputs' : `Run with ${selectedDocumentIds.length} Document(s)`)}
+            {(noDocumentsMatchSelectors || noDocumentsAtAll) ? 'Run Workflow Anyway' : (selectedDocumentIds.length === 0 ? 'Run Without Selected Inputs' : `Run with ${selectedDocumentIds.length} Document(s)`)}
           </button>
           <button
             type="button"
