@@ -46,7 +46,8 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ulacm-gray-50 to-ulacm-gray-100 p-4"> {/* Subtle gradient */}
       <div className="w-full max-w-md bg-white shadow-xl rounded-xl p-8 md:p-10 border border-ulacm-gray-200"> {/* Added border */}
         <div className="text-center mb-8">
-          {/* Optional: Add a logo here */}
+          <img src="../tip-logo-login.png" alt="TIP Logo"  width="512" height="256" />
+          <br />
           <h1 className="text-3xl font-bold text-ulacm-primary">Team Login</h1>
           <p className="text-ulacm-gray-600 mt-2">Access your Team Intelligence Platform workspace.</p>
         </div>
@@ -68,7 +69,7 @@ const LoginPage: React.FC = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-2.5 border border-ulacm-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-ulacm-primary/50 focus:border-ulacm-primary transition duration-150 ease-in-out" /* Refined focus */
-              placeholder="e.g., marketing_alpha_user"
+              placeholder="e.g., linux_team"
             />
           </div>
 

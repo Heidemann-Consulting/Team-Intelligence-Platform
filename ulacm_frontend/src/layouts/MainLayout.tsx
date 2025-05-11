@@ -35,7 +35,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <aside className="w-64 flex-shrink-0 bg-white border-r border-ulacm-gray-200 flex flex-col shadow-sm">
         <div className="h-16 flex items-center justify-center px-4 border-b border-ulacm-gray-200">
           <Link to="/app/dashboard" className="flex items-center text-xl font-bold text-ulacm-primary hover:opacity-80 transition-opacity">
-            <img src="../tip-logo-only-32-transparent.png" alt="TIP Logo" className="h-8 w-8 mr-2" />Team Intelligence Platform (TIP)
+            <img src="../tip-logo-only-32-transparent.png" alt="TIP Logo" className="h-8 w-8 mr-2" />Team Intelligence Platform
           </Link>
         </div>
         <nav className="flex-grow p-3 space-y-1 overflow-y-auto">
