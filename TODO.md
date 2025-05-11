@@ -37,7 +37,7 @@
 
 * ✅ Create templates and workflows for Lean AI-Co-Management (LACM) process
 
-* Export templates and workflows in ulacm_backend/init_db.sql
+* ✅ Export templates and workflows in ulacm_backend/init_db.sql
 
 ## Prio 2
 

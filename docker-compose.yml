@@ -61,9 +61,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ulacm_user} -d ${POSTGRES_DB:-ulacm_db}"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      timeout: 10s
+      retries: 6
+      start_period: 60s
     restart: unless-stopped
     networks:
       - ulacm_network
