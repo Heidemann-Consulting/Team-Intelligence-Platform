@@ -1,5 +1,6 @@
 // File: ULACM2/ulacm_frontend/src/pages/team/EditorViewPage.tsx
 // Purpose: Page for viewing and editing a specific content item.
+// Updated: Corrected default workflow template to use 'inputDocumentSelectors' (plural list).
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
@@ -149,11 +150,9 @@ const EditorViewPage: React.FC = () => {
       if (typeFromPath === ContentItemType.TEMPLATE) {
         defaultName = 'New Template';
         defaultContent = `---
-
 title: My New Template
 author: Template Author
 date: ${new Date().toISOString().split('T')[0]}
-
 ---
 
 # Template Heading
@@ -162,7 +161,8 @@ This is a new template. Replace with your content.
 `;
       } else if (typeFromPath === ContentItemType.WORKFLOW) {
         defaultName = 'New Workflow';
-        defaultContent = `inputDocumentSelector: "Input_Doc_*" # Glob pattern for document names
+        // Corrected: Use inputDocumentSelectors (plural) and as a list
+        defaultContent = `inputDocumentSelectors: ["Input_Doc_*"] # List of glob patterns for document names
 inputDateSelector: newerThanDays 7 # Optional: olderThanDays N, newerThanDays N, or between_YYYY-MM-DD_YYYY-MM-DD
 outputName: "Output_{{WorkflowName}}_{{Year}}-{{Month}}-{{Day}}"
 prompt: |
@@ -217,7 +217,8 @@ prompt: |
     } finally {
       setIsLoadingHistory(false);
     }
-  }, [actualItemId, isCreatingNewItem, itemDetails]); // itemDetails dependency ensures we only load history for existing, loaded items
+  }, [actualItemId, isCreatingNewItem, itemDetails]);
+  // itemDetails dependency ensures we only load history for existing, loaded items
 
   useEffect(() => {
     if (!isCreatingNewItem && actualItemId && itemDetails) {
@@ -227,12 +228,12 @@ prompt: |
     }
   }, [actualItemId, isCreatingNewItem, loadVersionHistory, itemDetails]);
 
-
   // Handle editor content changes
   const handleEditorChange = useCallback((markdownContent: string) => {
     setEditorContent(markdownContent);
     setIsDirty(markdownContent !== lastSavedContentRef.current);
-  }, []); // No dependencies, relies on current state values
+  }, []);
+  // No dependencies, relies on current state values
 
 
   // Handle saving content (new item or new version)
@@ -244,6 +245,7 @@ prompt: |
     setIsSaving(true);
     setError(null);
     const currentContent = editorContent;
+
     // Use a more robust toast ID generation
     const toastIdPrefix = isCreatingNewItem && !itemJustCreatedIdRef.current ? (newItemName || 'new-item').trim() : (actualItemId || itemDetails?.item_id || 'existing-item');
     const toastId = `save-${toastIdPrefix}-${Date.now()}`; // Add timestamp for uniqueness
@@ -272,7 +274,6 @@ prompt: |
         const versionPayload = { markdown_content: currentContent };
         // Use the new item's ID for saving the version
         await contentService.saveNewVersion(createdItemMeta.item_id, versionPayload);
-
         toast.success(`${typeToCreate} "${createdItemMeta.name}" created successfully!`, { id: toastId });
         itemJustCreatedIdRef.current = null; // Clear temporary ID
         // Navigate to the edit page of the newly created item
@@ -388,7 +389,7 @@ prompt: |
         setItemDetails(prev => prev ? {
           ...prev,
           // Note: current_version_number on itemDetails might differ from loadedVersionNumber
-          // if the user is browsing history. The main item still points to its "current".
+          // if the user is Browse history. The main item still points to its "current".
           // We update display fields based on the specific version loaded.
           version_created_at: versionDetails.created_at, // Displaying this version's save time
           version_saved_by_team_id: versionDetails.saved_by_team_id, // And this version's saver
@@ -399,7 +400,8 @@ prompt: |
       const msg = err.response?.data?.detail || 'Failed to load version content.';
       toast.error(msg, { id: toastId });
     }
-  }, [actualItemId, isDirty, itemDetails, canEditContent]); // Removed loadItemDetails dependency as it caused loops
+  }, [actualItemId, isDirty, itemDetails, canEditContent]);
+  // Removed loadItemDetails dependency as it caused loops
 
   // Toggle item visibility (global/private)
   const handleToggleVisibility = useCallback(async () => {
@@ -467,6 +469,7 @@ prompt: |
       }
 
       const duplicatePayload: ContentItemDuplicatePayload = { new_name: newName, source_version_id: versionToDuplicateId };
+
       toast.promise(
         contentService.duplicateItem(itemDetails.item_id, duplicatePayload),
         {
@@ -532,14 +535,13 @@ prompt: |
 
   // Callbacks for workflow modal
   const closeWorkflowModal = useCallback(() => { setShowRunWorkflowModal(false); setWorkflowOutput(null); }, []);
-
   const viewWorkflowOutputDocument = useCallback((outputItemId: string) => {
     closeWorkflowModal();
     // This navigation is tricky for Admin-run workflows as their output is system-owned.
     // For now, just toast the ID. A proper admin view for any document might be needed.
     toast(`Admin test output document ID: ${outputItemId}. View via admin tools if applicable or if a general document viewer exists.`);
     // Example: navigate(`/app/documents/${outputItemId}`); // If admin can view team docs
-  }, [closeWorkflowModal, navigate]);
+  }, [closeWorkflowModal]);
 
 
   // Loading and error states rendering
@@ -636,7 +638,7 @@ prompt: |
         </div>
         {/* General Error Display */}
         {error && ( // Display general errors here, not just loading errors
-             <div className="mt-3 bg-red-100 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <div className="mt-3 bg-red-100 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                 <strong className="font-bold">Error: </strong>
                 <span className="block sm:inline">{error}</span>
              </div>

@@ -4,7 +4,7 @@
 // Replaced InfoSquare with Info icon.
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { FolderGit2, Play, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, FileInput, FileOutput } from 'lucide-react'; // Changed InfoSquare to Info
+import { FolderGit2, Play, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, ListTree, TextCursorInput } from 'lucide-react'; // Added ListTree, TextCursorInput
 import toast from 'react-hot-toast';
 
 import { ContentItemListed, ContentItemType, PaginatedResponse, RunWorkflowResponse } from '@/types/api';
@@ -65,6 +65,7 @@ const ExecuteWorkflowPage: React.FC = () => {
     setRunWorkflowOutput(null);
     setIsRunning(true);
     setShowRunModal(true);
+
     contentService.runWorkflow(workflow.item_id)
       .then(result => {
         setRunWorkflowOutput(result);
@@ -193,12 +194,12 @@ const ExecuteWorkflowPage: React.FC = () => {
                     {wf.workflow_input_document_selectors && wf.workflow_input_document_selectors.length > 0 && (
                       <div className="mb-3">
                         <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
-                          <FileInput size={14} className="mr-1.5 text-ulacm-gray-400"/> Input Document Selectors
+                          <ListTree size={14} className="mr-1.5 text-ulacm-gray-400"/> Input Document Selectors
                         </h4>
-                        <ul className="list-none pl-0 space-y-0.5">
+                        <ul className="list-none pl-0 space-y-1">
                           {wf.workflow_input_document_selectors.map((selector, index) => (
-                            <li key={index} className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2 py-1 rounded-md border border-ulacm-gray-200">
-                              <code className="text-purple-700">{selector}</code>
+                            <li key={index} className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2.5 py-1.5 rounded-md border border-ulacm-gray-200 shadow-sm">
+                              <code className="text-purple-700 font-mono text-xs">{selector}</code>
                             </li>
                           ))}
                         </ul>
@@ -209,13 +210,13 @@ const ExecuteWorkflowPage: React.FC = () => {
                     {wf.workflow_output_name_template && (
                       <div className="mb-4">
                         <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
-                           <FileOutput size={14} className="mr-1.5 text-ulacm-gray-400"/> Output Document Name Template
+                           <TextCursorInput size={14} className="mr-1.5 text-ulacm-gray-400"/> Output Document Name Template
                         </h4>
-                        <p className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2 py-1 rounded-md border border-ulacm-gray-200">
-                          <code className="text-blue-700">{wf.workflow_output_name_template}</code>
+                        <p className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2.5 py-1.5 rounded-md border border-ulacm-gray-200 shadow-sm">
+                          <code className="text-blue-700 font-mono text-xs">{wf.workflow_output_name_template}</code>
                         </p>
-                         <p className="mt-1 text-xs text-ulacm-gray-500 italic flex items-center">
-                            <Info size={12} className="mr-1 text-ulacm-gray-400 flex-shrink-0"/> Placeholders like `{"{{InputFileName}}"}`, `{"{{WorkflowName}}"}`, `{"{{Year}}"}` will be replaced on execution.
+                         <p className="mt-1.5 text-xs text-ulacm-gray-500 italic flex items-start">
+                            <Info size={14} className="mr-1 text-ulacm-gray-400 flex-shrink-0 mt-px"/> Placeholders like `{"{{InputFileName}}"}`, `{"{{WorkflowName}}"}`, `{"{{Year}}"}` will be replaced on execution.
                         </p>
                       </div>
                     )}

@@ -1,5 +1,5 @@
 # Glob pattern for input documents, e.g., "KW*_Weekly_Analysis", "*.txt"
-inputDocumentSelector: "Input_Doc_*"
+inputDocumentSelectors: ["Input_Doc_*"]
 # Optional date filter for input documents:
 # olderThanDays 60
 # newerThanDays 7
