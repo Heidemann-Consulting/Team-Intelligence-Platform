@@ -47,7 +47,9 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
       const params = {
         item_type: ContentItemType.TEMPLATE,
         limit: 100,
-        for_usage: true
+        for_usage: true,
+        sort_by: 'name',
+        sort_order: 'asc' as 'asc',
       };
       const data: PaginatedResponse<ContentItemListed> = await contentService.getItems(params);
       setTemplates(data.items);

@@ -32,6 +32,7 @@
 * ✅ Create / Update PRD and SRS
 * ✅ Update the rituals and practices documents and create matching workflow libraries
 
+* ✅ Make template selection list in the create new document modal be alphabetically sorted.
 * Add functionality that users can choose via checkboxes which documents will be input documents.
 
 * Create initial wave of templates and workflows
