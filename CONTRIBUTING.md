@@ -1,3 +1,72 @@
+# Table of Contents
+
+- [Table of Contents](#table-of-contents)
+- [Contributing to Team Intelligence Platform (TIP)](#contributing-to-team-intelligence-platform-tip)
+  - [Table of Contents](#table-of-contents-1)
+  - [Introduction](#introduction)
+  - [Ways to Contribute](#ways-to-contribute)
+    - [Code Contributions](#code-contributions)
+    - [Documentation Contributions](#documentation-contributions)
+    - [Ritual Templates and Knowledge Architecture](#ritual-templates-and-knowledge-architecture)
+    - [Community Support](#community-support)
+    - [Implementation Experiences](#implementation-experiences)
+  - [Architecture Overview](#architecture-overview)
+  - [Technical Features](#technical-features)
+  - [Prerequisites](#prerequisites)
+  - [Project Structure](#project-structure)
+  - [Setup and Configuration](#setup-and-configuration)
+  - [Deployment](#deployment)
+  - [Stopping the Application](#stopping-the-application)
+  - [Troubleshooting](#troubleshooting)
+  - [Executing Backend Tests (Work in progress)](#executing-backend-tests-work-in-progress)
+    - [Navigate to the Backend Directory:](#navigate-to-the-backend-directory)
+    - [Ensure Dependencies are Installed:](#ensure-dependencies-are-installed)
+    - [Run Pytest:](#run-pytest)
+  - [Executing Frontend Tests (Work in progress)](#executing-frontend-tests-work-in-progress)
+    - [Navigate to the Frontend Directory:](#navigate-to-the-frontend-directory)
+    - [Ensure Dependencies are Installed:](#ensure-dependencies-are-installed-1)
+    - [Base tests in watch mode](#base-tests-in-watch-mode)
+    - [GUI Mode](#gui-mode)
+    - [Headless Mode](#headless-mode)
+  - [Contribution Process](#contribution-process)
+    - [1. Finding an Issue](#1-finding-an-issue)
+    - [2. Issue Discussion](#2-issue-discussion)
+    - [3. Development](#3-development)
+    - [4. Pull Request](#4-pull-request)
+    - [5. After Merge](#5-after-merge)
+  - [Phase-Specific Contributions](#phase-specific-contributions)
+    - [Phase 1: The Cognitive Foundation](#phase-1-the-cognitive-foundation)
+    - [Phase 2: The Collaborative Acceleration](#phase-2-the-collaborative-acceleration)
+    - [Phase 3: The Transformative Intelligence](#phase-3-the-transformative-intelligence)
+  - [Code Standards and Guidelines](#code-standards-and-guidelines)
+    - [General Principles](#general-principles)
+    - [Language-Specific Guidelines](#language-specific-guidelines)
+    - [Commit Guidelines](#commit-guidelines)
+  - [Documentation Guidelines](#documentation-guidelines)
+    - [Structure](#structure)
+    - [Content](#content)
+    - [Technical Documentation](#technical-documentation)
+    - [User Documentation](#user-documentation)
+  - [Testing Requirements](#testing-requirements)
+    - [Unit Tests](#unit-tests)
+    - [Integration Tests](#integration-tests)
+    - [End-to-End Tests](#end-to-end-tests)
+  - [Community and Communication](#community-and-communication)
+    - [Discussion Forums](#discussion-forums)
+    - [Synchronous Communication](#synchronous-communication)
+    - [Asynchronous Communication](#asynchronous-communication)
+  - [Governance Model](#governance-model)
+    - [Project Structure](#project-structure-1)
+    - [Decision Making Process](#decision-making-process)
+    - [Becoming a Maintainer](#becoming-a-maintainer)
+  - [Recognition and Acknowledgment](#recognition-and-acknowledgment)
+  - [Enterprise Contribution Model](#enterprise-contribution-model)
+    - [Contribution Agreements](#contribution-agreements)
+    - [Secure Contribution Workflow](#secure-contribution-workflow)
+    - [Enterprise Use Case Program](#enterprise-use-case-program)
+    - [Enterprise Contribution Opportunities](#enterprise-contribution-opportunities)
+  - [Thank You!](#thank-you)
+
 # Contributing to Team Intelligence Platform (TIP)
 
 First off, thank you for considering contributing to the Team Intelligence Platform! TIP is an open-source project designed to transform how product development teams integrate AI into their collaborative workflows, enabling AI to become a true team member rather than merely an individual productivity tool.
@@ -69,55 +138,170 @@ There are many ways to contribute to TIP, regardless of your technical expertise
 - Developing custom integrations
 - Providing feedback on challenges and solutions
 
-## Development Environment Setup
+## Architecture Overview
 
-### Prerequisites
-- Git
-- Docker and Docker Compose
-- Node.js (v16+)
-- Python (3.9+)
+This application consists of:
 
-### Basic Setup
+* **Frontend:** A React Single-Page Application (SPA) providing the user interface.
+* **Backend:** A FastAPI (Python) application providing the API, business logic, and orchestrating interactions.
+* **Database:** A PostgreSQL database for persistent storage.
+* **AI Server:** Integration with a local Ollama server for LLM capabilities.
 
-1. **Fork and Clone the Repository**
-   ```bash
-   git clone https://github.com/your-username/team-intelligence-platform.git
-   cd team-intelligence-platform
-   ```
+## Technical Features
 
-2. **Install Dependencies**
-   ```bash
-   # Install development dependencies
-   npm install
+* Team-based accounts for collaboration.
+* Management of Documents, Templates, and Process Workflows.
+* In-app Markdown editor with versioning (Save, Undo/Load Previous, Redo/Load Next).
+* Process Workflow execution using local Ollama models.
+* Content sharing (global read-only visibility).
+* Content duplication.
+* Full-text search (basic implementation).
+* Admin interface for team management.
+* Dockerized deployment via `docker-compose`.
 
-   # Set up Python environment
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+## Prerequisites
 
-3. **Development Environment with Docker**
-   ```bash
-   # Start the development environment
-   docker-compose -f docker-compose.dev.yml up
-   ```
+See [README.md](README.md).
 
-4. **Validate Your Setup**
-   ```bash
-   # Run tests to verify your environment
-   npm test
-   ```
+## Project Structure
 
-For detailed setup instructions, see the [Development Setup Guide](docs/development/setup.md).
+See [README.md](README.md).
 
-### Component-Specific Setup
+## Setup and Configuration
 
-For working on specific components, refer to the corresponding setup guides:
+See [README.md](README.md).
 
-- [Ollama Configuration Guide](docs/development/ollama-setup.md)
-- [LangFlow Development Guide](docs/development/langflow-development.md)
-- [Knowledge Base Templates Guide](docs/development/knowledge-templates.md)
-- [Integration Scripts Development](docs/development/integration-scripts.md)
+## Deployment
+
+See [README.md](README.md).
+
+## Stopping the Application
+
+See [README.md](README.md).
+
+## Troubleshooting
+
+See [README.md](README.md).
+
+## Executing Backend Tests (Work in progress)
+
+Here's how you can run all the tests:
+
+### Navigate to the Backend Directory:
+
+Open your terminal or command prompt and change your current directory to the root of the backend application:
+
+```bash
+cd ./ulacm_backend
+```
+
+### Ensure Dependencies are Installed:
+
+Make sure all dependencies, including development dependencies (like pytest, pytest-asyncio, freezegun, httpx), are installed. If you haven't already, run:
+
+```bash
+poetry env use python3.11
+poetry install --with dev --no-root
+```
+
+### Run Pytest:
+
+Execute the pytest command in your terminal from the ulacm_backend directory:
+
+```bash
+poetry run pytest
+```
+
+pytest will automatically discover all files named test_*.py or *_test.py and all functions prefixed with test_ within the tests directory and its subdirectories.
+It will execute each test function.
+You will see output indicating the progress and results (e.g., dots . for passed tests, F for failures, E for errors).
+A summary will be printed at the end showing the total number of tests run, passed, failed, etc.
+Example Output (Simplified):
+
+============================= test session starts ==============================
+platform linux -- Python 3.10.x, pytest-8.x.x, pluggy-1.x.x
+rootdir: /path/to/your/project/ULACM2/ulacm_backend
+plugins: asyncio-0.23.x
+collected XX items
+
+tests/core/test_security.py ........                                      [ 10%]
+tests/crud/test_crud_content_item.py .........                            [ 25%]
+tests/crud/test_crud_content_version.py .....                             [ 35%]
+tests/crud/test_crud_search.py .....                                      [ 45%]
+tests/crud/test_crud_team.py ........                                     [ 58%]
+tests/db/test_models.py .....                                             [ 68%]
+tests/services/test_ollama_service.py .......                             [ 80%]
+tests/services/test_workflow_parser.py ..........                         [ 95%]
+tests/services/test_workflow_service.py ....                              [100%]
+
+============================== XX passed in X.XXs ===============================
+
+If you want to repeat the tests after fixes it is a good idea to clean the caches:
+
+```bash
+find . -type d -name __pycache__ -exec rm -r {} +
+find . -type f -name "*.pyc" -delete
+```
+
+## Executing Frontend Tests (Work in progress)
+
+Here's how you can run all the tests:
+
+### Navigate to the Frontend Directory:
+
+Open your terminal or command prompt and change your current directory to the root of the backend application:
+
+```bash
+cd ./ulacm_frontend
+```
+
+### Ensure Dependencies are Installed:
+
+Make sure all dependencies, including development dependencies, are installed. If you haven't already, run:
+
+```bash
+npm install
+```
+
+### Base tests in watch mode
+
+To automatically re-run tests whenever you save a file, you can run Jest in watch mode:
+
+```bash
+npm test -- --watch
+# or 'npm test -- --watchAll'
+# Note the extra '--' needed with npm run to pass arguments to the script
+```
+
+Watch mode is very useful as it provides instant feedback as you develop components and their corresponding tests.
+
+Jest will output the results directly to your terminal, showing:
+* Which test suites (files) passed or failed.
+* How many individual tests passed or failed.
+* Details about any failing tests, including error messages and code snippets.
+* A test coverage summary.
+
+### GUI Mode
+
+Run
+
+```bash
+npm run cypress:open
+```
+
+This opens the Cypress Test Runner, where you can select and run specific E2E tests interactively.
+Make sure your frontend development server (yarn dev or npm run dev) is running first.
+
+### Headless Mode
+
+Run
+
+```bash
+npm run cypress:run.
+```
+
+This executes all E2E tests in a headless browser (usually Electron by default) and outputs results to the console. This is typically used in CI environments.
+Your frontend server needs to be running for this as well, unless you configure Cypress to start it.
 
 ## Contribution Process
 
@@ -154,16 +338,16 @@ Before starting work on a significant change:
    ```bash
    git commit -m "Descriptive commit message"
    ```
-   
+
    Please use conventional commit messages with the following format:
    ```
    type(scope): description
-   
+
    [optional body]
-   
+
    [optional footer]
    ```
-   
+
    Types include:
    - feat: A new feature
    - fix: A bug fix
@@ -219,15 +403,10 @@ Key contribution areas:
 - Knowledge structure templates
 - Base ritual facilitation guides
 - Documentation for basic installation and configuration
-- Simple integration scripts between tools
-- Basic LangFlow workflows for documentation
-- Obsidian templates and organization patterns
 
 ### Phase 2: The Collaborative Acceleration
 
 Key contribution areas:
-- Advanced LangFlow workflows for team rituals
-- Enhanced integration scripts between components
 - Measurement frameworks and dashboards
 - Templates for advanced rituals
 - Knowledge relationship mapping patterns
@@ -334,19 +513,6 @@ Good documentation is critical for TIP's success. Please follow these guidelines
 - Test deployment processes
 - Include performance testing for key features
 - Validate cross-component integration
-
-### Running Tests
-
-```bash
-# Run unit tests
-npm run test:unit
-
-# Run integration tests
-npm run test:integration
-
-# Run all tests
-npm test
-```
 
 ## Community and Communication
 
