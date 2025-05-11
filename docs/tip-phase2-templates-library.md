@@ -9,14 +9,26 @@
 
 - [**Team Intelligence Platform (TIP) - Phase 2 Templates Library**](#team-intelligence-platform-tip---phase-2-templates-library)
   - [**Table of Contents**](#table-of-contents)
-      - [Enhanced Context Management Templates](#enhanced-context-management-templates)
-      - [AI-Enhanced Retrospective Templates](#ai-enhanced-retrospective-templates)
-      - [Context-Aware Planning Templates](#context-aware-planning-templates)
-      - [Basic AI Pair Working Templates](#basic-ai-pair-working-templates)
+    - [Enhanced Context Management Templates](#enhanced-context-management-templates)
+      - [**Daily Quick Capture Template (10 min)**](#daily-quick-capture-template-10-min)
+      - [**Weekly Structured Curation Template (30 min)**](#weekly-structured-curation-template-30-min)
+      - [**Monthly Context Architecture Review Template (60 min)**](#monthly-context-architecture-review-template-60-min)
+    - [AI-Enhanced Retrospective Templates](#ai-enhanced-retrospective-templates)
+      - [**Pre-Retrospective Analysis Report Template**](#pre-retrospective-analysis-report-template)
+      - [**Retrospective Session Template (60-90 min)**](#retrospective-session-template-60-90-min)
+      - [**Retrospective Summary Template**](#retrospective-summary-template)
+    - [Context-Aware Planning Templates](#context-aware-planning-templates)
+      - [**Pre-Planning Analysis Template**](#pre-planning-analysis-template)
+      - [**Planning Session Template (60-90 min)**](#planning-session-template-60-90-min)
+      - [**Planning Documentation Template**](#planning-documentation-template)
+    - [Basic AI Pair Working Templates](#basic-ai-pair-working-templates)
+      - [**Pair Working Initialization Template**](#pair-working-initialization-template)
+      - [**Session Log Template**](#session-log-template)
+      - [**Pattern Documentation Template**](#pattern-documentation-template)
 
-#### Enhanced Context Management Templates
+### Enhanced Context Management Templates
 
-**Daily Quick Capture Template (10 min)**
+#### **Daily Quick Capture Template (10 min)**
 ```markdown
 # Daily Context Curation - [Date]
 
@@ -51,7 +63,7 @@
 [Any additional notes or observations]
 ```
 
-**Weekly Structured Curation Template (30 min)**
+#### **Weekly Structured Curation Template (30 min)**
 ```markdown
 # Weekly Context Curation - [Date]
 
@@ -94,7 +106,7 @@
 [Summary of key discussion points and decisions]
 ```
 
-**Monthly Context Architecture Review Template (60 min)**
+#### **Monthly Context Architecture Review Template (60 min)**
 ```markdown
 # Monthly Context Architecture Review - [Date]
 
@@ -154,9 +166,9 @@
 - Key metrics to improve: [Metrics]
 ```
 
-#### AI-Enhanced Retrospective Templates
+### AI-Enhanced Retrospective Templates
 
-**Pre-Retrospective Analysis Report Template**
+#### **Pre-Retrospective Analysis Report Template**
 ```markdown
 # Pre-Retrospective Analysis - [Sprint/Iteration]
 
@@ -227,7 +239,7 @@
 - Applicable team goals/OKRs: [list of links]
 ```
 
-**Retrospective Session Template (60-90 min)**
+#### **Retrospective Session Template (60-90 min)**
 ```markdown
 # AI-Enhanced Retrospective - [Sprint/Iteration]
 
@@ -322,7 +334,7 @@
 - AI contribution effectiveness: [assessment]
 ```
 
-**Retrospective Summary Template**
+#### **Retrospective Summary Template**
 ```markdown
 # AI-Enhanced Retrospective Summary - [Sprint/Iteration]
 
@@ -376,9 +388,9 @@ The following items should be added or updated in our knowledge base:
 - Integration with next planning session: [Notes on approach]
 ```
 
-#### Context-Aware Planning Templates
+### Context-Aware Planning Templates
 
-**Pre-Planning Analysis Template**
+#### **Pre-Planning Analysis Template**
 ```markdown
 # Pre-Planning Analysis - [Sprint/Iteration]
 
@@ -476,7 +488,7 @@ The following items should be added or updated in our knowledge base:
 5. [Question related to priority trade-offs]
 ```
 
-**Planning Session Template (60-90 min)**
+#### **Planning Session Template (60-90 min)**
 ```markdown
 # Context-Aware Planning Session - [Sprint/Iteration]
 
@@ -577,7 +589,7 @@ The following items should be added or updated in our knowledge base:
 - Areas to improve for next planning: [notes]
 ```
 
-**Planning Documentation Template**
+#### **Planning Documentation Template**
 ```markdown
 # Sprint/Iteration Plan - [Sprint/Iteration]
 
@@ -663,9 +675,9 @@ The following items should be added or updated in our knowledge base:
 - Date: [Approval date]
 ```
 
-#### Basic AI Pair Working Templates
+### Basic AI Pair Working Templates
 
-**Pair Working Initialization Template**
+#### **Pair Working Initialization Template**
 ```markdown
 # AI Pair Working Session - Initialization
 
@@ -727,7 +739,7 @@ The following items should be added or updated in our knowledge base:
 - Knowledge capture: [What learnings should be preserved]
 ```
 
-**Session Log Template**
+#### **Session Log Template**
 ```markdown
 # AI Pair Working Session Log
 
@@ -811,7 +823,7 @@ The following items should be added or updated in our knowledge base:
 - [ ] [Improvement to try]
 ```
 
-**Pattern Documentation Template**
+#### **Pattern Documentation Template**
 ```markdown
 # AI Pair Working Pattern
 

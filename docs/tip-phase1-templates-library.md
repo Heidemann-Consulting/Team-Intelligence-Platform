@@ -9,13 +9,19 @@
 
 - [**Team Intelligence Platform (TIP) - Phase 1 Templates Library**](#team-intelligence-platform-tip---phase-1-templates-library)
   - [**Table of Contents**](#table-of-contents)
-      - [Context Curation Templates](#context-curation-templates)
-      - [Prompt Development Templates](#prompt-development-templates)
-      - [AI-Assisted Documentation Templates](#ai-assisted-documentation-templates)
+    - [Context Curation Templates](#context-curation-templates)
+      - [**Daily Quick Capture Template**](#daily-quick-capture-template)
+      - [**Weekly Structured Review Template**](#weekly-structured-review-template)
+    - [Prompt Development Templates](#prompt-development-templates)
+      - [**Prompt Workshop Preparation Template**](#prompt-workshop-preparation-template)
+      - [**Prompt Documentation Template**](#prompt-documentation-template)
+    - [AI-Assisted Documentation Templates](#ai-assisted-documentation-templates)
+      - [**Meeting Notes Template**](#meeting-notes-template)
+      - [**AI-Generated Summary Template**](#ai-generated-summary-template)
 
-#### Context Curation Templates
+### Context Curation Templates
 
-**Daily Quick Capture Template**
+#### **Daily Quick Capture Template**
 ```markdown
 # Daily Context Curation - [Date]
 
@@ -39,7 +45,7 @@
 [Any additional notes or observations]
 ```
 
-**Weekly Structured Review Template**
+#### **Weekly Structured Review Template**
 ```markdown
 # Weekly Context Curation - [Date]
 
@@ -66,9 +72,9 @@
 [Summary of key discussion points]
 ```
 
-#### Prompt Development Templates
+### Prompt Development Templates
 
-**Prompt Workshop Preparation Template**
+#### **Prompt Workshop Preparation Template**
 ```markdown
 # Prompt Workshop Preparation - [Date]
 
@@ -102,7 +108,7 @@
 - [Link to related prompts]
 ```
 
-**Prompt Documentation Template**
+#### **Prompt Documentation Template**
 ```markdown
 # Prompt: [Name]
 
@@ -145,9 +151,9 @@
 - [Version] ([Date]): [Changes]
 ```
 
-#### AI-Assisted Documentation Templates
+### AI-Assisted Documentation Templates
 
-**Meeting Notes Template**
+#### **Meeting Notes Template**
 ```markdown
 # [Meeting Type] - [Date]
 
@@ -180,7 +186,7 @@
 - [Next step 2]
 ```
 
-**AI-Generated Summary Template**
+#### **AI-Generated Summary Template**
 ```markdown
 # Summary: [Meeting Type] - [Date]
 

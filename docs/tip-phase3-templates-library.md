@@ -9,11 +9,26 @@
 
 - [TIP Phase 3: Ritual Templates Library](#tip-phase-3-ritual-templates-library)
   - [**Table of Contents**](#table-of-contents)
-      - [Networked Context Management Templates](#networked-context-management-templates)
-      - [AI-Driven Decision Framework Templates](#ai-driven-decision-framework-templates)
-      - [Advanced Retrospective System Templates](#advanced-retrospective-system-templates)
-      - [Cross-Team Intelligence Templates](#cross-team-intelligence-templates)
-      - [Advanced AI Pair Working Templates](#advanced-ai-pair-working-templates)
+    - [Networked Context Management Templates](#networked-context-management-templates)
+      - [**Continuous Context Evolution Configuration**](#continuous-context-evolution-configuration)
+      - [**Weekly Team Curation Template (30 min)**](#weekly-team-curation-template-30-min)
+      - [**Monthly Cross-Team Alignment Template (60 min)**](#monthly-cross-team-alignment-template-60-min)
+    - [AI-Driven Decision Framework Templates](#ai-driven-decision-framework-templates)
+      - [**Decision Initialization Template (15-30 min)**](#decision-initialization-template-15-30-min)
+      - [**Option Development Template (30-45 min)**](#option-development-template-30-45-min)
+      - [**Structured Evaluation Template (30-45 min)**](#structured-evaluation-template-30-45-min)
+      - [**Decision Finalization Template (15-30 min)**](#decision-finalization-template-15-30-min)
+    - [Advanced Retrospective System Templates](#advanced-retrospective-system-templates)
+      - [**Sprint Retrospective Analysis Template (Pre-work)**](#sprint-retrospective-analysis-template-pre-work)
+      - [**Sprint Retrospective Session Template (60 min)**](#sprint-retrospective-session-template-60-min)
+      - [**Quarterly Meta-Retrospective Template (120 min)**](#quarterly-meta-retrospective-template-120-min)
+      - [**Annual Strategic Retrospective Template (240 min)**](#annual-strategic-retrospective-template-240-min)
+    - [Cross-Team Intelligence Templates](#cross-team-intelligence-templates)
+      - [**Weekly Cross-Pollination Template (30 min)**](#weekly-cross-pollination-template-30-min)
+      - [**Monthly Cross-Team Ritual Template (90 min)**](#monthly-cross-team-ritual-template-90-min)
+      - [**Quarterly Alignment Session Template (180 min)**](#quarterly-alignment-session-template-180-min)
+    - [Advanced AI Pair Working Templates](#advanced-ai-pair-working-templates)
+      - [**AI Role Definition Template**](#ai-role-definition-template)
 - [Base Configuration](#base-configuration)
 - [Role-specific parameters](#role-specific-parameters)
 - [\[Role Name\]](#role-name)
@@ -22,10 +37,13 @@
   - [Current Task Context](#current-task-context)
   - [Collaboration Approach](#collaboration-approach)
   - [Expected Outputs](#expected-outputs)
+      - [**Pair Working Session Initialization Template**](#pair-working-session-initialization-template)
+      - [**Comprehensive Session Log Template**](#comprehensive-session-log-template)
+      - [**Graduated Autonomy Framework Template**](#graduated-autonomy-framework-template)
 
-#### Networked Context Management Templates
+### Networked Context Management Templates
 
-**Continuous Context Evolution Configuration**
+#### **Continuous Context Evolution Configuration**
 ```markdown
 # Continuous Context Evolution Configuration
 
@@ -77,7 +95,7 @@
 - Escalation paths: [Who to notify for different scenarios]
 ```
 
-**Weekly Team Curation Template (30 min)**
+#### **Weekly Team Curation Template (30 min)**
 ```markdown
 # Weekly Context Curation - [Date]
 
@@ -151,7 +169,7 @@
 [Any additional notes or observations]
 ```
 
-**Monthly Cross-Team Alignment Template (60 min)**
+#### **Monthly Cross-Team Alignment Template (60 min)**
 ```markdown
 # Monthly Cross-Team Alignment - [Date]
 
@@ -230,9 +248,9 @@
 - Interim checkpoints: [Dates for any interim reviews]
 ```
 
-#### AI-Driven Decision Framework Templates
+### AI-Driven Decision Framework Templates
 
-**Decision Initialization Template (15-30 min)**
+#### **Decision Initialization Template (15-30 min)**
 ```markdown
 # Decision Initialization - [Decision ID]
 
@@ -304,7 +322,7 @@
 - [Initial hypothesis 3]
 ```
 
-**Option Development Template (30-45 min)**
+#### **Option Development Template (30-45 min)**
 ```markdown
 # Option Development - [Decision ID]
 
@@ -397,7 +415,7 @@
 - Analysis to perform: [Specific analyses required]
 ```
 
-**Structured Evaluation Template (30-45 min)**
+#### **Structured Evaluation Template (30-45 min)**
 ```markdown
 # Structured Evaluation - [Decision ID]
 
@@ -497,7 +515,7 @@
 - Rationale for recommendation: [Summary of key factors]
 ```
 
-**Decision Finalization Template (15-30 min)**
+#### **Decision Finalization Template (15-30 min)**
 ```markdown
 # Decision Finalization - [Decision ID]
 
@@ -598,9 +616,9 @@
 - Learning documentation process: [How outcomes will be captured for future decisions]
 ```
 
-#### Advanced Retrospective System Templates
+### Advanced Retrospective System Templates
 
-**Sprint Retrospective Analysis Template (Pre-work)**
+#### **Sprint Retrospective Analysis Template (Pre-work)**
 ```markdown
 # Sprint Retrospective Analysis - [Sprint/Iteration]
 
@@ -704,7 +722,7 @@
 - [Link to related team knowledge]
 ```
 
-**Sprint Retrospective Session Template (60 min)**
+#### **Sprint Retrospective Session Template (60 min)**
 ```markdown
 # Sprint Retrospective Session - [Sprint/Iteration]
 
@@ -828,7 +846,7 @@
 - Improvement for next session: [Recommendation]
 ```
 
-**Quarterly Meta-Retrospective Template (120 min)**
+#### **Quarterly Meta-Retrospective Template (120 min)**
 ```markdown
 # Quarterly Meta-Retrospective - [Quarter/Period]
 
@@ -991,7 +1009,7 @@
 - Next checkpoint: [When progress will be reviewed]
 ```
 
-**Annual Strategic Retrospective Template (240 min)**
+#### **Annual Strategic Retrospective Template (240 min)**
 ```markdown
 # Annual Strategic Retrospective - [Year]
 
@@ -1209,9 +1227,9 @@
 - Next strategic review: [When the next session will occur]
 ```
 
-#### Cross-Team Intelligence Templates
+### Cross-Team Intelligence Templates
 
-**Weekly Cross-Pollination Template (30 min)**
+#### **Weekly Cross-Pollination Template (30 min)**
 ```markdown
 # Weekly Cross-Pollination Session - [Date]
 
@@ -1314,7 +1332,7 @@
 - Preparation needed: [What participants should prepare]
 ```
 
-**Monthly Cross-Team Ritual Template (90 min)**
+#### **Monthly Cross-Team Ritual Template (90 min)**
 ```markdown
 # Monthly Cross-Team Ritual - [Date]
 
@@ -1455,7 +1473,7 @@
 - Preparation needed: [What to prepare]
 ```
 
-**Quarterly Alignment Session Template (180 min)**
+#### **Quarterly Alignment Session Template (180 min)**
 ```markdown
 # Quarterly Cross-Team Alignment Session - [Quarter]
 
@@ -1656,9 +1674,9 @@
 - AI contribution value: [Assessment]
 ```
 
-#### Advanced AI Pair Working Templates
+### Advanced AI Pair Working Templates
 
-**AI Role Definition Template**
+#### **AI Role Definition Template**
 ```markdown
 # AI Role Definition - [Role Name]
 
@@ -1822,7 +1840,7 @@ role_config:
 - [Related role 3]: [Relationship description]
 ```
 
-**Pair Working Session Initialization Template**
+#### **Pair Working Session Initialization Template**
 ```markdown
 # AI Pair Working Session Initialization
 
@@ -1911,7 +1929,7 @@ role_config:
 - Pattern documentation: [Collaboration patterns to capture]
 ```
 
-**Comprehensive Session Log Template**
+#### **Comprehensive Session Log Template**
 ```markdown
 # AI Pair Working Session Log
 
@@ -2088,7 +2106,7 @@ role_config:
 - Integration possibilities: [How this connects to other work]
 ```
 
-**Graduated Autonomy Framework Template**
+#### **Graduated Autonomy Framework Template**
 ```markdown
 # Graduated Autonomy Framework - [Domain Area]
 
