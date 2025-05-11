@@ -1,7 +1,9 @@
 # Product Requirements Document: Team Intelligence Platform (TIP)
 
 **Version:** 1.0
-**Date:** 2025-05-11
+**Date:** May 11, 2025
+**Author:** Heidemann Consulting
+**License:** Apache 2.0
 
 ## Table of Contents
 

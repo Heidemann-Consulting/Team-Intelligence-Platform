@@ -1,4 +1,18 @@
-### TIP Phase 2: Ritual Templates Library
+# **Team Intelligence Platform (TIP) - Phase 2 Templates Library**
+
+**Version:** 1.0
+**Date:** May 11, 2025
+**Author:** Heidemann Consulting
+**License:** Apache 2.0
+
+## **Table of Contents**
+
+- [**Team Intelligence Platform (TIP) - Phase 2 Templates Library**](#team-intelligence-platform-tip---phase-2-templates-library)
+  - [**Table of Contents**](#table-of-contents)
+      - [Enhanced Context Management Templates](#enhanced-context-management-templates)
+      - [AI-Enhanced Retrospective Templates](#ai-enhanced-retrospective-templates)
+      - [Context-Aware Planning Templates](#context-aware-planning-templates)
+      - [Basic AI Pair Working Templates](#basic-ai-pair-working-templates)
 
 #### Enhanced Context Management Templates
 
@@ -54,7 +68,7 @@
 - Most active areas: [list top 3 areas]
 - Least active areas: [list bottom 3 areas]
 
-## Identified Gaps & Inconsistencies 
+## Identified Gaps & Inconsistencies
 1. [Gap 1] - Priority: [High/Medium/Low] - [Context]
 2. [Gap 2] - Priority: [High/Medium/Low] - [Context]
 3. [Gap 3] - Priority: [High/Medium/Low] - [Context]
@@ -72,7 +86,7 @@
 ## Relationship Mapping Session
 - Area of focus: [knowledge area]
 - New connections identified:
-  - [Item 1] → [Item 2]: [Relationship type] 
+  - [Item 1] → [Item 2]: [Relationship type]
   - [Item 3] → [Item 4]: [Relationship type]
   - [Item 5] → [Item 6]: [Relationship type]
 
@@ -611,7 +625,7 @@ The following items should be added or updated in our knowledge base:
 
 ## Risk Management Plan
 ### Key Risks
-- [Risk 1] - Probability: [H/M/L] - Impact: [H/M/L] 
+- [Risk 1] - Probability: [H/M/L] - Impact: [H/M/L]
   - Mitigation: [strategy]
   - Owner: [name]
 - [Risk 2] - Probability: [H/M/L] - Impact: [H/M/L]
@@ -764,7 +778,7 @@ The following items should be added or updated in our knowledge base:
    - Human/AI contribution: [Who proposed/decided]
 
 ## Challenges Encountered
-- [Challenge 1]: 
+- [Challenge 1]:
   - Solution approach: [Description]
   - Resolution: [Outcome]
 

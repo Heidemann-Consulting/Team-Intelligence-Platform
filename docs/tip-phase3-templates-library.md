@@ -1,4 +1,27 @@
-### TIP Phase 3: Ritual Templates Library
+# TIP Phase 3: Ritual Templates Library
+
+**Version:** 1.0
+**Date:** May 11, 2025
+**Author:** Heidemann Consulting
+**License:** Apache 2.0
+
+## **Table of Contents**
+
+- [TIP Phase 3: Ritual Templates Library](#tip-phase-3-ritual-templates-library)
+  - [**Table of Contents**](#table-of-contents)
+      - [Networked Context Management Templates](#networked-context-management-templates)
+      - [AI-Driven Decision Framework Templates](#ai-driven-decision-framework-templates)
+      - [Advanced Retrospective System Templates](#advanced-retrospective-system-templates)
+      - [Cross-Team Intelligence Templates](#cross-team-intelligence-templates)
+      - [Advanced AI Pair Working Templates](#advanced-ai-pair-working-templates)
+- [Base Configuration](#base-configuration)
+- [Role-specific parameters](#role-specific-parameters)
+- [\[Role Name\]](#role-name)
+  - [Role Context](#role-context)
+  - [Domain Knowledge](#domain-knowledge)
+  - [Current Task Context](#current-task-context)
+  - [Collaboration Approach](#collaboration-approach)
+  - [Expected Outputs](#expected-outputs)
 
 #### Networked Context Management Templates
 

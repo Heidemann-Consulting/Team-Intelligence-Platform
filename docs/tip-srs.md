@@ -1,7 +1,9 @@
 # Software Requirements Specification: Team Intelligence Platform (TIP)
 
 **Version:** 1.0
-**Date:** 2025-05-11
+**Date:** May 11, 2025
+**Author:** Heidemann Consulting
+**License:** Apache 2.0
 **Based on PRD:** Team Intelligence Platform PRD v1.0, dated 2025-05-11
 
 ## Table of Contents

@@ -30,7 +30,9 @@
 * ✅ Make sure that each workflow can indeed take multiple different kinds of documents as defined by multiple inputDocumentSelectors as input.
 
 * ✅ Create / Update PRD and SRS
-* Update the rituals and practices documents
+* ✅ Update the rituals and practices documents and create matching workflow libraries
+
+* Add functionality that users can choose via checkboxes which documents will be input documents.
 
 * Create initial wave of templates and workflows
 * Export initial wave of templates and workflows in ulacm_backend/init_db.sql

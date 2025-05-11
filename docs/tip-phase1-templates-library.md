@@ -1,4 +1,17 @@
-### Appendix A: Ritual Templates Library
+# **Team Intelligence Platform (TIP) - Phase 1 Templates Library**
+
+**Version:** 1.0
+**Date:** May 11, 2025
+**Author:** Heidemann Consulting
+**License:** Apache 2.0
+
+## **Table of Contents**
+
+- [**Team Intelligence Platform (TIP) - Phase 1 Templates Library**](#team-intelligence-platform-tip---phase-1-templates-library)
+  - [**Table of Contents**](#table-of-contents)
+      - [Context Curation Templates](#context-curation-templates)
+      - [Prompt Development Templates](#prompt-development-templates)
+      - [AI-Assisted Documentation Templates](#ai-assisted-documentation-templates)
 
 #### Context Curation Templates
 
