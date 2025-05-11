@@ -1,19 +1,21 @@
 // File: ulacm_frontend/src/components/content/CreateDocumentModal.tsx
 // Purpose: Modal for creating a new Document, requiring template selection.
+// Updated: Changed ContentItemBase to ContentItemBaseCore in props.
 // Updated: Added template preview functionality.
 
 import React, { useState, useEffect, FormEvent, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { X, FilePlus, AlertCircle, Eye } from 'lucide-react';
-import { ContentItemBase, ContentItemType, PaginatedResponse, ContentItemDetail } from '@/types/api';
+import { ContentItemBaseCore, ContentItemType, PaginatedResponse, ContentItemDetail, ContentItemListed } from '@/types/api'; // Changed ContentItemBase to ContentItemBaseCore
 import contentService, { ContentItemCreatePayload } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { marked } from 'marked'; // For rendering Markdown preview
+import { marked } from 'marked';
+// For rendering Markdown preview
 
 interface CreateDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newDocument: ContentItemBase) => void;
+  onSuccess: (newDocument: ContentItemBaseCore) => void; // Changed here
 }
 
 const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
@@ -21,13 +23,13 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [templates, setTemplates] = useState<ContentItemBase[]>([]);
+  const [templates, setTemplates] = useState<ContentItemListed[]>([]); // Use ContentItemListed for templates list
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [newDocumentName, setNewDocumentName] = useState('');
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [isLoadingCreate, setIsLoadingCreate] = useState(false);
-  const [error, setError] = useState<string | null>(null); // Error for template loading
-  const [createError, setCreateError] = useState<string | null>(null); // Error for document creation
+  const [error, setError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const [templatePreviewContent, setTemplatePreviewContent] = useState<string | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -39,15 +41,15 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
     setIsLoadingTemplates(true);
     setError(null);
     setCreateError(null);
-    setTemplatePreviewContent(null); // Clear previous preview
+    setTemplatePreviewContent(null);
     setPreviewError(null);
     try {
       const params = {
         item_type: ContentItemType.TEMPLATE,
-        limit: 100, // Max limit
+        limit: 100,
         for_usage: true
       };
-      const data: PaginatedResponse<ContentItemBase> = await contentService.getItems(params);
+      const data: PaginatedResponse<ContentItemListed> = await contentService.getItems(params);
       setTemplates(data.items);
       if (data.items.length === 0) {
           setError("No templates found. An Administrator needs to create and share templates first.");
@@ -89,10 +91,9 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
     if (selectedTemplateId) {
       fetchTemplatePreview(selectedTemplateId);
     } else {
-      setTemplatePreviewContent(null); // Clear preview if no template is selected
+      setTemplatePreviewContent(null);
     }
   }, [selectedTemplateId, fetchTemplatePreview]);
-
 
   useEffect(() => {
     if (!isOpen) {
@@ -120,12 +121,13 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
         item_type: ContentItemType.DOCUMENT,
         template_id: selectedTemplateId,
       };
-      const newDocument = await contentService.createItem(payload);
+      const newDocument = await contentService.createItem(payload); // Returns ContentItemBaseCore
       toast.success(`Document "${newDocument.name}" created successfully!`);
       onSuccess(newDocument);
     } catch (err: any) {
       console.error("Failed to create document:", err);
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to create document.';
+      const errorMessage = err.response?.data?.detail ||
+        err.message || 'Failed to create document.';
       if (err.response?.status === 409 && errorMessage.toLowerCase().includes("name") && errorMessage.toLowerCase().includes("document")) {
         setCreateError(`A document with the name "${newDocumentName.trim()}" already exists. Please choose a different name.`);
       } else {
@@ -144,14 +146,10 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
     }
     try {
       const parsedOutput = marked.parse(templatePreviewContent);
-
       if (typeof parsedOutput === 'string') {
         return { __html: parsedOutput };
       } else {
-        // This case implies marked.parse returned a Promise because it was called with async options
-        // or an async tokenizer/renderer. For a simple preview, this is not ideal.
-        // dangerouslySetInnerHTML requires a string.
-        console.warn("marked.parse returned a Promise for preview. Displaying placeholder. For async markdown, a different rendering strategy is needed.");
+        console.warn("marked.parse returned a Promise for preview. Displaying placeholder.");
         return { __html: "<p class='text-orange-500 italic'>Preview generation is processing (async)...</p>" };
       }
     } catch (parseError) {
@@ -160,10 +158,9 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
     }
   };
 
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto transform transition-all max-h-[90vh] flex flex-col"> {/* Increased max-w for preview */}
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-auto transform transition-all max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-ulacm-gray-200 flex-shrink-0">
           <h3 className="text-xl font-semibold text-ulacm-gray-800 flex items-center">
             <FilePlus size={20} className="mr-2 text-ulacm-primary" /> Create New Document
@@ -175,7 +172,7 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
 
         <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto">
           <div className="px-6 py-5 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Grid for form and preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Form Fields */}
               <div className="space-y-5">
                 <div>
@@ -251,9 +248,9 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
             </div>
 
             {createError && (
-               <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start mt-4" role="alert">
-                    <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="block sm:inline text-sm">{createError}</span>
+              <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start mt-4" role="alert">
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                <span className="block sm:inline text-sm">{createError}</span>
                </div>
             )}
           </div>

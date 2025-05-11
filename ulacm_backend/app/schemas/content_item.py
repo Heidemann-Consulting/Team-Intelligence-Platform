@@ -1,6 +1,6 @@
 # File: ulacm_backend/app/schemas/content_item.py
 # Purpose: Pydantic schemas for ContentItem data (Documents, Templates, Workflows).
-# Corrected NameError by renaming the internal aliased field to not start with an underscore.
+# Using absolute path for forward reference.
 
 from pydantic import (
     BaseModel,
@@ -15,10 +15,13 @@ from pydantic import (
 from typing import Optional, List, Union, Any
 import datetime
 import uuid
+import logging
 
 from app.db.models.content_item import ContentItemTypeEnum
-from .content_version import ContentVersionDetails  # Import the Pydantic schema
+from .content_version import ContentVersionDetails
+# Forward reference will be used for WorkflowDefinition
 
+log = logging.getLogger(__name__)
 
 class ContentItemBase(BaseModel):
     name: constr(min_length=1, max_length=255)
@@ -86,13 +89,12 @@ class ContentItem(ContentItemInDBBase):
 
 
 class ContentItemWithCurrentVersion(ContentItem):
-    # This field will hold the Pydantic model of the current version,
-    # populated from item_db.current_version by from_attributes due to the alias.
-    # It's excluded from the final JSON output; only computed fields derived from it are shown.
-    # Renamed from _current_version_data_source to avoid leading underscore.
     current_version_for_computed_fields: Optional[ContentVersionDetails] = Field(
         default=None, alias="current_version", exclude=True
     )
+
+    # Absolute path string literal for forward reference
+    parsed_workflow_definition_internal: Optional['app.schemas.workflow_definition.WorkflowDefinition'] = Field(default=None, exclude=True)
 
     @computed_field
     @property
@@ -122,9 +124,27 @@ class ContentItemWithCurrentVersion(ContentItem):
             return self.current_version_for_computed_fields.saved_by_team_id
         return None
 
+    @computed_field
+    @property
+    def workflow_input_document_selectors(self) -> Optional[List[str]]:
+        if self.item_type == ContentItemTypeEnum.WORKFLOW and self.parsed_workflow_definition_internal:
+            # Ensure parsed_workflow_definition_internal is not None before accessing attribute
+            if self.parsed_workflow_definition_internal:
+                 return self.parsed_workflow_definition_internal.inputDocumentSelectors
+        return None
+
+    @computed_field
+    @property
+    def workflow_output_name_template(self) -> Optional[str]:
+        if self.item_type == ContentItemTypeEnum.WORKFLOW and self.parsed_workflow_definition_internal:
+            # Ensure parsed_workflow_definition_internal is not None before accessing attribute
+            if self.parsed_workflow_definition_internal:
+                return self.parsed_workflow_definition_internal.outputName
+        return None
+
     model_config = {
         "from_attributes": True,
-        "populate_by_name": True,  # Important for alias 'current_version' to work for population
+        "populate_by_name": True,
     }
 
 
@@ -146,6 +166,25 @@ class ContentItemSearchResult(ContentItemBase):
     updated_at: datetime.datetime
     current_version_number: Optional[int] = None
     snippet: Optional[str] = None
+
+    # Absolute path string literal for forward reference
+    parsed_workflow_definition_internal: Optional['app.schemas.workflow_definition.WorkflowDefinition'] = Field(default=None, exclude=True)
+
+    @computed_field
+    @property
+    def workflow_input_document_selectors(self) -> Optional[List[str]]:
+        if self.item_type == ContentItemTypeEnum.WORKFLOW and self.parsed_workflow_definition_internal:
+            if self.parsed_workflow_definition_internal:
+                return self.parsed_workflow_definition_internal.inputDocumentSelectors
+        return None
+
+    @computed_field
+    @property
+    def workflow_output_name_template(self) -> Optional[str]:
+        if self.item_type == ContentItemTypeEnum.WORKFLOW and self.parsed_workflow_definition_internal:
+            if self.parsed_workflow_definition_internal:
+                return self.parsed_workflow_definition_internal.outputName
+        return None
 
     model_config = {"from_attributes": True}
 

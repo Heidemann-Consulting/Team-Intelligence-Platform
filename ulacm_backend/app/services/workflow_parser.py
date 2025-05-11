@@ -1,6 +1,6 @@
 # File: ulacm_backend/app/services/workflow_parser.py
 # Purpose: Parses and validates Process Workflow definitions more robustly.
-# Updated: processWorkFlowName is no longer a required field from YAML.
+# Updated: inputDocumentSelector changed to inputDocumentSelectors (list)
 
 import yaml
 import datetime
@@ -8,7 +8,7 @@ from pydantic import (
     ValidationError, field_validator, model_validator, Field, constr,
     ValidationInfo
 )
-from typing import Optional, Any
+from typing import Optional, Any, List
 
 from app.schemas.workflow_definition import WorkflowDefinition
 
@@ -19,7 +19,7 @@ class WorkflowParsingError(ValueError):
         self.value = value
         detail = f"Field '{field}': {message}" if field else message
         if value is not None:
-             detail += f" (value: {repr(value)})"
+            detail += f" (value: {repr(value)})"
         super().__init__(detail)
 
 class ValidatedWorkflowDefinition(WorkflowDefinition):
@@ -36,14 +36,24 @@ class ValidatedWorkflowDefinition(WorkflowDefinition):
 
         # processWorkFlowName is now optional in the YAML content itself.
         # It will be derived from the workflow item's name if not provided.
-        required_fields_in_yaml = ['inputDocumentSelector', 'outputName', 'prompt']
+        required_fields_in_yaml = ['inputDocumentSelectors', 'outputName', 'prompt']
 
         missing_fields = [field for field in required_fields_in_yaml if field not in data or not data[field]]
         if missing_fields:
             raise ValueError(f"Missing required fields in workflow definition content: {', '.join(missing_fields)}")
 
+        if 'inputDocumentSelectors' in data:
+            if not isinstance(data['inputDocumentSelectors'], list):
+                raise ValueError("Field 'inputDocumentSelectors': Must be a list of strings.")
+            if not data['inputDocumentSelectors']: # Ensure list is not empty
+                raise ValueError("Field 'inputDocumentSelectors': List cannot be empty.")
+            for selector in data['inputDocumentSelectors']:
+                if not isinstance(selector, str) or not selector.strip():
+                    raise ValueError("Field 'inputDocumentSelectors': Each selector in the list must be a non-empty string.")
+
+
         if 'trigger' in data and data['trigger'] != "manual":
-             raise ValueError("Field 'trigger': Only 'manual' is currently supported.")
+            raise ValueError("Field 'trigger': Only 'manual' is currently supported.")
 
         return data
 
@@ -51,7 +61,7 @@ class WorkflowDefinitionParser:
     @staticmethod
     def parse_and_validate(workflow_content_str: str) -> ValidatedWorkflowDefinition:
         if not workflow_content_str or workflow_content_str.isspace():
-             raise WorkflowParsingError("Workflow definition content cannot be empty.")
+            raise WorkflowParsingError("Workflow definition content cannot be empty.")
         try:
             parsed_yaml = yaml.safe_load(workflow_content_str)
             if parsed_yaml is None:
@@ -88,7 +98,7 @@ class WorkflowDefinitionParser:
                 field=first_error_field, value=first_error_value
             )
         except Exception as e:
-             raise WorkflowParsingError(f"An unexpected error occurred during validation: {str(e)}")
+            raise WorkflowParsingError(f"An unexpected error occurred during validation: {str(e)}")
 
 def validate_workflow_definition_string(workflow_content_str: str):
     WorkflowDefinitionParser.parse_and_validate(workflow_content_str)

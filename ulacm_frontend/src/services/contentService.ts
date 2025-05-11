@@ -1,9 +1,10 @@
 // File: ulacm_frontend/src/services/contentService.ts
 // Purpose: Service for API calls related to content items, versions, and workflow execution.
+// Updated: Changed ContentItemBase to ContentItemBaseCore for createItem return type.
 
 import apiClient from './apiClient';
 import {
-  ContentItemBase,
+  ContentItemBaseCore, // Changed from ContentItemBase
   ContentItemDetail,
   ContentItemType,
   PaginatedResponse,
@@ -11,7 +12,7 @@ import {
   ContentItemSearchResult,
   RunWorkflowResponse,
   ContentItemDuplicatePayload,
-  ContentItemListed, // Import the new type
+  ContentItemListed,
 } from '@/types/api';
 import {
     ContentVersionDetails,
@@ -41,8 +42,8 @@ export interface SearchParams {
     created_before?: string; // YYYY-MM-DD
     offset?: number;
     limit?: number;
-    sort_by?: string; // Added for search results sorting
-    sort_order?: 'asc' | 'desc'; // Added for search results sorting
+    sort_by?: string;
+    sort_order?: 'asc' | 'desc';
 }
 
 const contentService = {
@@ -51,18 +52,16 @@ const contentService = {
     offset?: number;
     limit?: number;
     sort_by?: string;
-    sort_order?: 'asc' | 'desc'; // Ensure this is part of the type
+    sort_order?: 'asc' | 'desc';
     for_usage?: boolean;
-    // Add search query param for basic name filtering if needed,
-    // otherwise SearchPage specific search API will be used for full-text
-    name_query?: string; // Example: for simple name filtering
-  }): Promise<PaginatedResponse<ContentItemListed>> => { // Use ContentItemListed
+    name_query?: string;
+  }): Promise<PaginatedResponse<ContentItemListed>> => {
     const response = await apiClient.get<PaginatedResponse<ContentItemListed>>('/items', { params });
     return response.data;
   },
 
-  createItem: async (itemData: ContentItemCreatePayload): Promise<ContentItemBase> => {
-    const response = await apiClient.post<ContentItemBase>('/items', itemData);
+  createItem: async (itemData: ContentItemCreatePayload): Promise<ContentItemBaseCore> => { // Changed return type
+    const response = await apiClient.post<ContentItemBaseCore>('/items', itemData); // Changed expected response type
     return response.data;
   },
 
@@ -71,8 +70,8 @@ const contentService = {
     return response.data;
   },
 
-  updateItemMeta: async (itemId: string, metaData: ContentItemMetaUpdatePayload): Promise<ContentItemBase> => {
-    const response = await apiClient.put<ContentItemBase>(`/items/${itemId}/meta`, metaData);
+  updateItemMeta: async (itemId: string, metaData: ContentItemMetaUpdatePayload): Promise<ContentItemBaseCore> => { // Changed return type
+    const response = await apiClient.put<ContentItemBaseCore>(`/items/${itemId}/meta`, metaData); // Changed expected response type
     return response.data;
   },
 
@@ -106,7 +105,7 @@ const contentService = {
      return {
          total_count: response.data.total_count,
          offset: params.offset ?? 0,
-         limit: params.limit ?? 20, // Default limit for search in frontend was 20
+         limit: params.limit ?? 20,
          items: response.data.items
      };
   },
@@ -116,5 +115,4 @@ const contentService = {
     return response.data;
   },
 };
-
 export default contentService;

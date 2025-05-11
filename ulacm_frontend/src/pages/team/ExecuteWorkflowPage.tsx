@@ -1,23 +1,22 @@
 // File: ulacm_frontend/src/pages/team/ExecuteWorkflowPage.tsx
 // Purpose: Page for Teams to list and execute available (Admin-created) Workflows.
+// Updated: Displays input document selectors and output name template.
+// Replaced InfoSquare with Info icon.
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { FolderGit2, Play, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon } from 'lucide-react';
+import { FolderGit2, Play, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, FileInput, FileOutput } from 'lucide-react'; // Changed InfoSquare to Info
 import toast from 'react-hot-toast';
 
-import { ContentItemBase, ContentItemType, PaginatedResponse, RunWorkflowResponse } from '@/types/api';
-import contentService from '@/services/contentService'; // Import SearchParams type if it's exported from here
+import { ContentItemListed, ContentItemType, PaginatedResponse, RunWorkflowResponse } from '@/types/api';
+import contentService from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import RunWorkflowModal from '@/components/content/RunWorkflowModal';
-
 import { useNavigate } from 'react-router-dom';
 
-// Define the type for params passed to getItems more explicitly
 type GetItemsParams = Parameters<typeof contentService.getItems>[0];
 
-
 const ExecuteWorkflowPage: React.FC = () => {
-  const [workflows, setWorkflows] = useState<ContentItemBase[]>([]);
+  const [workflows, setWorkflows] = useState<ContentItemListed[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
@@ -25,12 +24,11 @@ const ExecuteWorkflowPage: React.FC = () => {
     limit: 15,
     total_count: 0,
   });
-  const [selectedWorkflow, setSelectedWorkflow] = useState<ContentItemBase | null>(null);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<ContentItemListed | null>(null);
   const [showRunModal, setShowRunModal] = useState(false);
   const [runWorkflowOutput, setRunWorkflowOutput] = useState<RunWorkflowResponse | { error: string } | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
 
   const navigate = useNavigate();
 
@@ -38,16 +36,15 @@ const ExecuteWorkflowPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Explicitly type the params object
       const params: GetItemsParams = {
         item_type: ContentItemType.WORKFLOW,
         offset,
         limit: pagination.limit,
         sort_by: 'name',
-        sort_order: 'asc', // This is now correctly typed as 'asc' | 'desc' | undefined
+        sort_order: 'asc',
         for_usage: true,
       };
-      const data: PaginatedResponse<ContentItemBase> = await contentService.getItems(params);
+      const data: PaginatedResponse<ContentItemListed> = await contentService.getItems(params);
       setWorkflows(data.items);
       setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
     } catch (err: any) {
@@ -63,12 +60,11 @@ const ExecuteWorkflowPage: React.FC = () => {
     fetchWorkflows(pagination.offset);
   }, [fetchWorkflows, pagination.offset]);
 
-  const handleExecuteWorkflow = (workflow: ContentItemBase) => {
+  const handleExecuteWorkflow = (workflow: ContentItemListed) => {
     setSelectedWorkflow(workflow);
     setRunWorkflowOutput(null);
     setIsRunning(true);
     setShowRunModal(true);
-
     contentService.runWorkflow(workflow.item_id)
       .then(result => {
         setRunWorkflowOutput(result);
@@ -186,16 +182,43 @@ const ExecuteWorkflowPage: React.FC = () => {
               {filteredWorkflows.map((wf) => (
                 <div key={wf.item_id} className="bg-white p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border border-ulacm-gray-100 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center mb-2">
-                      <FolderGit2 className="h-6 w-6 mr-2 text-purple-600 flex-shrink-0" />
-                      <h2 className="text-lg font-semibold text-ulacm-gray-800 truncate" title={wf.name}>
+                    <div className="flex items-center mb-3">
+                      <FolderGit2 className="h-7 w-7 mr-2.5 text-purple-600 flex-shrink-0" />
+                      <h2 className="text-xl font-semibold text-ulacm-gray-800 truncate" title={wf.name}>
                         {wf.name}
                       </h2>
                     </div>
-                    {/* Placeholder for description if available in ContentItemBase or a new DTO later */}
-                    {/* <p className="text-sm text-ulacm-gray-600 mb-3 min-h-[40px]">
-                      {wf.description || "No description available."}
-                    </p> */}
+
+                    {/* Display Input Document Selectors */}
+                    {wf.workflow_input_document_selectors && wf.workflow_input_document_selectors.length > 0 && (
+                      <div className="mb-3">
+                        <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
+                          <FileInput size={14} className="mr-1.5 text-ulacm-gray-400"/> Input Document Selectors
+                        </h4>
+                        <ul className="list-none pl-0 space-y-0.5">
+                          {wf.workflow_input_document_selectors.map((selector, index) => (
+                            <li key={index} className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2 py-1 rounded-md border border-ulacm-gray-200">
+                              <code className="text-purple-700">{selector}</code>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Display Output Name Template */}
+                    {wf.workflow_output_name_template && (
+                      <div className="mb-4">
+                        <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
+                           <FileOutput size={14} className="mr-1.5 text-ulacm-gray-400"/> Output Document Name Template
+                        </h4>
+                        <p className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2 py-1 rounded-md border border-ulacm-gray-200">
+                          <code className="text-blue-700">{wf.workflow_output_name_template}</code>
+                        </p>
+                         <p className="mt-1 text-xs text-ulacm-gray-500 italic flex items-center">
+                            <Info size={12} className="mr-1 text-ulacm-gray-400 flex-shrink-0"/> Placeholders like `{"{{InputFileName}}"}`, `{"{{WorkflowName}}"}`, `{"{{Year}}"}` will be replaced on execution.
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => handleExecuteWorkflow(wf)}

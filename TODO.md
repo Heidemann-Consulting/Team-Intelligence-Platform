@@ -26,8 +26,8 @@
 * ✅ When in apiClient.ts a user is redirected to login because the session is expired make sure that the existing cookie is deleted.
 * ✅ The modal "Create New Document" window shall show a preview of the selected template
 
-* Under each workflow in the team user view show which documents it uses as input and which document it creates as output
-* Test that each workflow can indeed take multiple different kinds of document as input
+* ✅ Under each workflow in the team user view show which documents it uses (i.e. list all inputDocumentSelectors) as input and which document it creates as output (i.e. show outputName with correctly replaced placeholders in it).
+* Make sure that each workflow can indeed take multiple different kinds of documents as defined by multiple inputDocumentSelectors as input.
 
 * Create initial wave of templates and workflows
 * Export initial wave of templates and workflows in ulacm_backend/init_db.sql

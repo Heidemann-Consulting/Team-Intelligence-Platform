@@ -1,6 +1,6 @@
 # File: ulacm_backend/app/schemas/workflow_definition.py
 # Purpose: Pydantic schemas for Process Workflow definitions and execution.
-# Updated: Made processWorkFlowName optional in the schema.
+# Updated: Removed model_rebuild calls.
 
 from pydantic import (
     BaseModel, UUID4, constr, Field, field_validator, ValidationInfo
@@ -10,10 +10,11 @@ import datetime
 
 from app.schemas.content_item import ContentItem
 
+
 class WorkflowDefinition(BaseModel):
-    processWorkFlowName: Optional[constr(min_length=1, max_length=255)] = None # Now optional
+    processWorkFlowName: Optional[constr(min_length=1, max_length=255)] = None
     trigger: constr(pattern=r"^manual$") = "manual"
-    inputDocumentSelector: constr(min_length=1, max_length=255)
+    inputDocumentSelectors: List[constr(min_length=1, max_length=255)] = Field(..., min_length=1)
     inputDateSelector: Optional[constr(min_length=1, max_length=100)] = None
     outputName: constr(min_length=1, max_length=255)
     prompt: str
@@ -45,7 +46,7 @@ class WorkflowDefinition(BaseModel):
                 else:
                     raise ValueError("Invalid format for between. Use 'between_YYYY-MM-DD_YYYY-MM-DD'.")
             else:
-                 raise ValueError("Invalid format. No spaces allowed after 'between_...' keyword.")
+                raise ValueError("Invalid format. No spaces allowed after 'between_...' keyword.")
         else:
             raise ValueError(f"Unrecognized date selector format: '{parts[0]}'. Allowed: olderThanDays, newerThanDays, between_YYYY-MM-DD_YYYY-MM-DD")
 
@@ -63,3 +64,5 @@ class RunWorkflowResponse(BaseModel):
     message: str
     output_document: WorkflowExecutionOutputDocument
     llm_raw_response: Optional[str] = None
+
+# No model_rebuild calls here
