@@ -67,10 +67,11 @@ combin with:
 * ✅ Make sure that the template preview in the Create New Document modal windows applies all markdown styles, e.g. bullet point lists and tables correctly.
 * ✅ Make sure default sorting of content items list view is set to: Newest modified first.
 
-* Add full text search to Workflow document selection. Make sure that selected documents always stay selected and visible even if the current full text search does not match them.
-* Add a full text field to the start Workflow modal window which will be added to the workflow prompt as if it were an added document.
+* Add full text search to Run Workflow document selection. Make sure that selected documents always stay selected and visible even if the current full text search does not match them.
+* Add a full text field to the start Workflow modal window named "Additional input for the AI:" which will be added to the workflow prompt as if it were an added document.
+* ✅ Change Workflow Input Selectors to better match more possibilities
 
-* Add a "Ask AI" text field on top of the document editor and the Actions box, but below the Document Title/Version/Lastsaved box, which can be executed like a workflow and sends the current document in its current state and the content of the text field to the LLM and presents the answer in a new model popup window.
+* Add a "Ask AI" text field on top of the document editor and the Actions box, but below the Document Title/Version/Lastsaved box, which can be executed like a workflow and sends the current document in its current state and the content of the text field to the LLM and presents the answer in a new modal popup window with the option to save the answer as a new document (which asks for Document name) or alternatively to close the modal answer window without saving the answer.
 
 * Add Export-Function for the currently opened document in the document editor.
 * Add Export-Function for all currently selected Documents in the Document Overview List.
