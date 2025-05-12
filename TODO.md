@@ -73,6 +73,8 @@ combin with:
 
 * ✅ Add a "Ask AI" text field on top of the document editor and the Actions box, but below the Document Title/Version/Lastsaved box, which can be executed like a workflow and sends the current document in its current state and the content of the text field to the LLM and presents the answer in a new modal popup window with the option to save the answer as a new document (which asks for Document name) or alternatively to close the modal answer window without saving the answer.
 
+* Add the corresponding prompt as a preview (in a scrollable textbox) of what the workflows do to each workflow box to the ExecuteWorkflowPage.
+
 * Add Export-Function for the currently opened document in the document editor.
 * Add Export-Function for all currently selected Documents in the Document Overview List.
 
