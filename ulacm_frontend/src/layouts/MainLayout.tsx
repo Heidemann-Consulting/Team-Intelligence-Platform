@@ -43,7 +43,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <LayoutDashboard className={iconClass} /> Dashboard
           </NavLink>
           <NavLink to="/app/documents" className={navLinkClass}>
-            <FileText className={iconClass} /> View Documents
+            <FileText className={iconClass} /> Manage Knowledge
           </NavLink>
           {/* New "Execute Workflows" link for teams */}
           <NavLink to="/app/execute-workflow" className={navLinkClass}>

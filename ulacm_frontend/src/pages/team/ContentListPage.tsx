@@ -187,7 +187,7 @@ const ContentListPage: React.FC = () => {
         }
     } else {
         switch (itemTypeForPage) {
-            case ContentItemType.DOCUMENT: return { title: 'View Documents', icon: FileText };
+            case ContentItemType.DOCUMENT: return { title: 'Manage Knowledge', icon: FileText };
             default: return { title: 'Content', icon: FileText };
         }
     }

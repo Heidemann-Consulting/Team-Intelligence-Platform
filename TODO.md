@@ -51,7 +51,28 @@ combin with:
 
 * ✅ Make sure the markdown editor does not apply any styles in editor mode and applies all markdown styles in preview mode.
 
+* ✅ Rename „View Documents“ to „Manage Knowledge“
+
 * Ensure that after creation of each new vdersion the search index is updated too.
+
+* Create slides for short intro to LACM to introduce an overview to the processes in these.
+* Create slides for short intro to Phase 1 to introduce an overview to the processes in these.
+* Create slides for short intro to Phase 2 to introduce an overview to the processes in these.
+* Create slides for short intro to Phase 3 to introduce an overview to the processes in these.
+
+* Check if all Workflow Syntax used is supported by the code
+
+* Add full text search to Workflow document selection. Make sure that selected documents always stay selected and visible even if the current full text search does not match them.
+
+* Add a full text field to the start Workflow modal window which will be added to the workflow prompt as if it were an added document.
+
+* Add a "Ask AI" text field on top of the document editor which can be executed like a workflow and sends the current document in its current state and the content of the text field to the LLM and presents the answer in a new model popup window.
+
+* Change default sorting of content items list view to: Newest modified first
+
+* Add Export-Function for individual Documents and for all currently selected Documents
+
+## Prio 3
 
 * The API endpoint (/run) would immediately acknowledge the request (e.g., HTTP 202 Accepted), possibly returning a task/job ID.
 The actual workflow processing would happen in the background (use a dedicated task queue like Celery for more robust needs).
@@ -72,8 +93,6 @@ This allows for cleaner separation of concerns: apiClient detects the 401 and up
 This also makes it easier to clear any user-specific data (like tokens, user profile info) from the client-side state upon logout/unauthorization.
 Token Refresh Mechanisms:
 For an even more robust system (though potentially more complex to implement), if you're using JWTs with refresh tokens, a 401 could trigger an attempt to silently refresh the access token using the refresh token. If the refresh is successful, the original failed request can be retried automatically without the user even noticing. If the refresh token is also invalid or expired, then you would proceed to log the user out and redirect. This is usually beyond basic 401 handling.
-
-## Prio 3
 
 * Complete backend unit tests
 * Implement Frontend tests
