@@ -1,6 +1,8 @@
 /* File: ulacm_frontend/src/index.css */
-/* Purpose: Global styles and Tailwind CSS directives. */
+/* Purpose: Global styles and Tailwind CSS directives.
+*/
 /* Added styles for ReactSimpleMDEEditor (EasyMDE) */
+/* Updated: Extended .editor-preview styles to .modal-markdown-preview */
 
 @tailwind base;
 @tailwind components;
@@ -54,29 +56,35 @@ a {
 
 /* Styles for ReactSimpleMDEEditor (EasyMDE) */
 .ulacm-simplemde-editor-wrapper .EasyMDEContainer .CodeMirror {
-  min-height: 300px; /* Or your desired minimum height */
+  min-height: 300px;
+  /* Or your desired minimum height */
   border-bottom-left-radius: 0.5rem; /* Tailwind's rounded-lg */
   border-bottom-right-radius: 0.5rem;
-  border: none !important; /* Remove CodeMirror's default border if wrapper has one */
-  flex-grow: 1; /* Allow editor to grow if in a flex container */
+  border: none !important;
+  /* Remove CodeMirror's default border if wrapper has one */
+  flex-grow: 1;
+  /* Allow editor to grow if in a flex container */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-toolbar {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
   border-bottom: 1px solid #d1d5db; /* ulacm-gray-300 */
-  background-color: #f9fafb; /* ulacm-gray-50 */
+  background-color: #f9fafb;
+  /* ulacm-gray-50 */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-toolbar button.active,
 .ulacm-simplemde-editor-wrapper .editor-toolbar button:hover {
   background-color: #e5e7eb; /* ulacm-gray-200 */
-  border-color: #9ca3af; /* ulacm-gray-400 */
+  border-color: #9ca3af;
+  /* ulacm-gray-400 */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-toolbar i.separator {
   border-left: 1px solid #d1d5db; /* ulacm-gray-300 */
-  border-right: 1px solid #d1d5db; /* ulacm-gray-300 */
+  border-right: 1px solid #d1d5db;
+  /* ulacm-gray-300 */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview,
@@ -94,25 +102,32 @@ a {
 }
 
 /* Added/Enhanced styles for Markdown preview within EasyMDE */
+/* Extended to .modal-markdown-preview */
 .ulacm-simplemde-editor-wrapper .editor-preview,
-.ulacm-simplemde-editor-wrapper .editor-preview-side {
+.ulacm-simplemde-editor-wrapper .editor-preview-side,
+.modal-markdown-preview {
   /* Ensure basic text styling */
-  color: #111827; /* ulacm-gray-900 */
+  color: #111827;
+  /* ulacm-gray-900 */
   line-height: 1.6;
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview h1,
-.ulacm-simplemde-editor-wrapper .editor-preview-side h1 {
-  font-size: 2em; /* Example size */
+.ulacm-simplemde-editor-wrapper .editor-preview-side h1,
+.modal-markdown-preview h1 {
+  font-size: 2em;
+  /* Example size */
   font-weight: bold;
   margin-top: 0.67em;
   margin-bottom: 0.67em;
-  border-bottom: 1px solid #e5e7eb; /* ulacm-gray-200 */
+  border-bottom: 1px solid #e5e7eb;
+  /* ulacm-gray-200 */
   padding-bottom: 0.3em;
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview h2,
-.ulacm-simplemde-editor-wrapper .editor-preview-side h2 {
+.ulacm-simplemde-editor-wrapper .editor-preview-side h2,
+.modal-markdown-preview h2 {
   font-size: 1.5em;
   font-weight: bold;
   margin-top: 0.83em;
@@ -122,7 +137,8 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview h3,
-.ulacm-simplemde-editor-wrapper .editor-preview-side h3 {
+.ulacm-simplemde-editor-wrapper .editor-preview-side h3,
+.modal-markdown-preview h3 {
   font-size: 1.17em;
   font-weight: bold;
   margin-top: 1em;
@@ -130,7 +146,8 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview h4,
-.ulacm-simplemde-editor-wrapper .editor-preview-side h4 {
+.ulacm-simplemde-editor-wrapper .editor-preview-side h4,
+.modal-markdown-preview h4 {
   font-size: 1em;
   font-weight: bold;
   margin-top: 1.33em;
@@ -138,7 +155,8 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview h5,
-.ulacm-simplemde-editor-wrapper .editor-preview-side h5 {
+.ulacm-simplemde-editor-wrapper .editor-preview-side h5,
+.modal-markdown-preview h5 {
   font-size: 0.83em;
   font-weight: bold;
   margin-top: 1.67em;
@@ -146,7 +164,8 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview h6,
-.ulacm-simplemde-editor-wrapper .editor-preview-side h6 {
+.ulacm-simplemde-editor-wrapper .editor-preview-side h6,
+.modal-markdown-preview h6 {
   font-size: 0.67em;
   font-weight: bold;
   margin-top: 2.33em;
@@ -154,13 +173,15 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview p,
-.ulacm-simplemde-editor-wrapper .editor-preview-side p {
+.ulacm-simplemde-editor-wrapper .editor-preview-side p,
+.modal-markdown-preview p {
   margin-top: 1em;
   margin-bottom: 1em;
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview ul,
-.ulacm-simplemde-editor-wrapper .editor-preview-side ul {
+.ulacm-simplemde-editor-wrapper .editor-preview-side ul,
+.modal-markdown-preview ul {
   list-style-type: disc;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -168,7 +189,8 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview ol,
-.ulacm-simplemde-editor-wrapper .editor-preview-side ol {
+.ulacm-simplemde-editor-wrapper .editor-preview-side ol,
+.modal-markdown-preview ol {
   list-style-type: decimal;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -176,23 +198,63 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview li,
-.ulacm-simplemde-editor-wrapper .editor-preview-side li {
+.ulacm-simplemde-editor-wrapper .editor-preview-side li,
+.modal-markdown-preview li {
   margin-bottom: 0.5em;
 }
 
+/* Nested list styling */
+.ulacm-simplemde-editor-wrapper .editor-preview ul ul,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ul ul,
+.modal-markdown-preview ul ul,
+.ulacm-simplemde-editor-wrapper .editor-preview ol ul,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ol ul,
+.modal-markdown-preview ol ul {
+  list-style-type: circle;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview ul ul ul,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ul ul ul,
+.modal-markdown-preview ul ul ul,
+.ulacm-simplemde-editor-wrapper .editor-preview ol ul ul,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ol ul ul,
+.modal-markdown-preview ol ul ul {
+  list-style-type: square;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview ol ol,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ol ol,
+.modal-markdown-preview ol ol {
+  list-style-type: lower-alpha;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview ol ol ol,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ol ol ol,
+.modal-markdown-preview ol ol ol {
+  list-style-type: lower-roman;
+}
+
+
 .ulacm-simplemde-editor-wrapper .editor-preview blockquote,
-.ulacm-simplemde-editor-wrapper .editor-preview-side blockquote {
+.ulacm-simplemde-editor-wrapper .editor-preview-side blockquote,
+.modal-markdown-preview blockquote {
   margin-top: 1em;
   margin-bottom: 1em;
   margin-left: 40px;
   margin-right: 40px;
   padding-left: 1em;
   border-left: 4px solid #d1d5db; /* ulacm-gray-300 */
-  color: #4b5563; /* ulacm-gray-600 */
+  color: #4b5563;
+  /* ulacm-gray-600 */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview pre,
-.ulacm-simplemde-editor-wrapper .editor-preview-side pre {
+.ulacm-simplemde-editor-wrapper .editor-preview-side pre,
+.modal-markdown-preview pre {
   background-color: #f3f4f6; /* ulacm-gray-100 */
   padding: 1em;
   overflow: auto;
@@ -202,38 +264,64 @@ a {
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview code,
-.ulacm-simplemde-editor-wrapper .editor-preview-side code {
+.ulacm-simplemde-editor-wrapper .editor-preview-side code,
+.modal-markdown-preview code {
   font-family: monospace;
   background-color: #e5e7eb; /* ulacm-gray-200 */
   padding: 0.2em 0.4em;
-  border-radius: 0.25rem; /* rounded-sm */
+  border-radius: 0.25rem;
+  /* rounded-sm */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview pre code,
-.ulacm-simplemde-editor-wrapper .editor-preview-side pre code {
+.ulacm-simplemde-editor-wrapper .editor-preview-side pre code,
+.modal-markdown-preview pre code {
   background-color: transparent;
   padding: 0;
   border-radius: 0;
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview table,
-.ulacm-simplemde-editor-wrapper .editor-preview-side table {
+.ulacm-simplemde-editor-wrapper .editor-preview-side table,
+.modal-markdown-preview table {
   border-collapse: collapse;
   margin-top: 1em;
   margin-bottom: 1em;
   width: auto;
+  /* Use auto or 100% based on desired behavior */
+  border: 1px solid #d1d5db; /* Add border to table itself for better definition */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview th,
 .ulacm-simplemde-editor-wrapper .editor-preview-side th,
 .ulacm-simplemde-editor-wrapper .editor-preview td,
-.ulacm-simplemde-editor-wrapper .editor-preview-side td {
-  border: 1px solid #d1d5db; /* ulacm-gray-300 */
+.ulacm-simplemde-editor-wrapper .editor-preview-side td,
+.modal-markdown-preview th,
+.modal-markdown-preview td {
+  border: 1px solid #d1d5db;
+  /* ulacm-gray-300 */
   padding: 0.5em 1em;
+  text-align: left; /* Ensure text alignment for table cells */
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview th,
-.ulacm-simplemde-editor-wrapper .editor-preview-side th {
+.ulacm-simplemde-editor-wrapper .editor-preview-side th,
+.modal-markdown-preview th {
   font-weight: bold;
-  background-color: #f9fafb; /* ulacm-gray-50 */
+  background-color: #f9fafb;
+  /* ulacm-gray-50 */
+}
+
+/* Ensure prose styles don't overly strip table styles if modal-markdown-preview is also inside a prose parent */
+.modal-markdown-preview.prose table {
+    /* Reset some prose table defaults if they conflict */
+    border-width: 1px; /* Ensure border applies */
+}
+.modal-markdown-preview.prose th,
+.modal-markdown-preview.prose td {
+    border-width: 1px;
+    padding: 0.5em 1em; /* Tailwind's p-2 equivalent is 0.5rem, p-4 is 1rem */
+}
+.modal-markdown-preview.prose thead th {
+     background-color: #f9fafb; /* From your original style */
 }

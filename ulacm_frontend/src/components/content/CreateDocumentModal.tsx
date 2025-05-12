@@ -3,6 +3,7 @@
 // Updated: Changed ContentItemBase to ContentItemBaseCore in props.
 // Updated: Added template preview functionality.
 // Updated: Implemented default document name "Templatename_YYYY_MM_DD" with prefix stripping.
+// Updated: Added 'modal-markdown-preview' class for consistent styling with editor preview.
 import React, { useState, useEffect, FormEvent, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { X, FilePlus, AlertCircle, Eye } from 'lucide-react';
@@ -10,7 +11,8 @@ import { ContentItemBaseCore, ContentItemType, PaginatedResponse, ContentItemDet
 import contentService, { ContentItemCreatePayload } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { marked } from 'marked';
-import { format } from 'date-fns'; // Added for date formatting
+import { format } from 'date-fns';
+// Added for date formatting
 
 interface CreateDocumentModalProps {
   isOpen: boolean;
@@ -31,7 +33,8 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  const [templatePreviewContent, setTemplatePreviewContent] = useState<string | null>(null);
+  const [templatePreviewContent, setTemplatePreviewContent] = useState<string |
+null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
@@ -78,8 +81,6 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
             name = name.substring(prefix.length);
         }
     });
-    // Convert spaces to underscores in the remaining template name part
-    // name = name.trim().replace(/\s+/g, '_');
     // Remove spaces in the remaining template name part
     name = name.trim().replace(/\s+/g, '');
     const currentDate = format(new Date(), 'yyyy_MM_dd');
@@ -96,7 +97,6 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
       setTemplatePreviewContent(null);
     }
   }, [selectedTemplateId, templates]);
-
 
   const fetchTemplatePreview = useCallback(async (templateId: string) => {
     if (!templateId) {
@@ -202,13 +202,11 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
                   <label htmlFor="templateSelect" className="block text-sm font-medium text-ulacm-gray-700 mb-1">
                     Select Template <span className="text-red-600">*</span>
                   </label>
-                  {isLoadingTemplates ?
-                  (
+                  {isLoadingTemplates ? (
                     <div className="flex items-center text-sm text-ulacm-gray-500 h-10">
                       <LoadingSpinner size="sm" className="mr-2" /> Loading templates...
                     </div>
-                  ) : error ?
-                  (
+                  ) : error ? (
                      <div className="bg-red-50 border border-red-300 text-red-700 px-3 py-2 rounded text-sm flex items-start">
                          <AlertCircle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
                          {error}
@@ -250,20 +248,19 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
                 <h4 className="text-sm font-medium text-ulacm-gray-700 flex items-center">
                   <Eye size={16} className="mr-1.5 text-ulacm-gray-400"/> Template Preview
                 </h4>
-                <div className="border border-ulacm-gray-200 rounded-lg p-3 bg-ulacm-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto prose prose-sm max-w-none">
+                {/* Added 'modal-markdown-preview' class and kept 'prose' for baseline */}
+                <div className="modal-markdown-preview border border-ulacm-gray-200 rounded-lg p-3 bg-ulacm-gray-50 min-h-[150px] max-h-[300px] overflow-y-auto prose prose-sm max-w-none">
                   {isLoadingPreview ? (
                     <div className="flex flex-col items-center justify-center h-full text-ulacm-gray-500">
                       <LoadingSpinner size="sm" />
                       <p className="mt-1 text-xs">Loading preview...</p>
                     </div>
-                  ) : previewError ?
-                  (
+                  ) : previewError ? (
                     <div className="flex flex-col items-center justify-center h-full text-red-500">
                        <AlertCircle size={20} className="mb-1"/>
                        <p className="text-xs">{previewError}</p>
                     </div>
-                  ) : templatePreviewContent ?
-                  (
+                  ) : templatePreviewContent ? (
                     <div dangerouslySetInnerHTML={renderPreviewHTML()} />
                   ) : (
                     <p className="text-ulacm-gray-400 italic text-xs text-center py-10">
@@ -275,7 +272,7 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
             </div>
 
             {createError && (
-               <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start mt-4" role="alert">
+              <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded relative flex items-start mt-4" role="alert">
                 <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
                 <span className="block sm:inline text-sm">{createError}</span>
                </div>
