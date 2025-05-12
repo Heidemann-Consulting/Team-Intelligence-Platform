@@ -1,10 +1,8 @@
 // File: ulacm_frontend/src/pages/team/ExecuteWorkflowPage.tsx
 // Purpose: Page for Teams to list and execute available (Admin-created) Workflows.
-// Updated: Implemented server-side full-text search for workflow name and content.
+// Updated: Modified to pass additionalAiInput to triggerWorkflowExecution.
 
-// import React, { useState, useEffect, useCallback, useRef } from 'react';
 import React, { useState, useEffect, useCallback } from 'react';
-// import { FolderGit2, Play, AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, ListTree, TextCursorInput, MessageSquareText } from 'lucide-react';
 import { FolderGit2, Play, AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, ListTree, TextCursorInput } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -34,19 +32,18 @@ const ExecuteWorkflowPage: React.FC = () => {
   const [runWorkflowOutput, setRunWorkflowOutput] = useState<RunWorkflowResponse | { error: string } | null>(null);
   const [isRunning, setIsRunning] = useState(false);
 
-  const [contentQueryInput, setContentQueryInput] = useState(''); // User input for content search
-  const [debouncedContentQuery, setDebouncedContentQuery] = useState(''); // Debounced value for API
+  const [contentQueryInput, setContentQueryInput] = useState('');
+  const [debouncedContentQuery, setDebouncedContentQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
 
   const navigate = useNavigate();
 
-  // Debounce content query input
   useEffect(() => {
     setIsTyping(true);
     const handler = setTimeout(() => {
       setDebouncedContentQuery(contentQueryInput);
-      setPagination(p => ({ ...p, offset: 0 })); // Reset pagination for new search
+      setPagination(p => ({ ...p, offset: 0 }));
       setIsTyping(false);
     }, 500);
     return () => clearTimeout(handler);
@@ -60,13 +57,13 @@ const ExecuteWorkflowPage: React.FC = () => {
         item_type: ContentItemType.WORKFLOW,
         offset,
         limit: pagination.limit,
-        sort_by: 'name', // Default sort for workflows, or 'rank' if content_query is active
+        sort_by: 'name',
         sort_order: 'asc',
-        for_usage: true, // Important for teams to see only usable workflows
+        for_usage: true,
         content_query: debouncedContentQuery.trim() || undefined,
       };
       if (params.content_query) {
-        params.sort_by = 'rank'; // Prioritize relevance if searching content
+        params.sort_by = 'rank';
         params.sort_order = 'desc';
       }
 
@@ -75,7 +72,8 @@ const ExecuteWorkflowPage: React.FC = () => {
       setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
     } catch (err: any) {
       console.error("Failed to fetch workflows:", err);
-      const errorMessage = err.message || 'Failed to load available workflows.';
+      const errorMessage = err.message ||
+        'Failed to load available workflows.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -83,12 +81,10 @@ const ExecuteWorkflowPage: React.FC = () => {
   }, [pagination.limit, debouncedContentQuery]);
 
   useEffect(() => {
-    // Fetch workflows when page loads or when debounced content query changes, or pagination offset changes
     fetchWorkflows(pagination.offset);
   }, [fetchWorkflows, pagination.offset, debouncedContentQuery]);
 
-
-  const triggerWorkflowExecution = (workflow: ContentItemListed, inputDocumentIds: string[] = []) => {
+  const triggerWorkflowExecution = (workflow: ContentItemListed, inputDocumentIds: string[] = [], additionalAiInput?: string) => {
     setSelectedWorkflowForRun(workflow);
     setRunWorkflowOutput(null);
     setIsRunning(true);
@@ -97,6 +93,9 @@ const ExecuteWorkflowPage: React.FC = () => {
     const payload: RunWorkflowPayload = {};
     if (inputDocumentIds.length > 0) {
       payload.input_document_ids = inputDocumentIds;
+    }
+    if (additionalAiInput && additionalAiInput.trim()) {
+        payload.additional_ai_input = additionalAiInput.trim();
     }
 
     contentService.runWorkflow(workflow.item_id, payload)
@@ -119,14 +118,22 @@ const ExecuteWorkflowPage: React.FC = () => {
       setWorkflowToGetInputsFor(workflow);
       setShowSelectInputsModal(true);
     } else {
-      triggerWorkflowExecution(workflow);
+      // If no selectors, prompt if user wants to add additional AI input directly
+      // For simplicity, we can make SelectInputDocumentsModal handle this:
+      // if selectors are empty, it mainly shows the additional_ai_input field.
+      // Or, we can directly call triggerWorkflowExecution and ask for additional input here,
+      // but using the modal is more consistent.
+      // Let's assume if no selectors, the modal will still be used for consistency for adding additional AI input
+      setWorkflowToGetInputsFor(workflow); // Still set it to pass to modal
+      setShowSelectInputsModal(true);
+      // triggerWorkflowExecution(workflow); // Old behavior
     }
   };
 
-  const handleConfirmInputDocumentSelection = (selectedDocumentIds: string[]) => {
+  const handleConfirmInputDocumentSelection = (selectedDocumentIds: string[], additionalAiInput?: string) => {
     setShowSelectInputsModal(false);
     if (workflowToGetInputsFor) {
-      triggerWorkflowExecution(workflowToGetInputsFor, selectedDocumentIds);
+      triggerWorkflowExecution(workflowToGetInputsFor, selectedDocumentIds, additionalAiInput);
     }
     setWorkflowToGetInputsFor(null);
   };
@@ -151,7 +158,6 @@ const ExecuteWorkflowPage: React.FC = () => {
   const totalPages = Math.ceil(pagination.total_count / pagination.limit);
   const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
 
-  // No client-side filtering needed anymore as 'content_query' handles it on the backend
   const displayableWorkflows = workflows;
 
   return (
@@ -239,7 +245,6 @@ const ExecuteWorkflowPage: React.FC = () => {
                       </h2>
                     </div>
 
-                    {/* Displaying input selectors and output name template */}
                     {wf.workflow_input_document_selectors && wf.workflow_input_document_selectors.length > 0 && (
                       <div className="mb-3">
                         <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
@@ -327,7 +332,7 @@ const ExecuteWorkflowPage: React.FC = () => {
             isOpen={showSelectInputsModal}
             workflow={workflowToGetInputsFor}
             onClose={() => { setShowSelectInputsModal(false); setWorkflowToGetInputsFor(null); }}
-            onConfirm={handleConfirmInputDocumentSelection}
+            onConfirm={handleConfirmInputDocumentSelection} // This now receives (ids, additionalInput)
         />
       )}
 

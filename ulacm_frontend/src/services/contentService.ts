@@ -1,6 +1,6 @@
 // File: ulacm_frontend/src/services/contentService.ts
 // Purpose: Service for API calls related to content items, versions, and workflow execution.
-// Updated: Modified GetItemsParams to include content_query.
+// Updated: GetItemsParams to include name_globs for server-side filtering by workflow selectors.
 
 import apiClient from './apiClient';
 import {
@@ -42,8 +42,9 @@ export interface GetItemsParams {
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
   for_usage?: boolean;
-  name_query?: string;
-  content_query?: string; // New parameter for content search
+  name_query?: string; // For simple substring name search
+  content_query?: string;
+  name_globs?: string; // Comma-separated list of glob patterns for name
   created_after?: string;
   created_before?: string;
   is_globally_visible?: boolean;
@@ -62,20 +63,23 @@ export interface SearchParams {
 
 export interface RunWorkflowPayload {
   input_document_ids?: string[];
+  additional_ai_input?: string;
 }
 
 const contentService = {
   getItems: async (params: GetItemsParams): Promise<PaginatedResponse<ContentItemListed>> => {
     const filteredParams: Record<string, any> = {};
-    for (const key in params) {
-        if (params[key as keyof GetItemsParams] !== undefined && params[key as keyof GetItemsParams] !== null && params[key as keyof GetItemsParams] !== '') {
-            if (key === 'is_globally_visible' && typeof params[key as keyof GetItemsParams] === 'boolean') {
-                 filteredParams[key] = params[key as keyof GetItemsParams];
-            } else if (key !== 'is_globally_visible') {
-                 filteredParams[key] = params[key as keyof GetItemsParams];
+    // Build params carefully, excluding undefined/null/empty strings
+    (Object.keys(params) as Array<keyof GetItemsParams>).forEach(key => {
+        const value = params[key];
+        if (value !== undefined && value !== null) {
+            if (typeof value === 'string' && value.trim() === '') {
+                // Skip empty strings
+            } else {
+                 filteredParams[key] = value;
             }
         }
-    }
+    });
     const response = await apiClient.get<PaginatedResponse<ContentItemListed>>('/items', { params: filteredParams });
     return response.data;
   },
@@ -131,7 +135,8 @@ const contentService = {
   },
 
   runWorkflow: async (workflowItemId: string, payload?: RunWorkflowPayload): Promise<RunWorkflowResponse> => {
-    const response = await apiClient.post<RunWorkflowResponse>(`/workflows/${workflowItemId}/run`, payload);
+    const requestPayload = payload && Object.keys(payload).length > 0 ? payload : {};
+    const response = await apiClient.post<RunWorkflowResponse>(`/workflows/${workflowItemId}/run`, requestPayload);
     return response.data;
   },
 };

@@ -1,17 +1,13 @@
 # File: ulacm_backend/app/api/v1/endpoints/content_items.py
 # Purpose: API endpoints for managing ContentItems.
-# Updated: Handles parsing of workflow definitions within endpoint handlers.
-# Updated: Refined _convert_orm_to_schema_with_parsed_workflow to prevent MissingGreenlet error.
-# Updated: List endpoint now uses ContentItemListItem and supports new filters including content_query.
-# Corrected: Changed ContentItemSchema import to ContentItem.
-# Fixed: Added missing 'created_at' field to list_item_data for ContentItemListItem.
+# Updated: List endpoint now uses ContentItemListItem and supports new filters including content_query and name_globs.
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Union, Type
 from uuid import UUID as PyUUID
-from datetime import date as DateObject, datetime # For type hinting query params
+from datetime import date as DateObject, datetime, timezone
 
 from app.db.database import get_db
 from app.db.models.team import Team as TeamModel
@@ -42,10 +38,6 @@ log = logging.getLogger(__name__)
 router = APIRouter()
 
 def _get_parsed_workflow_definition(item_db: ContentItemDBModel) -> Optional[WorkflowDefinition]:
-    """
-    Helper function to parse workflow definition if item is a workflow.
-    Returns a Pydantic WorkflowDefinition model instance or None.
-    """
     parsed_def = None
     if item_db.item_type == ContentItemTypeEnum.WORKFLOW and \
        item_db.current_version and \
@@ -64,10 +56,6 @@ def _convert_orm_to_detail_schema(
     item_db: ContentItemDBModel,
     schema_class: Type[Union[ContentItemWithCurrentVersion, ContentItemSearchResult]]
 ) -> Union[ContentItemWithCurrentVersion, ContentItemSearchResult]:
-    """
-    Converts an ORM ContentItemDBModel to ContentItemWithCurrentVersion or ContentItemSearchResult,
-    handling workflow parsing and population of parsed_workflow_definition_internal.
-    """
     item_dict = {
         "item_id": item_db.item_id,
         "team_id": item_db.team_id,
@@ -77,7 +65,7 @@ def _convert_orm_to_detail_schema(
         "current_version_id": item_db.current_version_id,
         "created_at": item_db.created_at,
         "updated_at": item_db.updated_at,
-        "current_version": item_db.current_version if hasattr(item_db, 'current_version') else None,
+        "current_version_for_computed_fields": item_db.current_version if hasattr(item_db, 'current_version') else None,
     }
 
     if schema_class == ContentItemSearchResult:
@@ -86,6 +74,7 @@ def _convert_orm_to_detail_schema(
             item_dict["current_version_number"] = item_db.current_version.version_number
 
     item_dict['parsed_workflow_definition_internal'] = _get_parsed_workflow_definition(item_db)
+
     return schema_class.model_validate(item_dict)
 
 
@@ -121,8 +110,8 @@ async def create_content_item_endpoint(
         if not isinstance(current_user_session, TeamModel) or not current_user_session.team_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Team context required for creating documents.")
         actor_team_id = current_user_session.team_id
-        if not item_in.template_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id is required when creating a Document.")
+        if not item_in.template_id and not is_admin_actor :
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id is required when a Team User is creating a Document.")
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid item_type.")
 
@@ -156,13 +145,14 @@ async def list_content_items_endpoint(
     db: AsyncSession = Depends(get_db),
     item_type: Optional[ContentItemTypeEnum] = Query(None, description="Filter by item type (DOCUMENT, TEMPLATE, WORKFLOW)"),
     name_query: Optional[str] = Query(None, description="Filter by item name (case-insensitive, partial match)"),
-    content_query: Optional[str] = Query(None, description="Filter by item content (full-text search, case-insensitive)"), # New
+    content_query: Optional[str] = Query(None, description="Filter by item content (full-text search, case-insensitive)"),
+    name_globs: Optional[str] = Query(None, description="Comma-separated list of glob patterns for item name filtering (e.g., 'FY23_*,Report_Q?')"),
     created_after: Optional[DateObject] = Query(None, description="Filter by creation date (YYYY-MM-DD format, inclusive start)"),
     created_before: Optional[DateObject] = Query(None, description="Filter by creation date (YYYY-MM-DD format, inclusive end)"),
     is_globally_visible_filter: Optional[bool] = Query(None, alias="is_globally_visible", description="Filter by global visibility status"),
     offset: int = Query(0, ge=0),
     limit: int = Query(15, ge=1, le=100),
-    sort_by: str = Query("updated_at", enum=["name", "created_at", "updated_at", "item_type", "rank"]), # Added rank for FTS
+    sort_by: str = Query("updated_at", enum=["name", "created_at", "updated_at", "item_type", "rank"]),
     sort_order: str = Query("desc", enum=["asc", "desc"]),
     current_user_session: Union[TeamModel, TokenPayload, None] = Depends(get_current_user_or_admin_marker),
     is_admin_actor: bool = Depends(get_requesting_user_is_admin),
@@ -173,8 +163,13 @@ async def list_content_items_endpoint(
 
     requesting_actor_team_id = current_user_session.team_id if isinstance(current_user_session, TeamModel) else None
     log_actor = "Admin" if is_admin_actor else f"Team {requesting_actor_team_id}"
+
+    name_glob_patterns_list: Optional[List[str]] = None
+    if name_globs:
+        name_glob_patterns_list = [pattern.strip() for pattern in name_globs.split(',') if pattern.strip()]
+
     log.info(
-        f"{log_actor} listing items: Type={item_type}, NameQuery='{name_query}', ContentQuery='{content_query}', " # Log new query
+        f"{log_actor} listing items: Type={item_type}, NameQuery='{name_query}', ContentQuery='{content_query}', NameGlobs='{name_glob_patterns_list}', "
         f"CreatedAfter={created_after}, CreatedBefore={created_before}, "
         f"GlobalFilter={is_globally_visible_filter}, ForUsage={for_usage}, "
         f"Offset={offset}, Limit={limit}, SortBy={sort_by}, SortOrder={sort_order}"
@@ -182,11 +177,12 @@ async def list_content_items_endpoint(
 
     created_after_dt: Optional[datetime] = None
     if created_after:
-        created_after_dt = datetime.combine(created_after, datetime.min.time())
+        created_after_dt = datetime.combine(created_after, datetime.min.time(), tzinfo=timezone.utc)
 
     created_before_dt: Optional[datetime] = None
     if created_before:
-        created_before_dt = datetime.combine(created_before, datetime.min.time())
+        created_before_dt = datetime.combine(created_before, datetime.max.time(), tzinfo=timezone.utc)
+
 
     items_db_orm_list, total_count = await crud_content_item.content_item.get_items_for_team_or_admin(
         db=db,
@@ -194,7 +190,8 @@ async def list_content_items_endpoint(
         is_admin_actor=is_admin_actor,
         item_type_filter=item_type,
         name_query=name_query,
-        content_query=content_query, # Pass content_query
+        content_query=content_query,
+        name_glob_patterns=name_glob_patterns_list,
         created_after=created_after_dt,
         created_before=created_before_dt,
         is_globally_visible_filter=is_globally_visible_filter,
@@ -251,24 +248,12 @@ async def get_content_item_details_endpoint(
     log_actor = "Admin" if is_admin_actor else f"Team {requesting_team_id}"
     log.info(f"{log_actor} requesting details for item ID: {item_id}")
 
-    item_db = await crud_content_item.content_item.get_by_id(db, item_id=item_id)
+    item_db = await crud_content_item.content_item.get_by_id_for_team_or_admin_usage(
+        db, item_id=item_id, requesting_team_id=requesting_team_id, is_admin_request=is_admin_actor
+    )
+
     if not item_db:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Content item not found.")
-
-    can_access_full_details = False
-    if is_admin_actor:
-        can_access_full_details = True
-    elif requesting_team_id:
-        if item_db.item_type == ContentItemTypeEnum.DOCUMENT and \
-           (item_db.team_id == requesting_team_id or item_db.is_globally_visible):
-            can_access_full_details = True
-        elif item_db.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW] and \
-             item_db.team_id == settings.ADMIN_SYSTEM_TEAM_ID and item_db.is_globally_visible:
-            can_access_full_details = True
-
-    if not can_access_full_details:
-        log.warning(f"{log_actor} access denied for full details of item {item_id} (type: {item_db.item_type}, owner: {item_db.team_id}).")
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to access full details of this item.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Content item not found or not accessible.")
 
     response_data = _convert_orm_to_detail_schema(item_db, ContentItemWithCurrentVersion)
     return response_data
@@ -292,7 +277,7 @@ async def update_content_item_metadata_endpoint(
 
     requesting_actor_team_id = current_user_session.team_id if isinstance(current_user_session, TeamModel) else None
     log_actor = "Admin" if is_admin_actor else f"Team {requesting_actor_team_id}"
-    log.info(f"{log_actor} attempting to update metadata for item ID: {item_id}")
+    log.info(f"{log_actor} attempting to update metadata for item ID: {item_id} with data: {item_in.model_dump(exclude_unset=True)}")
 
     try:
         updated_item_db = await crud_content_item.content_item.update_item_meta_for_owner_or_admin(
@@ -303,7 +288,7 @@ async def update_content_item_metadata_endpoint(
         log.warning(f"Update metadata for item {item_id} failed validation: {ve}")
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(ve))
     except Exception as e:
-        log.exception(f"Error updating metadata for item {item_id}")
+        log.exception(f"Error updating metadata for item {item_id}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update item metadata.")
 
     if not updated_item_db:
@@ -394,7 +379,7 @@ async def duplicate_content_item_endpoint(
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(ve))
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
     except Exception as e:
-        log.exception(f"Error duplicating item {item_id}")
+        log.exception(f"Error duplicating item {item_id}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to duplicate content item.")
 
     response_data = _convert_orm_to_detail_schema(final_duplicated_item_orm, ContentItemWithCurrentVersion)

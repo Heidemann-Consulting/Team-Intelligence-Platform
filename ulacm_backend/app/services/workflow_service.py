@@ -1,8 +1,5 @@
 # File: ulacm_backend/app/services/workflow_service.py
 # Purpose: Service for orchestrating Process Workflow execution.
-# Updated: Modified _select_input_documents and execute_workflow to handle explicit_input_document_ids.
-# Updated: Enhanced _construct_prompt and _generate_output_name to support additional placeholders
-#          and basic string manipulations/arithmetic for outputName.
 
 import logging
 import datetime
@@ -13,8 +10,8 @@ from uuid import UUID as PyUUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload, selectinload, subqueryload
-from sqlalchemy import or_, and_
+from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy import or_, and_, update as sqlalchemy_update
 
 from app.db.models.content_item import ContentItem, ContentItemTypeEnum
 from app.db.models.content_version import ContentVersion
@@ -89,46 +86,36 @@ async def _select_input_documents(
     explicit_input_document_ids: Optional[List[PyUUID]] = None
 ) -> List[ContentItem]:
     log.debug(f"Selecting input documents for workflow '{workflow_item_name_for_log}' for team {executing_team_id}.")
-    log.debug(f"Selectors: '{definition.inputDocumentSelectors}', Date filter: '{definition.inputDateSelector}', Explicit IDs: {explicit_input_document_ids}")
+    log.debug(f"Workflow Selectors: '{definition.inputDocumentSelectors}', Date filter: '{definition.inputDateSelector}', Explicit IDs: {explicit_input_document_ids}")
 
     selected_documents_map: Dict[PyUUID, ContentItem] = {}
+    docs_to_filter: List[ContentItem] = []
 
-    if explicit_input_document_ids:
-        log.debug(f"Using explicitly provided document IDs: {explicit_input_document_ids}")
+    candidate_docs_fetched = False
+    if explicit_input_document_ids is not None:
+        candidate_docs_fetched = True
         if not explicit_input_document_ids:
-             log.info(f"Workflow '{workflow_item_name_for_log}' will run with no explicit document inputs based on user choice.")
-             return []
+            log.info(f"Workflow '{workflow_item_name_for_log}' received an empty list of explicit document IDs. No documents selected by user.")
+            return []
 
-        stmt = (
+        log.debug(f"Using explicitly provided document IDs: {explicit_input_document_ids} for workflow '{workflow_item_name_for_log}'")
+        stmt_explicit = (
             select(ContentItem)
             .where(ContentItem.item_id.in_(explicit_input_document_ids))
             .where(ContentItem.item_type == ContentItemTypeEnum.DOCUMENT)
             .options(
-                joinedload(ContentItem.current_version).subqueryload(ContentVersion.saving_team),
+                joinedload(ContentItem.current_version).joinedload(ContentVersion.saving_team),
                 joinedload(ContentItem.owner_team)
             )
         )
-        result = await db.execute(stmt)
-        potential_docs = result.scalars().unique().all()
-
-        for doc in potential_docs:
-            is_accessible = (
-                doc.team_id == executing_team_id or
-                (doc.is_globally_visible and doc.team_id != settings.ADMIN_SYSTEM_TEAM_ID) or
-                (doc.is_globally_visible and doc.team_id == settings.ADMIN_SYSTEM_TEAM_ID)
-            )
-            if not is_accessible:
-                log.warning(f"Document {doc.item_id} ('{doc.name}') was explicitly requested but is not accessible to team {executing_team_id}. Skipping.")
-                continue
-            if not doc.current_version:
-                log.warning(f"Document {doc.item_id} ('{doc.name}') was explicitly requested but has no current version. Skipping.")
-                continue
-            selected_documents_map[doc.item_id] = doc
-        log.info(f"Selected {len(selected_documents_map)} documents from explicitly provided IDs for workflow '{workflow_item_name_for_log}'.")
+        result_explicit = await db.execute(stmt_explicit)
+        docs_to_filter = result_explicit.scalars().unique().all()
+        log.debug(f"Fetched {len(docs_to_filter)} documents based on explicit IDs for workflow '{workflow_item_name_for_log}'.")
 
     else:
-        log.debug(f"No explicit IDs provided. Using inputDocumentSelectors for workflow '{workflow_item_name_for_log}'.")
-        stmt = (
+        candidate_docs_fetched = True
+        log.debug(f"No explicit IDs provided. Using workflow selectors to find all possible documents for workflow '{workflow_item_name_for_log}'.")
+        stmt_implicit = (
             select(ContentItem)
             .where(ContentItem.item_type == ContentItemTypeEnum.DOCUMENT)
             .where(
@@ -136,56 +123,80 @@ async def _select_input_documents(
                     ContentItem.team_id == executing_team_id,
                     and_(
                         ContentItem.is_globally_visible == True,
-                        ContentItem.team_id != settings.ADMIN_SYSTEM_TEAM_ID
                     )
                 )
             )
             .options(
-                joinedload(ContentItem.current_version).subqueryload(ContentVersion.saving_team),
+                joinedload(ContentItem.current_version).joinedload(ContentVersion.saving_team),
                 joinedload(ContentItem.owner_team)
             )
         )
-        result = await db.execute(stmt)
-        all_accessible_documents = result.scalars().unique().all()
+        result_implicit = await db.execute(stmt_implicit)
+        docs_to_filter = result_implicit.scalars().unique().all()
+        log.debug(f"Fetched {len(docs_to_filter)} potentially accessible documents for team {executing_team_id} to filter by workflow selectors.")
 
-        for selector_pattern in definition.inputDocumentSelectors:
-            log.debug(f"Processing selector pattern: '{selector_pattern}' for workflow '{workflow_item_name_for_log}'")
-            for doc in all_accessible_documents:
-                if doc.item_id in selected_documents_map:
-                    continue
-                if not doc.current_version:
-                    log.debug(f"Skipping document '{doc.name}' ({doc.item_id}): No current version for pattern '{selector_pattern}'.")
-                    continue
-                if not _match_glob_pattern(doc.name, selector_pattern):
-                    log.debug(f"Skipping document '{doc.name}' ({doc.item_id}): Name does not match pattern '{selector_pattern}'.")
-                    continue
+    if not candidate_docs_fetched and not definition.inputDocumentSelectors:
+        log.info(f"Workflow '{workflow_item_name_for_log}' has no input selectors and no explicit documents were provided. Proceeding without document inputs.")
+        return []
 
-                item_date_to_filter = doc.current_version.created_at
-                if not _filter_by_date_selector(item_date_to_filter, definition.inputDateSelector, current_time):
-                    log.debug(f"Skipping document '{doc.name}' ({doc.item_id}) for pattern '{selector_pattern}': Failed date filter '{definition.inputDateSelector}'. Version date: {item_date_to_filter}")
-                    continue
-                log.debug(f"Matched document '{doc.name}' ({doc.item_id}) with pattern '{selector_pattern}'.")
-                selected_documents_map[doc.item_id] = doc
-        log.info(f"Found {len(selected_documents_map)} unique input documents using selectors for workflow '{workflow_item_name_for_log}'.")
+    for doc in docs_to_filter:
+        is_accessible = (
+            doc.team_id == executing_team_id or
+            (doc.is_globally_visible and doc.team_id != settings.ADMIN_SYSTEM_TEAM_ID) or
+            (doc.is_globally_visible and doc.team_id == settings.ADMIN_SYSTEM_TEAM_ID)
+        )
+        if not is_accessible:
+            log.debug(f"Document {doc.item_id} ('{doc.name}') is not accessible to team {executing_team_id}. Skipping.")
+            continue
 
-    selected_documents_list = sorted(list(selected_documents_map.values()), key=lambda d: d.name)
-    if not selected_documents_list and definition.inputDocumentSelectors:
-         log.info(f"No input documents matched the criteria for workflow '{workflow_item_name_for_log}' for team {executing_team_id}.")
+        if not doc.current_version:
+            log.debug(f"Document {doc.item_id} ('{doc.name}') has no current version. Skipping.")
+            continue
 
-    return selected_documents_list
+        if definition.inputDocumentSelectors:
+            matches_name_selector = any(
+                _match_glob_pattern(doc.name, selector_pattern)
+                for selector_pattern in definition.inputDocumentSelectors
+            )
+            if not matches_name_selector:
+                log.debug(f"Document {doc.item_id} ('{doc.name}') does not match any workflow name selector: {definition.inputDocumentSelectors}. Skipping.")
+                continue
+
+        if not _filter_by_date_selector(doc.current_version.created_at, definition.inputDateSelector, current_time):
+            log.debug(f"Document {doc.item_id} ('{doc.name}') does not match workflow date selector: '{definition.inputDateSelector}'. Version date: {doc.current_version.created_at}. Skipping.")
+            continue
+
+        selected_documents_map[doc.item_id] = doc
+
+    final_selected_doc_count = len(selected_documents_map)
+    log.info(f"For workflow '{workflow_item_name_for_log}', {final_selected_doc_count} documents remain after all filters.")
+
+    return sorted(list(selected_documents_map.values()), key=lambda d: d.name)
 
 def _construct_prompt(
     definition: ValidatedWorkflowDefinition,
     input_docs_content_list: List[str],
     input_doc_names_list: List[str],
     current_time: datetime.datetime,
-    workflow_item_name_for_context: str
+    workflow_item_name_for_context: str,
+    additional_ai_input: Optional[str] = None
 ) -> str:
-    log.debug(f"Constructing prompt for workflow '{workflow_item_name_for_context}' with {len(input_doc_names_list)} inputs.")
+    log.debug(f"Constructing prompt for workflow '{workflow_item_name_for_context}' with {len(input_doc_names_list)} documents and additional input length {len(additional_ai_input or '')}.")
     prompt_template = definition.prompt
-    document_context_str = "\n\n---\n\n".join(
-        f"[Document: {name}]\n\n{content}" for name, content in zip(input_doc_names_list, input_docs_content_list)
-    ) if input_docs_content_list else "(No input documents found or provided for this execution)"
+
+    document_context_parts = []
+    if input_docs_content_list:
+        for name, content in zip(input_doc_names_list, input_docs_content_list):
+            document_context_parts.append(f"[Document: {name}]\n\n{content}")
+
+    if additional_ai_input and additional_ai_input.strip():
+        log.debug(f"Appending additional AI input (length: {len(additional_ai_input)}) to prompt context.")
+        document_context_parts.append(f"[Additional AI Input]\n\n{additional_ai_input.strip()}")
+
+    if not document_context_parts:
+        document_context_str = "(No input documents or additional AI input provided for this execution)"
+    else:
+        document_context_str = "\n\n---\n\n".join(document_context_parts)
 
     first_input_name = input_doc_names_list[0] if input_doc_names_list else ""
 
@@ -222,8 +233,6 @@ def _construct_prompt(
 
 def _apply_placeholder_filters(value_str: str, filters_str: str) -> str:
     current_value = value_str
-    # Split filters by '|' but be careful not to split inside quotes if arguments have them.
-    # For simplicity, assuming filter arguments don't contain '|'.
     filters = [f.strip() for f in filters_str.split('|')]
     for f_def in filters:
         filter_parts = f_def.split(":", 1)
@@ -232,29 +241,20 @@ def _apply_placeholder_filters(value_str: str, filters_str: str) -> str:
 
         try:
             if filter_name == "replace":
-                # Expects two arguments, separated by a comma. Handles simple quoted strings.
-                # Example: replace: 'old_text', 'new_text'
-                args = [arg.strip().strip("'").strip('"') for arg in args_str.split("','", 1)] # Split on quote-comma-quote
+                args = [arg.strip().strip("'").strip('"') for arg in args_str.split("','", 1)]
                 if len(args) == 2:
                     current_value = current_value.replace(args[0], args[1])
                 else:
-                    # Fallback for simpler comma separation if quote-comma-quote fails
                     args = [arg.strip().strip("'").strip('"') for arg in args_str.split(",", 1)]
                     if len(args) == 2:
                          current_value = current_value.replace(args[0], args[1])
                     else:
                         log.warning(f"Replace filter expects 2 arguments, got: {args_str}")
-
             elif filter_name == "truncate":
-                # Expects one integer argument.
-                # Example: truncate: 30
                 length = int(args_str.strip())
                 current_value = current_value[:length]
-
             elif filter_name == "regex_replace":
-                # Expects two arguments: pattern, replacement.
-                # Example: regex_replace: 'pattern_string', 'replacement_string'
-                args = [arg.strip().strip("'").strip('"') for arg in args_str.split("','", 1)] # Split on quote-comma-quote
+                args = [arg.strip().strip("'").strip('"') for arg in args_str.split("','", 1)]
                 if len(args) == 2:
                     pattern, repl = args
                     current_value = re.sub(pattern, repl, current_value)
@@ -265,7 +265,6 @@ def _apply_placeholder_filters(value_str: str, filters_str: str) -> str:
         except Exception as e:
             log.warning(f"Could not apply filter '{f_def}' to value '{current_value}': {e}")
     return current_value
-
 
 def _generate_output_name(
     definition: ValidatedWorkflowDefinition,
@@ -329,7 +328,6 @@ def _generate_output_name(
     log.debug(f"Generated output name: '{output_name}'")
     return output_name
 
-
 async def _ensure_unique_output_name(db: AsyncSession, base_name: str, team_id: PyUUID) -> str:
     log.debug(f"Ensuring unique name for base '{base_name}' in team {team_id}")
     name_candidate = base_name
@@ -358,7 +356,8 @@ async def execute_workflow(
     db: AsyncSession,
     workflow_item: ContentItem,
     executing_team_id: PyUUID,
-    explicit_input_document_ids: Optional[List[PyUUID]] = None
+    explicit_input_document_ids: Optional[List[PyUUID]] = None,
+    explicit_additional_ai_input: Optional[str] = None
 ) -> Tuple[ContentItem, str]:
     current_time = datetime.datetime.now(datetime.timezone.utc)
     actual_process_workflow_name = workflow_item.name
@@ -373,9 +372,8 @@ async def execute_workflow(
     try:
         log.debug(f"Parsing workflow definition for '{actual_process_workflow_name}' ({workflow_item.item_id})")
         definition = WorkflowDefinitionParser.parse_and_validate(workflow_definition_str)
-        if not definition.processWorkFlowName: # Ensure processWorkFlowName is set for placeholders
+        if not definition.processWorkFlowName:
             definition.processWorkFlowName = actual_process_workflow_name
-
 
         selected_input_docs = await _select_input_documents(
             db=db,
@@ -393,7 +391,8 @@ async def execute_workflow(
             input_docs_content_list=input_docs_content_list,
             input_doc_names_list=input_doc_names_list,
             current_time=current_time,
-            workflow_item_name_for_context=definition.processWorkFlowName # Use the (potentially set) name from definition
+            workflow_item_name_for_context=definition.processWorkFlowName,
+            additional_ai_input=explicit_additional_ai_input
         )
 
         llm_response_text = ""
@@ -409,7 +408,7 @@ async def execute_workflow(
             definition=definition,
             input_doc_names_list=input_doc_names_list,
             current_time=current_time,
-            workflow_item_name_for_context=definition.processWorkFlowName # Use the name from definition
+            workflow_item_name_for_context=definition.processWorkFlowName
         )
 
         stmt_existing_output = select(ContentItem).where(
@@ -423,44 +422,62 @@ async def execute_workflow(
         output_document_db: ContentItem
 
         if existing_output_document_db:
-            log.info(f"Workflow '{actual_process_workflow_name}' output document '{raw_output_name}' exists. Updating with new version.")
+            log.info(f"Workflow '{actual_process_workflow_name}' output document '{raw_output_name}' exists. Appending new version.")
             output_document_db = existing_output_document_db
             output_version_payload = ContentVersionCreate(markdown_content=llm_response_text)
+
             await crud_content_version.content_version.create_new_version(
-                db=db, item_id=output_document_db.item_id, version_in=output_version_payload,
-                saved_by_team_id=executing_team_id, is_initial_version=False
+                db=db,
+                item_id=output_document_db.item_id,
+                version_in=output_version_payload,
+                saved_by_team_id=executing_team_id,
+                is_initial_version=False
             )
+            await db.refresh(output_document_db, attribute_names=["current_version_id", "updated_at", "current_version"])
+
         else:
             unique_output_name = await _ensure_unique_output_name(db, raw_output_name, executing_team_id)
             output_item_create_payload = ContentItemCreateSchema(
                 name=unique_output_name,
                 item_type=ContentItemTypeEnum.DOCUMENT
             )
-            output_document_db = await crud_content_item.content_item.create_item_for_team_or_admin(
+
+            # Create the item. This also creates its first (blank) version and commits.
+            # We get a temporary reference.
+            temp_output_document_db_after_create_and_commit = await crud_content_item.content_item.create_item_for_team_or_admin(
                 db=db,
                 obj_in=output_item_create_payload,
                 actor_team_id=executing_team_id,
                 is_admin_actor=False
             )
-            final_version_payload = ContentVersionCreate(markdown_content=llm_response_text)
-            await crud_content_version.content_version.create_new_version(
-                db=db,
-                item_id=output_document_db.item_id,
-                version_in=final_version_payload,
-                saved_by_team_id=executing_team_id,
-            )
+
+            # Crucial: Fetch the newly created document afresh within the current session context
+            # to ensure its 'current_version_id' and 'current_version' are loaded.
+            output_document_db = await crud_content_item.content_item.get_by_id(db, item_id=temp_output_document_db_after_create_and_commit.item_id)
+
+            if not output_document_db:
+                 log.error(f"Critical: Failed to re-fetch newly created output document {temp_output_document_db_after_create_and_commit.item_id} immediately after its creation for workflow '{actual_process_workflow_name}'.")
+                 raise ValueError("Failed to retrieve newly created output document for version update.")
+
+            if output_document_db.current_version_id and output_document_db.current_version:
+                log.info(f"Updating initial version {output_document_db.current_version.version_id} for new output document {output_document_db.item_id} ('{unique_output_name}') with LLM content.")
+                stmt_update_version = (
+                    sqlalchemy_update(ContentVersion)
+                    .where(ContentVersion.version_id == output_document_db.current_version_id)
+                    .values(markdown_content=llm_response_text, saved_by_team_id=executing_team_id)
+                )
+                await db.execute(stmt_update_version)
+                # The ContentItem's updated_at will be handled by its own trigger or by create_new_version's update.
+                # We need to ensure the current_version object in memory reflects the change.
+                await db.refresh(output_document_db.current_version, attribute_names=["markdown_content", "saved_by_team_id"])
+            else:
+                log.error(f"Newly created output document {output_document_db.item_id} ('{unique_output_name}') does not have current_version_id or current_version populated even after re-fetch. Cannot save LLM content.")
+                raise ValueError("Failed to establish or refresh initial version details for output document.")
             log.info(f"New output document '{unique_output_name}' (ID: {output_document_db.item_id}) created for workflow '{actual_process_workflow_name}'.")
 
-        await db.refresh(output_document_db, attribute_names=['current_version_id', 'updated_at', 'current_version'])
+        await db.refresh(output_document_db, attribute_names=['current_version', 'owner_team'])
         if output_document_db.current_version:
-            stmt_load_version_team = (
-                select(ContentVersion)
-                .where(ContentVersion.version_id == output_document_db.current_version_id)
-                .options(joinedload(ContentVersion.saving_team))
-            )
-            loaded_version_with_team = (await db.execute(stmt_load_version_team)).scalar_one_or_none()
-            if loaded_version_with_team:
-                output_document_db.current_version = loaded_version_with_team
+             await db.refresh(output_document_db.current_version, attribute_names=['saving_team'])
 
         return output_document_db, llm_response_text
 
