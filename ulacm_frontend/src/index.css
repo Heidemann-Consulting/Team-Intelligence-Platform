@@ -1,4 +1,4 @@
-/* File: ULACM2/ulacm_frontend/src/index.css */
+/* File: ulacm_frontend/src/index.css */
 /* Purpose: Global styles and Tailwind CSS directives. */
 /* Added styles for ReactSimpleMDEEditor (EasyMDE) */
 
@@ -52,7 +52,7 @@ a {
   @apply text-ulacm-primary hover:text-ulacm-primary-dark transition-colors duration-150;
 }
 
-/* Styles for ReactSimpleMDEEditor (EasyMDE) - Moved from ReactSimpleMDEEditor.tsx */
+/* Styles for ReactSimpleMDEEditor (EasyMDE) */
 .ulacm-simplemde-editor-wrapper .EasyMDEContainer .CodeMirror {
   min-height: 300px; /* Or your desired minimum height */
   border-bottom-left-radius: 0.5rem; /* Tailwind's rounded-lg */
@@ -91,4 +91,149 @@ a {
 
 .ulacm-simplemde-editor-wrapper.readonly-editor-wrapper .EasyMDEContainer .CodeMirror-scroll {
   cursor: default !important;
+}
+
+/* Added/Enhanced styles for Markdown preview within EasyMDE */
+.ulacm-simplemde-editor-wrapper .editor-preview,
+.ulacm-simplemde-editor-wrapper .editor-preview-side {
+  /* Ensure basic text styling */
+  color: #111827; /* ulacm-gray-900 */
+  line-height: 1.6;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview h1,
+.ulacm-simplemde-editor-wrapper .editor-preview-side h1 {
+  font-size: 2em; /* Example size */
+  font-weight: bold;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+  border-bottom: 1px solid #e5e7eb; /* ulacm-gray-200 */
+  padding-bottom: 0.3em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview h2,
+.ulacm-simplemde-editor-wrapper .editor-preview-side h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 0.83em;
+  margin-bottom: 0.83em;
+  border-bottom: 1px solid #e5e7eb; /* ulacm-gray-200 */
+  padding-bottom: 0.3em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview h3,
+.ulacm-simplemde-editor-wrapper .editor-preview-side h3 {
+  font-size: 1.17em;
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview h4,
+.ulacm-simplemde-editor-wrapper .editor-preview-side h4 {
+  font-size: 1em;
+  font-weight: bold;
+  margin-top: 1.33em;
+  margin-bottom: 1.33em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview h5,
+.ulacm-simplemde-editor-wrapper .editor-preview-side h5 {
+  font-size: 0.83em;
+  font-weight: bold;
+  margin-top: 1.67em;
+  margin-bottom: 1.67em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview h6,
+.ulacm-simplemde-editor-wrapper .editor-preview-side h6 {
+  font-size: 0.67em;
+  font-weight: bold;
+  margin-top: 2.33em;
+  margin-bottom: 2.33em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview p,
+.ulacm-simplemde-editor-wrapper .editor-preview-side p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview ul,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ul {
+  list-style-type: disc;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 40px;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview ol,
+.ulacm-simplemde-editor-wrapper .editor-preview-side ol {
+  list-style-type: decimal;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 40px;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview li,
+.ulacm-simplemde-editor-wrapper .editor-preview-side li {
+  margin-bottom: 0.5em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview blockquote,
+.ulacm-simplemde-editor-wrapper .editor-preview-side blockquote {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: 40px;
+  margin-right: 40px;
+  padding-left: 1em;
+  border-left: 4px solid #d1d5db; /* ulacm-gray-300 */
+  color: #4b5563; /* ulacm-gray-600 */
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview pre,
+.ulacm-simplemde-editor-wrapper .editor-preview-side pre {
+  background-color: #f3f4f6; /* ulacm-gray-100 */
+  padding: 1em;
+  overflow: auto;
+  border-radius: 0.375rem; /* rounded-md */
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview code,
+.ulacm-simplemde-editor-wrapper .editor-preview-side code {
+  font-family: monospace;
+  background-color: #e5e7eb; /* ulacm-gray-200 */
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem; /* rounded-sm */
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview pre code,
+.ulacm-simplemde-editor-wrapper .editor-preview-side pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview table,
+.ulacm-simplemde-editor-wrapper .editor-preview-side table {
+  border-collapse: collapse;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  width: auto;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview th,
+.ulacm-simplemde-editor-wrapper .editor-preview-side th,
+.ulacm-simplemde-editor-wrapper .editor-preview td,
+.ulacm-simplemde-editor-wrapper .editor-preview-side td {
+  border: 1px solid #d1d5db; /* ulacm-gray-300 */
+  padding: 0.5em 1em;
+}
+
+.ulacm-simplemde-editor-wrapper .editor-preview th,
+.ulacm-simplemde-editor-wrapper .editor-preview-side th {
+  font-weight: bold;
+  background-color: #f9fafb; /* ulacm-gray-50 */
 }

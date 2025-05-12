@@ -49,6 +49,10 @@ combin with:
 * ✅ Fix search api endpoint gives unauthorized for admin users.
 * ✅ Filtering via search should adjust amount of pages according to results (but not for workflows, which is ok)
 
+* ✅ Make sure the markdown editor does not apply any styles in editor mode and applies all markdown styles in preview mode.
+
+* Ensure that after creation of each new vdersion the search index is updated too.
+
 * The API endpoint (/run) would immediately acknowledge the request (e.g., HTTP 202 Accepted), possibly returning a task/job ID.
 The actual workflow processing would happen in the background (use a dedicated task queue like Celery for more robust needs).
 The frontend could then poll a status endpoint or use WebSockets to get updates on the workflow's progress and retrieve the results when ready. This is a more significant architectural change but leads to a much more responsive and robust application.
