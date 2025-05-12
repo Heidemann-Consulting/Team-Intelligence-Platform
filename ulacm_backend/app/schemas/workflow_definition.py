@@ -1,7 +1,6 @@
 # File: ulacm_backend/app/schemas/workflow_definition.py
 # Purpose: Pydantic schemas for Process Workflow definitions and execution.
-# Updated: Added RunWorkflowPayload to accept input_document_ids.
-# Updated: Added additional_ai_input to RunWorkflowPayload.
+# Updated: Added current_document_content to RunWorkflowPayload for "Ask AI" feature.
 
 from pydantic import (
     BaseModel, UUID4, constr, Field, field_validator, ValidationInfo
@@ -40,10 +39,10 @@ class WorkflowDefinition(BaseModel):
                         start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
                         end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
                         if start_date > end_date:
-                            raise ValueError("Start date must be before or equal to end date in 'between' selector.")
+                             raise ValueError("Start date must be before or equal to end date in 'between' selector.")
                         return v
                     except ValueError as e:
-                        raise ValueError(f"Invalid date format or range in 'between' selector: {e}")
+                         raise ValueError(f"Invalid date format or range in 'between' selector: {e}")
                 else:
                     raise ValueError("Invalid format for between. Use 'between_YYYY-MM-DD_YYYY-MM-DD'.")
             else:
@@ -64,6 +63,7 @@ class WorkflowExecutionOutputDocument(ContentItem):
 class RunWorkflowPayload(BaseModel):
     input_document_ids: Optional[List[UUID4]] = Field(None, description="Optional list of specific document IDs to use as input.")
     additional_ai_input: Optional[str] = Field(None, description="Optional additional text input for the AI.")
+    current_document_content: Optional[str] = Field(None, description="Optional raw content of the current document, for 'Ask AI' like features.")
 
 class RunWorkflowResponse(BaseModel):
     message: str

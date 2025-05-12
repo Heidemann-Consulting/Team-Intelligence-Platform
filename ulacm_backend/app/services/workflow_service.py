@@ -1,5 +1,6 @@
 # File: ulacm_backend/app/services/workflow_service.py
 # Purpose: Service for orchestrating Process Workflow execution.
+# Updated: execute_workflow and _construct_prompt to handle explicit_current_document_content.
 
 import logging
 import datetime
@@ -104,7 +105,7 @@ async def _select_input_documents(
             .where(ContentItem.item_id.in_(explicit_input_document_ids))
             .where(ContentItem.item_type == ContentItemTypeEnum.DOCUMENT)
             .options(
-                joinedload(ContentItem.current_version).joinedload(ContentVersion.saving_team),
+                 joinedload(ContentItem.current_version).joinedload(ContentVersion.saving_team),
                 joinedload(ContentItem.owner_team)
             )
         )
@@ -179,15 +180,23 @@ def _construct_prompt(
     input_doc_names_list: List[str],
     current_time: datetime.datetime,
     workflow_item_name_for_context: str,
-    additional_ai_input: Optional[str] = None
+    additional_ai_input: Optional[str] = None,
+    explicit_current_document_content: Optional[str] = None # New parameter
 ) -> str:
-    log.debug(f"Constructing prompt for workflow '{workflow_item_name_for_context}' with {len(input_doc_names_list)} documents and additional input length {len(additional_ai_input or '')}.")
+    log.debug(f"Constructing prompt for workflow '{workflow_item_name_for_context}' with {len(input_doc_names_list)} documents, additional input length {len(additional_ai_input or '')}, and explicit content length {len(explicit_current_document_content or '')}.")
     prompt_template = definition.prompt
 
     document_context_parts = []
-    if input_docs_content_list:
+
+    if explicit_current_document_content is not None:
+        # If explicit content is provided (e.g., from "Ask AI" feature), use it as the primary document context
+        document_context_parts.append(f"[Current Document Context]\n\n{explicit_current_document_content}")
+        log.debug("Using explicit_current_document_content as the primary document context.")
+    elif input_docs_content_list: # Fallback to selected documents if no explicit content
         for name, content in zip(input_doc_names_list, input_docs_content_list):
             document_context_parts.append(f"[Document: {name}]\n\n{content}")
+        log.debug(f"Using content from {len(input_doc_names_list)} selected documents.")
+
 
     if additional_ai_input and additional_ai_input.strip():
         log.debug(f"Appending additional AI input (length: {len(additional_ai_input)}) to prompt context.")
@@ -198,7 +207,9 @@ def _construct_prompt(
     else:
         document_context_str = "\n\n---\n\n".join(document_context_parts)
 
-    first_input_name = input_doc_names_list[0] if input_doc_names_list else ""
+    first_input_name = input_doc_names_list[0] if input_doc_names_list else \
+                       ("Current Document" if explicit_current_document_content is not None else "")
+
 
     current_week_number = current_time.isocalendar()[1]
     current_month_name = current_time.strftime("%B")
@@ -212,8 +223,8 @@ def _construct_prompt(
         "{{Year}}": current_time.strftime("%Y"),
         "{{Month}}": current_time.strftime("%m"),
         "{{Day}}": current_time.strftime("%d"),
-        "{{InputFileNames}}": ", ".join(input_doc_names_list),
-        "{{InputFileCount}}": str(len(input_doc_names_list)),
+        "{{InputFileNames}}": ", ".join(input_doc_names_list) if not explicit_current_document_content else first_input_name,
+        "{{InputFileCount}}": str(len(input_docs_content_list)) if not explicit_current_document_content else "1",
         "{{InputFileName}}": first_input_name,
         "{{WorkflowName}}": workflow_item_name_for_context,
         "{{CurrentWeekNumber}}": str(current_week_number),
@@ -270,11 +281,19 @@ def _generate_output_name(
     definition: ValidatedWorkflowDefinition,
     input_doc_names_list: List[str],
     current_time: datetime.datetime,
-    workflow_item_name_for_context: str
+    workflow_item_name_for_context: str,
+    explicit_current_document_name_seed: Optional[str] = None # New parameter
 ) -> str:
     log.debug(f"Generating output name for workflow '{workflow_item_name_for_context}' using template '{definition.outputName}'")
     name_template = definition.outputName
-    first_input_name_base = input_doc_names_list[0] if input_doc_names_list else ""
+
+    if explicit_current_document_name_seed:
+        first_input_name_base = explicit_current_document_name_seed
+    elif input_doc_names_list:
+        first_input_name_base = input_doc_names_list[0]
+    else:
+        first_input_name_base = ""
+
 
     current_week_number = current_time.isocalendar()[1]
     current_month_name = current_time.strftime("%B")
@@ -357,7 +376,9 @@ async def execute_workflow(
     workflow_item: ContentItem,
     executing_team_id: PyUUID,
     explicit_input_document_ids: Optional[List[PyUUID]] = None,
-    explicit_additional_ai_input: Optional[str] = None
+    explicit_additional_ai_input: Optional[str] = None,
+    explicit_current_document_content: Optional[str] = None, # New parameter
+    explicit_current_document_name_seed: Optional[str] = "CurrentDocument" # New parameter for naming
 ) -> Tuple[ContentItem, str]:
     current_time = datetime.datetime.now(datetime.timezone.utc)
     actual_process_workflow_name = workflow_item.name
@@ -375,14 +396,16 @@ async def execute_workflow(
         if not definition.processWorkFlowName:
             definition.processWorkFlowName = actual_process_workflow_name
 
-        selected_input_docs = await _select_input_documents(
-            db=db,
-            definition=definition,
-            executing_team_id=executing_team_id,
-            current_time=current_time,
-            workflow_item_name_for_log=actual_process_workflow_name,
-            explicit_input_document_ids=explicit_input_document_ids
-        )
+        selected_input_docs: List[ContentItem] = []
+        if explicit_current_document_content is None: # Only select if not "Ask AI" style with direct content
+            selected_input_docs = await _select_input_documents(
+                db=db,
+                definition=definition,
+                executing_team_id=executing_team_id,
+                current_time=current_time,
+                workflow_item_name_for_log=actual_process_workflow_name,
+                explicit_input_document_ids=explicit_input_document_ids
+            )
         input_docs_content_list = [doc.current_version.markdown_content for doc in selected_input_docs if doc.current_version]
         input_doc_names_list = [doc.name for doc in selected_input_docs]
 
@@ -392,7 +415,8 @@ async def execute_workflow(
             input_doc_names_list=input_doc_names_list,
             current_time=current_time,
             workflow_item_name_for_context=definition.processWorkFlowName,
-            additional_ai_input=explicit_additional_ai_input
+            additional_ai_input=explicit_additional_ai_input,
+            explicit_current_document_content=explicit_current_document_content # Pass new param
         )
 
         llm_response_text = ""
@@ -408,7 +432,8 @@ async def execute_workflow(
             definition=definition,
             input_doc_names_list=input_doc_names_list,
             current_time=current_time,
-            workflow_item_name_for_context=definition.processWorkFlowName
+            workflow_item_name_for_context=definition.processWorkFlowName,
+            explicit_current_document_name_seed=explicit_current_document_name_seed if explicit_current_document_content is not None else None
         )
 
         stmt_existing_output = select(ContentItem).where(
@@ -441,18 +466,12 @@ async def execute_workflow(
                 name=unique_output_name,
                 item_type=ContentItemTypeEnum.DOCUMENT
             )
-
-            # Create the item. This also creates its first (blank) version and commits.
-            # We get a temporary reference.
             temp_output_document_db_after_create_and_commit = await crud_content_item.content_item.create_item_for_team_or_admin(
                 db=db,
                 obj_in=output_item_create_payload,
                 actor_team_id=executing_team_id,
-                is_admin_actor=False
+                is_admin_actor=False # Workflow output is always for a team
             )
-
-            # Crucial: Fetch the newly created document afresh within the current session context
-            # to ensure its 'current_version_id' and 'current_version' are loaded.
             output_document_db = await crud_content_item.content_item.get_by_id(db, item_id=temp_output_document_db_after_create_and_commit.item_id)
 
             if not output_document_db:
@@ -467,8 +486,6 @@ async def execute_workflow(
                     .values(markdown_content=llm_response_text, saved_by_team_id=executing_team_id)
                 )
                 await db.execute(stmt_update_version)
-                # The ContentItem's updated_at will be handled by its own trigger or by create_new_version's update.
-                # We need to ensure the current_version object in memory reflects the change.
                 await db.refresh(output_document_db.current_version, attribute_names=["markdown_content", "saved_by_team_id"])
             else:
                 log.error(f"Newly created output document {output_document_db.item_id} ('{unique_output_name}') does not have current_version_id or current_version populated even after re-fetch. Cannot save LLM content.")

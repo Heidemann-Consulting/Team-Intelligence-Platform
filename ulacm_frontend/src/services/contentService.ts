@@ -1,6 +1,6 @@
 // File: ulacm_frontend/src/services/contentService.ts
 // Purpose: Service for API calls related to content items, versions, and workflow execution.
-// Updated: GetItemsParams to include name_globs for server-side filtering by workflow selectors.
+// Updated: Added askAI function for the new dedicated AI endpoint.
 
 import apiClient from './apiClient';
 import {
@@ -13,6 +13,8 @@ import {
   RunWorkflowResponse,
   ContentItemDuplicatePayload,
   ContentItemListed,
+  AskAIRequestPayload, // New import
+  AskAIResponseData,   // New import
 } from '@/types/api';
 import {
     ContentVersionDetails,
@@ -42,9 +44,9 @@ export interface GetItemsParams {
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
   for_usage?: boolean;
-  name_query?: string; // For simple substring name search
+  name_query?: string;
   content_query?: string;
-  name_globs?: string; // Comma-separated list of glob patterns for name
+  name_globs?: string;
   created_after?: string;
   created_before?: string;
   is_globally_visible?: boolean;
@@ -64,19 +66,20 @@ export interface SearchParams {
 export interface RunWorkflowPayload {
   input_document_ids?: string[];
   additional_ai_input?: string;
+  current_document_content?: string; // Kept for existing runWorkflow, though AskAI uses dedicated endpoint
 }
+
 
 const contentService = {
   getItems: async (params: GetItemsParams): Promise<PaginatedResponse<ContentItemListed>> => {
     const filteredParams: Record<string, any> = {};
-    // Build params carefully, excluding undefined/null/empty strings
     (Object.keys(params) as Array<keyof GetItemsParams>).forEach(key => {
         const value = params[key];
         if (value !== undefined && value !== null) {
             if (typeof value === 'string' && value.trim() === '') {
                 // Skip empty strings
             } else {
-                 filteredParams[key] = value;
+                filteredParams[key] = value;
             }
         }
     });
@@ -137,6 +140,12 @@ const contentService = {
   runWorkflow: async (workflowItemId: string, payload?: RunWorkflowPayload): Promise<RunWorkflowResponse> => {
     const requestPayload = payload && Object.keys(payload).length > 0 ? payload : {};
     const response = await apiClient.post<RunWorkflowResponse>(`/workflows/${workflowItemId}/run`, requestPayload);
+    return response.data;
+  },
+
+  // New function for the dedicated "Ask AI" endpoint
+  askAI: async (payload: AskAIRequestPayload): Promise<AskAIResponseData> => {
+    const response = await apiClient.post<AskAIResponseData>('/ai/ask', payload);
     return response.data;
   },
 };

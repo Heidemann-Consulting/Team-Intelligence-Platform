@@ -1,6 +1,6 @@
 # File: ulacm_backend/app/api/v1/endpoints/workflows_exec.py
 # Purpose: API endpoint for executing Process Workflows.
-# Updated: Endpoint now accepts optional input_document_ids and additional_ai_input in the request body.
+# Updated: Payload now includes current_document_content for "Ask AI" feature.
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Path, Request
@@ -17,7 +17,7 @@ from app.db.models.content_version import ContentVersion
 from app.api.v1.deps import get_current_team_user # Specific dep for this team-only endpoint
 from app.crud import crud_content_item
 from app.services import workflow_service, OllamaServiceError, WorkflowParsingError
-from app.schemas.workflow_definition import RunWorkflowResponse, RunWorkflowPayload
+from app.schemas.workflow_definition import RunWorkflowResponse, RunWorkflowPayload # RunWorkflowPayload is now updated
 from app.schemas.content_item import ContentItemWithCurrentVersion
 from app.core.config import settings
 
@@ -32,7 +32,7 @@ router = APIRouter()
 async def run_process_workflow(
     request: Request,
     workflow_item_id: PyUUID = Path(..., description="The ID of the Process Workflow to execute"),
-    payload: Optional[RunWorkflowPayload] = None,
+    payload: Optional[RunWorkflowPayload] = None, # This will now include current_document_content
     db: AsyncSession = Depends(get_db),
     current_team: TeamModel = Depends(get_current_team_user)
 ):
@@ -41,6 +41,8 @@ async def run_process_workflow(
 
     explicit_input_ids: Optional[List[PyUUID]] = None
     additional_input_text: Optional[str] = None
+    current_doc_content_input: Optional[str] = None
+    current_doc_name_seed_input: Optional[str] = itemDetails.name if itemDetails else "CurrentDocument" # A default seed name for output naming
 
     if payload:
         if payload.input_document_ids:
@@ -49,8 +51,18 @@ async def run_process_workflow(
         if payload.additional_ai_input:
             additional_input_text = payload.additional_ai_input
             log.info(f"With additional AI input text provided (length: {len(additional_input_text)}).")
+        if payload.current_document_content: # Handle new field
+            current_doc_content_input = payload.current_document_content
+            log.info(f"With explicit current document content provided (length: {len(current_doc_content_input)}).")
+            # Potentially use the name of the document being edited as a seed for the output name
+            # This requires the frontend to send it, or we make an assumption.
+            # For now, let's assume the service layer handles a default if not provided.
+            # We can refine this if the frontend sends the current document's actual name.
+            # If itemDetails is available in this scope (it's not directly), we could use itemDetails.name.
+            # For now, the service will use a generic seed if current_doc_content_input is present.
+
     else:
-        log.info("No payload provided (no explicit document IDs or additional AI input).")
+        log.info("No payload provided (no explicit document IDs, additional AI input, or current document content).")
 
 
     workflow_item_db_obj = await crud_content_item.content_item.get_by_id(db, item_id=workflow_item_id)
@@ -58,12 +70,15 @@ async def run_process_workflow(
     if not workflow_item_db_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found.")
 
+    # For a generic "Ask AI" feature, the workflow_item_id would be a system-defined one.
+    # Its visibility and ownership rules still apply.
+    # It must be an Admin-owned, globally visible workflow.
     if not (
         workflow_item_db_obj.item_type == ContentItemTypeEnum.WORKFLOW and
-        workflow_item_db_obj.team_id == settings.ADMIN_SYSTEM_TEAM_ID and
+        workflow_item_db_obj.team_id == settings.ADMIN_SYSTEM_TEAM_ID and # Or it could be a special system workflow not tied to admin "ownership" in the usual sense
         workflow_item_db_obj.is_globally_visible is True
     ):
-        log.warning(f"Team {requesting_team_id_for_log} attempted to run workflow {workflow_item_id} which is not a valid Admin-owned, globally visible workflow.")
+        log.warning(f"Team {requesting_team_id_for_log} attempted to run workflow {workflow_item_id} which is not a valid Admin-owned, globally visible workflow, or it is not the designated 'Ask AI' workflow.")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to run this workflow, or it's not a valid runnable workflow.")
 
     if not workflow_item_db_obj.current_version_id or not workflow_item_db_obj.current_version:
@@ -73,12 +88,16 @@ async def run_process_workflow(
     try:
         log.info(f"Starting workflow execution for: '{workflow_item_db_obj.name}' ({workflow_item_id}) by team {requesting_team_id_for_log}")
 
+        # Pass the new payload fields to the service
         output_document_db, llm_response_text = await workflow_service.execute_workflow(
             db=db,
             workflow_item=workflow_item_db_obj,
             executing_team_id=requesting_team_id_for_log,
             explicit_input_document_ids=explicit_input_ids,
-            explicit_additional_ai_input=additional_input_text
+            explicit_additional_ai_input=additional_input_text,
+            explicit_current_document_content=current_doc_content_input, # New arg
+            # If the name of the document being "asked about" is sent by frontend, pass it here
+            # explicit_current_document_name_seed="NameFromFrontendIfAvailable"
         )
         await db.commit()
         await db.refresh(output_document_db, attribute_names=['current_version', 'owner_team'])

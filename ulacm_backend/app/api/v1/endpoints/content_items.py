@@ -1,6 +1,6 @@
 # File: ulacm_backend/app/api/v1/endpoints/content_items.py
 # Purpose: API endpoints for managing ContentItems.
-# Updated: List endpoint now uses ContentItemListItem and supports new filters including content_query and name_globs.
+# Updated: Relaxed template_id requirement check for DOCUMENT creation by Team Users.
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Request
@@ -101,17 +101,22 @@ async def create_content_item_endpoint(
     if item_in.item_type in [ContentItemTypeEnum.TEMPLATE, ContentItemTypeEnum.WORKFLOW]:
         if not is_admin_actor:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Admins can create Templates or Workflows.")
-        if item_in.template_id:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id should not be provided when creating Templates or Workflows.")
-        actor_team_id = None
+        if item_in.template_id: # Admins creating T/W should not provide a template_id for the T/W itself
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id should not be provided when Admin is creating Templates or Workflows.")
+        actor_team_id = None # For Admin creating T/W, actor_team_id is not used directly for ownership. CRUD assigns ADMIN_SYSTEM_TEAM_ID.
     elif item_in.item_type == ContentItemTypeEnum.DOCUMENT:
-        if is_admin_actor:
+        if is_admin_actor: # Admins don't create team documents this way
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admins cannot create Documents for teams via this endpoint.")
         if not isinstance(current_user_session, TeamModel) or not current_user_session.team_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Team context required for creating documents.")
         actor_team_id = current_user_session.team_id
-        if not item_in.template_id and not is_admin_actor :
-             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id is required when a Team User is creating a Document.")
+        # The check for template_id being required for team-user document creation
+        # is now handled more flexibly in the CRUD layer.
+        # If template_id is provided, it will be used. If not (e.g. AI generated doc), CRUD layer allows it.
+        # The original strict check:
+        # if not item_in.template_id and not is_admin_actor :
+        #      raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="template_id is required when a Team User is creating a Document.")
+        # This line is now removed as CRUD handles it.
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid item_type.")
 
@@ -124,8 +129,11 @@ async def create_content_item_endpoint(
         log.info(f"Successfully created {new_item_db.item_type.value}: Name='{new_item_db.name}', ID='{new_item_db.item_id}', OwnerID='{new_item_db.team_id}'")
     except ValueError as ve:
         log.warning(f"Content item creation failed validation: {ve}")
-        if "Invalid UUID format for template_id" in str(ve):
+        if "Invalid UUID format for template_id" in str(ve) or "Invalid template_id type" in str(ve):
              raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(ve))
+        if "Template (ID:" in str(ve) and "not found" in str(ve) : # Specific error from CRUD
+             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+        # Other ValueErrors from CRUD (like name uniqueness) become 409
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(ve))
     except Exception as e:
         log.exception(f"Error creating content item: Name='{item_in.name}'")
@@ -296,6 +304,7 @@ async def update_content_item_metadata_endpoint(
         if not item_exists:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Content item not found.")
         else:
+            # This path means can_update was false in CRUD, implying permission issue
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this item's metadata.")
 
     log.info(f"Successfully updated metadata for item: '{updated_item_db.name}' ({item_id})")
@@ -327,11 +336,12 @@ async def delete_content_item_endpoint(
         db=db, item_id=item_id, requesting_actor_team_id=requesting_actor_team_id, is_admin_actor=is_admin_actor
     )
 
-    if not deleted_item:
-        item_exists = await crud_content_item.content_item.get_by_id(db, item_id=item_id)
+    if not deleted_item: # This means it was not found OR not authorized by CRUD logic
+        item_exists = await crud_content_item.content_item.get_by_id(db, item_id=item_id) # Check if it exists at all
         if not item_exists:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Content item not found.")
         else:
+            # Existed, but CRUD didn't allow deletion (permission issue)
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this item.")
 
     log.info(f"Successfully deleted item: '{deleted_item.name}' ({item_id})")
