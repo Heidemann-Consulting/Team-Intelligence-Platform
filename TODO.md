@@ -53,14 +53,15 @@ combin with:
 
 * ✅ Rename „View Documents“ to „Manage Knowledge“
 
-* Ensure that after creation of each new vdersion the search index is updated too.
+* ✅ Ensure that after creation of each new vdersion the search index is updated too.
 
-* Create slides for short intro to LACM to introduce an overview to the processes in these.
-* Create slides for short intro to Phase 1 to introduce an overview to the processes in these.
-* Create slides for short intro to Phase 2 to introduce an overview to the processes in these.
-* Create slides for short intro to Phase 3 to introduce an overview to the processes in these.
+* ✅ Ensure that all Workflow Syntax used is supported by the code
 
-* Check if all Workflow Syntax used is supported by the code
+* ✅ Update the the nginx proxy timeout to 300s
+
+* Make workflow filtering do a full text search on the workflows and their contents.
+
+* Change default sorting of content items list view to: Newest modified first
 
 * Add full text search to Workflow document selection. Make sure that selected documents always stay selected and visible even if the current full text search does not match them.
 
@@ -68,11 +69,14 @@ combin with:
 
 * Add a "Ask AI" text field on top of the document editor which can be executed like a workflow and sends the current document in its current state and the content of the text field to the LLM and presents the answer in a new model popup window.
 
-* Change default sorting of content items list view to: Newest modified first
-
 * Add Export-Function for individual Documents and for all currently selected Documents
 
 ## Prio 3
+
+* Create slides for short intro to LACM to introduce an overview to the processes in these.
+* Create slides for short intro to Phase 1 to introduce an overview to the processes in these.
+* Create slides for short intro to Phase 2 to introduce an overview to the processes in these.
+* Create slides for short intro to Phase 3 to introduce an overview to the processes in these.
 
 * The API endpoint (/run) would immediately acknowledge the request (e.g., HTTP 202 Accepted), possibly returning a task/job ID.
 The actual workflow processing would happen in the background (use a dedicated task queue like Celery for more robust needs).
