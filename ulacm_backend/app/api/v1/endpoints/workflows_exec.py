@@ -42,7 +42,7 @@ async def run_process_workflow(
     explicit_input_ids: Optional[List[PyUUID]] = None
     additional_input_text: Optional[str] = None
     current_doc_content_input: Optional[str] = None
-    current_doc_name_seed_input: Optional[str] = itemDetails.name if itemDetails else "CurrentDocument" # A default seed name for output naming
+    # current_doc_name_seed_input: Optional[str] = itemDetails.name if itemDetails else "CurrentDocument" # A default seed name for output naming
 
     if payload:
         if payload.input_document_ids:
