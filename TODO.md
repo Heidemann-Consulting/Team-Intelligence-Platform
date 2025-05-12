@@ -59,6 +59,8 @@ combin with:
 
 * ✅ Update the the nginx proxy timeout to 300s
 
+* ✅ Instead of replacing spaces with underscore in the proposed document name from templates, remove it completely.
+
 * Make workflow filtering do a full text search on the workflows and their contents.
 
 * Change default sorting of content items list view to: Newest modified first
