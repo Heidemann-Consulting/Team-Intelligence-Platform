@@ -1,13 +1,15 @@
 // File: ulacm_frontend/src/pages/team/ExecuteWorkflowPage.tsx
 // Purpose: Page for Teams to list and execute available (Admin-created) Workflows.
-// Updated: Passes selected input_document_ids to contentService.runWorkflow.
+// Updated: Implemented server-side full-text search for workflow name and content.
 
+// import React, { useState, useEffect, useCallback, useRef } from 'react';
 import React, { useState, useEffect, useCallback } from 'react';
+// import { FolderGit2, Play, AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, ListTree, TextCursorInput, MessageSquareText } from 'lucide-react';
 import { FolderGit2, Play, AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, ListTree, TextCursorInput } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { ContentItemListed, ContentItemType, PaginatedResponse, RunWorkflowResponse } from '@/types/api';
-import contentService, { RunWorkflowPayload } from '@/services/contentService'; // Import RunWorkflowPayload
+import contentService, { RunWorkflowPayload } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import RunWorkflowModal from '@/components/content/RunWorkflowModal';
 import SelectInputDocumentsModal from '@/components/content/SelectInputDocumentsModal';
@@ -24,7 +26,6 @@ const ExecuteWorkflowPage: React.FC = () => {
     limit: 15,
     total_count: 0,
   });
-
   const [workflowToGetInputsFor, setWorkflowToGetInputsFor] = useState<ContentItemListed | null>(null);
   const [showSelectInputsModal, setShowSelectInputsModal] = useState(false);
 
@@ -32,9 +33,24 @@ const ExecuteWorkflowPage: React.FC = () => {
   const [showRunModal, setShowRunModal] = useState(false);
   const [runWorkflowOutput, setRunWorkflowOutput] = useState<RunWorkflowResponse | { error: string } | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+
+  const [contentQueryInput, setContentQueryInput] = useState(''); // User input for content search
+  const [debouncedContentQuery, setDebouncedContentQuery] = useState(''); // Debounced value for API
+  const [isTyping, setIsTyping] = useState(false);
+
 
   const navigate = useNavigate();
+
+  // Debounce content query input
+  useEffect(() => {
+    setIsTyping(true);
+    const handler = setTimeout(() => {
+      setDebouncedContentQuery(contentQueryInput);
+      setPagination(p => ({ ...p, offset: 0 })); // Reset pagination for new search
+      setIsTyping(false);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [contentQueryInput]);
 
   const fetchWorkflows = useCallback(async (offset = 0) => {
     setIsLoading(true);
@@ -44,10 +60,16 @@ const ExecuteWorkflowPage: React.FC = () => {
         item_type: ContentItemType.WORKFLOW,
         offset,
         limit: pagination.limit,
-        sort_by: 'name',
+        sort_by: 'name', // Default sort for workflows, or 'rank' if content_query is active
         sort_order: 'asc',
-        for_usage: true,
+        for_usage: true, // Important for teams to see only usable workflows
+        content_query: debouncedContentQuery.trim() || undefined,
       };
+      if (params.content_query) {
+        params.sort_by = 'rank'; // Prioritize relevance if searching content
+        params.sort_order = 'desc';
+      }
+
       const data: PaginatedResponse<ContentItemListed> = await contentService.getItems(params);
       setWorkflows(data.items);
       setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
@@ -58,11 +80,13 @@ const ExecuteWorkflowPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.limit]);
+  }, [pagination.limit, debouncedContentQuery]);
 
   useEffect(() => {
+    // Fetch workflows when page loads or when debounced content query changes, or pagination offset changes
     fetchWorkflows(pagination.offset);
-  }, [fetchWorkflows, pagination.offset]);
+  }, [fetchWorkflows, pagination.offset, debouncedContentQuery]);
+
 
   const triggerWorkflowExecution = (workflow: ContentItemListed, inputDocumentIds: string[] = []) => {
     setSelectedWorkflowForRun(workflow);
@@ -75,7 +99,7 @@ const ExecuteWorkflowPage: React.FC = () => {
       payload.input_document_ids = inputDocumentIds;
     }
 
-    contentService.runWorkflow(workflow.item_id, payload) // Pass payload
+    contentService.runWorkflow(workflow.item_id, payload)
       .then(result => {
         setRunWorkflowOutput(result);
         toast.success(`Workflow "${workflow.name}" executed successfully.`);
@@ -90,13 +114,12 @@ const ExecuteWorkflowPage: React.FC = () => {
       });
   };
 
-
   const handleInitiateWorkflowRun = (workflow: ContentItemListed) => {
     if (workflow.workflow_input_document_selectors && workflow.workflow_input_document_selectors.length > 0) {
       setWorkflowToGetInputsFor(workflow);
       setShowSelectInputsModal(true);
     } else {
-      triggerWorkflowExecution(workflow); // No specific inputs chosen by user
+      triggerWorkflowExecution(workflow);
     }
   };
 
@@ -107,7 +130,6 @@ const ExecuteWorkflowPage: React.FC = () => {
     }
     setWorkflowToGetInputsFor(null);
   };
-
 
   const handleCloseRunModal = () => {
     setShowRunModal(false);
@@ -129,12 +151,8 @@ const ExecuteWorkflowPage: React.FC = () => {
   const totalPages = Math.ceil(pagination.total_count / pagination.limit);
   const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
 
-  const filteredWorkflows = workflows.filter(wf =>
-    wf.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (wf.workflow_input_document_selectors && wf.workflow_input_document_selectors.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))) ||
-    (wf.workflow_output_name_template && wf.workflow_output_name_template.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
+  // No client-side filtering needed anymore as 'content_query' handles it on the backend
+  const displayableWorkflows = workflows;
 
   return (
     <div className="space-y-6">
@@ -146,13 +164,13 @@ const ExecuteWorkflowPage: React.FC = () => {
           <div className="relative">
             <input
               type="search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Filter workflows..."
+              value={contentQueryInput}
+              onChange={(e) => setContentQueryInput(e.target.value)}
+              placeholder="Search workflow name/content..."
               className="w-full md:w-64 pl-10 pr-4 py-2 border border-ulacm-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-ulacm-primary/50 focus:border-ulacm-primary transition duration-150 ease-in-out text-sm"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ulacm-gray-400 pointer-events-none">
-              <SearchIcon size={18} />
+              {isTyping || isLoading ? <LoadingSpinner size="sm" color="text-ulacm-gray-400"/> : <SearchIcon size={18} />}
             </div>
           </div>
           <button
@@ -161,12 +179,12 @@ const ExecuteWorkflowPage: React.FC = () => {
             className="p-2.5 text-ulacm-gray-500 hover:text-ulacm-primary hover:bg-ulacm-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ulacm-primary/50"
             title="Refresh Workflows List"
           >
-            <RefreshCw size={18} className={isLoading ? "animate-spin" : ""} />
+            <RefreshCw size={18} className={isLoading && !isTyping ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
 
-      {isLoading && workflows.length === 0 && (
+      {isLoading && displayableWorkflows.length === 0 && (
         <div className="flex justify-center items-center py-20 bg-white rounded-xl shadow-md border border-ulacm-gray-100">
           <LoadingSpinner size="lg" color="text-purple-600" />
           <p className="ml-3 text-ulacm-gray-600">Loading available workflows...</p>
@@ -194,14 +212,14 @@ const ExecuteWorkflowPage: React.FC = () => {
 
       {!isLoading && !error && (
         <>
-          {filteredWorkflows.length === 0 && searchTerm && (
+          {displayableWorkflows.length === 0 && debouncedContentQuery && (
             <div className="text-center py-12 px-6 bg-white rounded-lg shadow border border-ulacm-gray-100">
                 <SearchIcon size={48} className="mx-auto text-ulacm-gray-300"/>
-                <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">No workflows match "{searchTerm}"</h3>
-                <p className="mt-1 text-sm text-ulacm-gray-500">Try a different search term or clear the filter.</p>
+                <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">No workflows match "{debouncedContentQuery}"</h3>
+                <p className="mt-1 text-sm text-ulacm-gray-500">Try a different search term.</p>
             </div>
           )}
-          {filteredWorkflows.length === 0 && !searchTerm && workflows.length === 0 && (
+          {displayableWorkflows.length === 0 && !debouncedContentQuery && pagination.total_count === 0 && (
              <div className="text-center py-12 px-6 bg-white rounded-lg shadow border border-ulacm-gray-100">
                 <FolderGit2 size={48} className="mx-auto text-ulacm-gray-300"/>
                 <h3 className="mt-2 text-lg font-medium text-ulacm-gray-800">No Workflows Available</h3>
@@ -209,9 +227,9 @@ const ExecuteWorkflowPage: React.FC = () => {
             </div>
           )}
 
-          {filteredWorkflows.length > 0 && (
+          {displayableWorkflows.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredWorkflows.map((wf) => (
+              {displayableWorkflows.map((wf) => (
                 <div key={wf.item_id} className="bg-white p-5 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-200 border border-ulacm-gray-100 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center mb-3">
@@ -221,14 +239,15 @@ const ExecuteWorkflowPage: React.FC = () => {
                       </h2>
                     </div>
 
+                    {/* Displaying input selectors and output name template */}
                     {wf.workflow_input_document_selectors && wf.workflow_input_document_selectors.length > 0 && (
                       <div className="mb-3">
                         <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
                           <ListTree size={14} className="mr-1.5 text-ulacm-gray-400"/> Input Document Selectors
                         </h4>
-                        <ul className="list-none pl-0 space-y-1">
+                        <ul className="list-none pl-0 space-y-1 max-h-20 overflow-y-auto">
                           {wf.workflow_input_document_selectors.map((selector, index) => (
-                            <li key={index} className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2.5 py-1.5 rounded-md border border-ulacm-gray-200 shadow-sm">
+                            <li key={index} className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2.5 py-1 rounded-md border border-ulacm-gray-200 shadow-sm">
                               <code className="text-purple-700 font-mono text-xs">{selector}</code>
                             </li>
                           ))}
@@ -241,18 +260,16 @@ const ExecuteWorkflowPage: React.FC = () => {
                      {!(wf.workflow_input_document_selectors && wf.workflow_input_document_selectors.length > 0) && (
                         <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
                             <p className="text-xs text-blue-700 flex items-center">
-                                <Info size={14} className="mr-1.5 shrink-0"/> This workflow does not specify input document selectors. It may generate content without file inputs or use a fixed internal context.
+                                <Info size={14} className="mr-1.5 shrink-0"/> This workflow does not specify input document selectors.
                             </p>
                         </div>
                     )}
-
-
                     {wf.workflow_output_name_template && (
-                      <div className="mb-4">
+                       <div className="mb-4">
                         <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
-                          <TextCursorInput size={14} className="mr-1.5 text-ulacm-gray-400"/> Output Document Name Template
+                          <TextCursorInput size={14} className="mr-1.5 text-ulacm-gray-400"/> Output Name Template
                         </h4>
-                        <p className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2.5 py-1.5 rounded-md border border-ulacm-gray-200 shadow-sm">
+                        <p className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 px-2.5 py-1 rounded-md border border-ulacm-gray-200 shadow-sm">
                           <code className="text-blue-700 font-mono text-xs">{wf.workflow_output_name_template}</code>
                         </p>
                          <p className="mt-1.5 text-xs text-ulacm-gray-500 italic flex items-start">
@@ -278,7 +295,7 @@ const ExecuteWorkflowPage: React.FC = () => {
             </div>
           )}
 
-          {pagination.total_count > pagination.limit && filteredWorkflows.length > 0 && (
+          {pagination.total_count > pagination.limit && displayableWorkflows.length > 0 && (
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-sm text-ulacm-gray-600">
               <div>
                 Showing <span className="font-semibold">{pagination.offset + 1}</span> to <span className="font-semibold">{Math.min(pagination.offset + pagination.limit, pagination.total_count)}</span> of <span className="font-semibold">{pagination.total_count}</span> workflows
