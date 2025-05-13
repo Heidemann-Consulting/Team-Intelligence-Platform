@@ -33,6 +33,7 @@
     - [Deployment](#deployment)
     - [Stopping the Application](#stopping-the-application)
     - [Troubleshooting](#troubleshooting)
+  - [License](#license)
 
 ## Overview
 
@@ -85,7 +86,9 @@ Lean AI-Co-Management (LACM) is a simplified version of the process meant for in
 
 It is optimized with simple processes which allow for quick onboarding and quick daily wins.
 
-You can find the process description here: [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md).
+You can find the process description here: [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md)
+
+There is also content for a slideset that can be used to introduce and teach LACM: [Lean AI-Co-Management Slideset](docs/lacm-slideset.md)
 
 ### Phased Approach
 
@@ -100,7 +103,7 @@ It is split into 3 successive phases that can be implemented one after the other
 - **Core Rituals**: Context Curation, Prompt Development, AI-Assisted Documentation
 - **Key Outcomes**: Improved knowledge preservation, enhanced documentation, team knowledge repository
 
-You can find the process description here: [Phase 1 Rituals and Practices](docs/tip-phase1-rituals-and-practices.md).
+You can find the process description here: [Phase 1 Rituals and Practices](docs/tip-phase1-rituals-and-practices.md)
 
 #### Phase 2: The Collaborative Acceleration
 
@@ -109,7 +112,7 @@ You can find the process description here: [Phase 1 Rituals and Practices](docs/
 - **Core Rituals**: Enhanced Context Management, AI-Enhanced Retrospectives, Context-Aware Planning, Basic AI Pair Working
 - **Key Outcomes**: Improved estimation accuracy, accelerated delivery cycles, enhanced decision quality
 
-You can find the process description here: [Phase 2 Rituals and Practices](docs/tip-phase2-rituals-and-practices.md).
+You can find the process description here: [Phase 2 Rituals and Practices](docs/tip-phase2-rituals-and-practices.md)
 
 #### Phase 3: The Transformative Intelligence
 
@@ -118,7 +121,7 @@ You can find the process description here: [Phase 2 Rituals and Practices](docs/
 - **Core Rituals**: Networked Context, AI-Driven Decisions, Advanced Retrospective System, Cross-Team Intelligence, Advanced AI Pair Working
 - **Key Outcomes**: Transformative productivity, breakthrough innovation, strategic advantage
 
-You can find the process description here: [Phase 3 Rituals and Practices](docs/tip-phase3-rituals-and-practices.md).
+You can find the process description here: [Phase 3 Rituals and Practices](docs/tip-phase3-rituals-and-practices.md)
 
 ## Documentation
 
@@ -127,7 +130,6 @@ You can find the process description here: [Phase 3 Rituals and Practices](docs/
 - [PRD.md](docs/tip-prd.md) - Product Requirements Document: Basic idea and product requirements of TIP
 - [SRS.md](docs/tip-srs.md) - Detailed Software Requirements Specification of TIP
 - [TODO.md](TODO.md) - List of open topics
-- [LICENSE](LICENSE) - Apache 2.0 license
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community behavior expectations
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [GOVERNANCE.md](GOVERNANCE.md) - Project governance structure
@@ -243,21 +245,22 @@ docker-compose down
 * **Database Connection**: Verify `POSTGRES_SERVER` in `ulacm_backend/.env` is set to `db` (the service name in `docker-compose.yml`). Ensure passwords match. Check the database container logs (`docker logs ulacm_db`) for startup issues.
 * **Ollama Connection**: Verify `OLLAMA_API_URL` in `ulacm_backend/.env`. If using the compose service, it should be `http://ollama:11434`. Check Ollama container logs (`docker logs ulacm_ollama`) and ensure models are pulled.
 * **Permissions**: On Linux, you might encounter permission issues with volume mounts. Ensure the Docker daemon has the necessary permissions.
-- [Team Intelligence Platform (TIP)](#team-intelligence-platform-tip)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Rituals and Practices](#rituals-and-practices)
-  - [Key Concepts](#key-concepts)
-    - [AI Co-Management](#ai-co-management)
-    - [Lean AI-Co-Management](#lean-ai-co-management)
-    - [Phased Approach](#phased-approach)
-      - [Phase 1: The Cognitive Foundation](#phase-1-the-cognitive-foundation)
-      - [Phase 2: The Collaborative Acceleration](#phase-2-the-collaborative-acceleration)
-      - [Phase 3: The Transformative Intelligence](#phase-3-the-transformative-intelligence)
-  - [Documentation](#documentation)
-    - [Project Documents](#project-documents)
-    - [Prerequisites](#prerequisites)
-    - [Setup and Configuration](#setup-and-configuration)
-    - [Deployment](#deployment)
-    - [Stopping the Application](#stopping-the-application)
-    - [Troubleshooting](#troubleshooting)
+
+## License
+
+Copyright 2025 Heidemann Consulting
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License here: [LICENSE](LICENSE) and at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+This project utilizes third-party libraries and components.
+For more detailed information on these dependencies and their respective licenses, please refer to the [NOTICE](NOTICE) file.

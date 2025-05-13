@@ -82,7 +82,9 @@ combin with:
 
 * ✅ Adapt headings-sizes in markdown editor and make sure that editor mode sizes and preview mode sizes match.
 
-* Create slides for short intro to LACM to introduce an overview to the processes in these.
+* ✅ Create slides for short intro to LACM to introduce an overview to the processes in these.
+
+* ✅ Update the LICENSE and create a NOTICE file.
 
 ## Prio 3
 
