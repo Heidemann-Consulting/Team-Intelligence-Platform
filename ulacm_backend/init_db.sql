@@ -134,6 +134,41 @@ DELETE FROM public.content_versions WHERE item_id IN (SELECT item_id FROM public
 DELETE FROM public.content_items WHERE item_type = 'WORKFLOW';
 
 --
+-- Inserting Empty Template
+--
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A blank Template', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'This is deliberately empty so that you can realize all your ideas with it.',
+    1, admin_team_id, NOW());
+END $$;
+
+--
+-- Inserting Empty Workflow
+--
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17';
+    workflow_content text := E'# Workflow Name: A blank Workflow\n# Description: This is deliberately empty to allow for execution of just the "Additional input for the AI"\n\ninputDocumentSelectors:\n  - "*" # Allows user to select any one document visible to them at runtime.\ninputDateSelector: null # No specific date filter by default for this generic workflow.\noutputName: "AI_Response_{{Year}}-{{Month}}-{{Day}}.md"\nprompt: |\n  Please execute the "Additional AI Input" request on the following document(s):\n\n  DOCUMENT CONTENT(s):\n  ```\n  {{DocumentContext}}\n  ```';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A blank Workflow', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+--
 -- Inserting Phase 1 Templates
 --
 

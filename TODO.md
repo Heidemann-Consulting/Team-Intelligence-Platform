@@ -77,8 +77,8 @@ combin with:
 
 * ✅ Add the corresponding prompt as a preview (in a scrollable textbox) of what the workflows do to each workflow box to the ExecuteWorkflowPage - between the info about "INPUT DOCUMENT SELECTORS" and the info about "OUTPUT NAME TEMPLATE".
 
-* Add „An empty template“ to the list of templates
-* Also add „A generic workflow“ that has * as Input-Selector and a generic prompt like „You are a helpful AI assistant, have a look at the following:“
+* ✅ Add „An empty template“ to the list of templates.
+* ✅ Also add „A generic workflow“ that has * as Input-Selector and a generic prompt like „You are a helpful AI assistant, have a look at the following:“
 
 * Create slides for short intro to LACM to introduce an overview to the processes in these.
 
