@@ -73,17 +73,23 @@ combin with:
 
 * ✅ Add a "Ask AI" text field on top of the document editor and the Actions box, but below the Document Title/Version/Lastsaved box, which can be executed like a workflow and sends the current document in its current state and the content of the text field to the LLM and presents the answer in a new modal popup window with the option to save the answer as a new document (which asks for Document name) or alternatively to close the modal answer window without saving the answer.
 
-* Add the corresponding prompt as a preview (in a scrollable textbox) of what the workflows do to each workflow box to the ExecuteWorkflowPage.
+* ✅ Add info to readme regarding differences between LACM and the 3 phases: LACM is an easy to use lower barrier of entry process, the 3 phases aim at organizational transformation on a multi-team (and possibly multi-project) level.
 
-* Add Export-Function for the currently opened document in the document editor.
-* Add Export-Function for all currently selected Documents in the Document Overview List.
+* Add the corresponding prompt as a preview (in a scrollable textbox) of what the workflows do to each workflow box to the ExecuteWorkflowPage - between the info about "INPUT DOCUMENT SELECTORS" and the info about "OUTPUT NAME TEMPLATE".
+
+* Add „An empty template“ to the list of templates
+* Also add „A generic workflow“ that has * as Input-Selector and a generic prompt like „You are a helpful AI assistant, have a look at the following:“
 
 * Create slides for short intro to LACM to introduce an overview to the processes in these.
+
+## Prio 3
+
 * Create slides for short intro to Phase 1 to introduce an overview to the processes in these.
 * Create slides for short intro to Phase 2 to introduce an overview to the processes in these.
 * Create slides for short intro to Phase 3 to introduce an overview to the processes in these.
 
-## Prio 3
+* Add Export-Function for the currently opened document in the document editor.
+* Add Export-Function for all currently selected Documents in the Document Overview List.
 
 * The API endpoint (/run) would immediately acknowledge the request (e.g., HTTP 202 Accepted), possibly returning a task/job ID.
 The actual workflow processing would happen in the background (use a dedicated task queue like Celery for more robust needs).

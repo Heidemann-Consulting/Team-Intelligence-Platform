@@ -21,11 +21,11 @@
   - [Rituals and Practices](#rituals-and-practices)
   - [Key Concepts](#key-concepts)
     - [AI Co-Management](#ai-co-management)
-    - [Phased Implementation Approach](#phased-implementation-approach)
+    - [Lean AI-Co-Management](#lean-ai-co-management)
+    - [Phased Approach](#phased-approach)
       - [Phase 1: The Cognitive Foundation](#phase-1-the-cognitive-foundation)
       - [Phase 2: The Collaborative Acceleration](#phase-2-the-collaborative-acceleration)
       - [Phase 3: The Transformative Intelligence](#phase-3-the-transformative-intelligence)
-  - [Project Status](#project-status)
   - [Documentation](#documentation)
     - [Project Documents](#project-documents)
     - [Prerequisites](#prerequisites)
@@ -45,6 +45,8 @@ TIP provides:
 - A **fully open-source component stack** for maximum accessibility and customization
 - **Knowledge management practices** that preserve and enhance team context
 - **Collaboration patterns** optimized for human-AI teamwork
+
+You can find out more about the benefits of the benefits of TIP in the [PITCH](PITCH.md) document.
 
 ## Rituals and Practices
 
@@ -77,54 +79,53 @@ Six core principles distinguish this approach:
 5. **Continuous Learning and Improvement**
 6. **Balance of Autonomy and Oversight**
 
-### Phased Implementation Approach
+### Lean AI-Co-Management
 
-TIP is implemented through three progressive phases, each representing a complete and valuable system while building toward increasingly sophisticated collaboration:
+Lean AI-Co-Management (LACM) is a simplified version of the process meant for individuals and individual teams.
+
+It is optimized with simple processes which allow for quick onboarding and quick daily wins.
+
+You can find the process description here: [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md).
+
+### Phased Approach
+
+The phased approach is a complete version of the process that is aimed at team level breakthrough performance and organizational transformation.
+
+It is split into 3 successive phases that can be implemented one after the other for easy ramp-up and sustainable results.
 
 #### Phase 1: The Cognitive Foundation
+
 - **Focus**: Knowledge capture and preservation
 - **Timeline**: Weeks 1-4
 - **Core Rituals**: Context Curation, Prompt Development, AI-Assisted Documentation
 - **Key Outcomes**: Improved knowledge preservation, enhanced documentation, team knowledge repository
 
+You can find the process description here: [Phase 1 Rituals and Practices](docs/tip-phase1-rituals-and-practices.md).
+
 #### Phase 2: The Collaborative Acceleration
+
 - **Focus**: Enhanced decision-making and planning
 - **Timeline**: Weeks 5-12 (after Phase 1)
 - **Core Rituals**: Enhanced Context Management, AI-Enhanced Retrospectives, Context-Aware Planning, Basic AI Pair Working
 - **Key Outcomes**: Improved estimation accuracy, accelerated delivery cycles, enhanced decision quality
 
+You can find the process description here: [Phase 2 Rituals and Practices](docs/tip-phase2-rituals-and-practices.md).
+
 #### Phase 3: The Transformative Intelligence
+
 - **Focus**: Breakthrough team performance
 - **Timeline**: Months 7+ (after Phase 2)
 - **Core Rituals**: Networked Context, AI-Driven Decisions, Advanced Retrospective System, Cross-Team Intelligence, Advanced AI Pair Working
 - **Key Outcomes**: Transformative productivity, breakthrough innovation, strategic advantage
 
-## Project Status
-
-TIP is currently in **Phase 1 Implementation**:
-
-- ✅ Core project documentation complete
-- ✅ Phase 1 requirements and specifications defined
-- ✅ Phase 1 rituals and practices documented
-- ✅ Phase 1 component deployment scripts (in progress)
-- ✅ Initial knowledge structure templates (in progress)
-- ✅ Base ritual templates (in progress)
-- 📅 Phase 2 and 3 implementation will follow successful Phase 1 adoption
+You can find the process description here: [Phase 3 Rituals and Practices](docs/tip-phase3-rituals-and-practices.md).
 
 ## Documentation
 
-TIP documentation is structured by implementation phase to provide clear focus on current priorities while planning for future evolution:
-
 ### Project Documents
 
-- [README.md](README.md) - This document providing an overview
-- [PITCH.md](PITCH.md) - Stakeholder pitches
-- [Product Requirements Document](docs/tip-prd.md) - Basic idea and product requirements of TIP
-- [Software Requirements Specification](docs/tip-srs.md) - Detailed Software Requirements Specification of TIP
-- [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md) - Lean Process for using AI-Co-Management everyday
-- [Phase 1 Rituals and Practices](docs/tip-phase1-rituals-and-practices.md) - Implementation guide for team rituals & practices Phase 1
-- [Phase 2 Rituals and Practices](docs/tip-phase2-rituals-and-practices.md) - Implementation guide for team rituals & practices Phase 2
-- [Phase 3 Rituals and Practices](docs/tip-phase3-rituals-and-practices.md) - Implementation guide for team rituals & practices Phase 3
+- [PRD.md](docs/tip-prd.md) - Product Requirements Document: Basic idea and product requirements of TIP
+- [SRS.md](docs/tip-srs.md) - Detailed Software Requirements Specification of TIP
 - [TODO.md](TODO.md) - List of open topics
 - [LICENSE](LICENSE) - Apache 2.0 license
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community behavior expectations
@@ -248,11 +249,11 @@ docker-compose down
   - [Rituals and Practices](#rituals-and-practices)
   - [Key Concepts](#key-concepts)
     - [AI Co-Management](#ai-co-management)
-    - [Phased Implementation Approach](#phased-implementation-approach)
+    - [Lean AI-Co-Management](#lean-ai-co-management)
+    - [Phased Approach](#phased-approach)
       - [Phase 1: The Cognitive Foundation](#phase-1-the-cognitive-foundation)
       - [Phase 2: The Collaborative Acceleration](#phase-2-the-collaborative-acceleration)
       - [Phase 3: The Transformative Intelligence](#phase-3-the-transformative-intelligence)
-  - [Project Status](#project-status)
   - [Documentation](#documentation)
     - [Project Documents](#project-documents)
     - [Prerequisites](#prerequisites)
