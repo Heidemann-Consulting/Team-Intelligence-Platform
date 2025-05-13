@@ -80,6 +80,8 @@ combin with:
 * ✅ Add „An empty template“ to the list of templates.
 * ✅ Also add „A generic workflow“ that has * as Input-Selector and a generic prompt like „You are a helpful AI assistant, have a look at the following:“
 
+* ✅ Adapt headings-sizes in markdown editor and make sure that editor mode sizes and preview mode sizes match.
+
 * Create slides for short intro to LACM to introduce an overview to the processes in these.
 
 ## Prio 3

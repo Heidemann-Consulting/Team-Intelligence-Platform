@@ -66,6 +66,55 @@ a {
   /* Allow editor to grow if in a flex container */
 }
 
+/* Styles for H1 in CodeMirror editor input */
+.EasyMDEContainer .CodeMirror .cm-header-1 {
+  font-size: 1.4em !important; /* Match preview H1 size */
+  font-weight: bold !important;   /* Match preview H1 weight */
+  line-height: 1.2 !important;    /* Adjust line-height as needed */
+  /* Add any other font properties you want to synchronize */
+}
+
+/* Styles for H2 in CodeMirror editor input */
+.EasyMDEContainer .CodeMirror .cm-header-2 {
+  font-size: 1.3em !important; /* Match preview H2 size */
+  font-weight: bold !important;   /* Match preview H2 weight */
+  line-height: 1.2 !important;    /* Adjust line-height as needed */
+}
+
+/* Styles for H3 in CodeMirror editor input */
+.EasyMDEContainer .CodeMirror .cm-header-3 {
+  font-size: 1.2em !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+
+/* Styles for H4 in CodeMirror editor input */
+.EasyMDEContainer .CodeMirror .cm-header-4 {
+  font-size: 1.1em !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+
+/* Styles for H4 in CodeMirror editor input */
+.EasyMDEContainer .CodeMirror .cm-header-5 {
+  font-size: 1.0em !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+
+/* Styles for H4 in CodeMirror editor input */
+.EasyMDEContainer .CodeMirror .cm-header-6 {
+  font-size: 1.0em !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+}
+
+/* General styling for all headers in CodeMirror if needed */
+.EasyMDEContainer .CodeMirror .cm-header {
+  /* You could put common styles here, like color */
+  /* color: #your-header-color; */
+}
+
 .ulacm-simplemde-editor-wrapper .editor-toolbar {
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
@@ -115,7 +164,7 @@ a {
 .ulacm-simplemde-editor-wrapper .editor-preview h1,
 .ulacm-simplemde-editor-wrapper .editor-preview-side h1,
 .modal-markdown-preview h1 {
-  font-size: 2em;
+  font-size: 1.4em;
   /* Example size */
   font-weight: bold;
   margin-top: 0.67em;
@@ -128,7 +177,7 @@ a {
 .ulacm-simplemde-editor-wrapper .editor-preview h2,
 .ulacm-simplemde-editor-wrapper .editor-preview-side h2,
 .modal-markdown-preview h2 {
-  font-size: 1.5em;
+  font-size: 1.3em;
   font-weight: bold;
   margin-top: 0.83em;
   margin-bottom: 0.83em;
@@ -139,7 +188,7 @@ a {
 .ulacm-simplemde-editor-wrapper .editor-preview h3,
 .ulacm-simplemde-editor-wrapper .editor-preview-side h3,
 .modal-markdown-preview h3 {
-  font-size: 1.17em;
+  font-size: 1.2em;
   font-weight: bold;
   margin-top: 1em;
   margin-bottom: 1em;
@@ -148,7 +197,7 @@ a {
 .ulacm-simplemde-editor-wrapper .editor-preview h4,
 .ulacm-simplemde-editor-wrapper .editor-preview-side h4,
 .modal-markdown-preview h4 {
-  font-size: 1em;
+  font-size: 1.1em;
   font-weight: bold;
   margin-top: 1.33em;
   margin-bottom: 1.33em;
@@ -157,7 +206,7 @@ a {
 .ulacm-simplemde-editor-wrapper .editor-preview h5,
 .ulacm-simplemde-editor-wrapper .editor-preview-side h5,
 .modal-markdown-preview h5 {
-  font-size: 0.83em;
+  font-size: 1.0em;
   font-weight: bold;
   margin-top: 1.67em;
   margin-bottom: 1.67em;
@@ -166,10 +215,10 @@ a {
 .ulacm-simplemde-editor-wrapper .editor-preview h6,
 .ulacm-simplemde-editor-wrapper .editor-preview-side h6,
 .modal-markdown-preview h6 {
-  font-size: 0.67em;
+  font-size: 1.0em;
   font-weight: bold;
-  margin-top: 2.33em;
-  margin-bottom: 2.33em;
+  margin-top: 1.67em;
+  margin-bottom: 1.67em;
 }
 
 .ulacm-simplemde-editor-wrapper .editor-preview p,
