@@ -86,9 +86,11 @@ Lean AI-Co-Management (LACM) is a simplified version of the process meant for in
 
 It is optimized with simple processes which allow for quick onboarding and quick daily wins.
 
-You can find the process description here: [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md)
+You can find the process description here: [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md).
 
-There is also content for a slideset that can be used to introduce and teach LACM: [Lean AI-Co-Management Slideset](docs/lacm-slideset.md)
+There is also content for a slideset that can be used to introduce and teach LACM: [Lean AI-Co-Management Slideset](docs/lacm-slideset.md).
+
+There is also a PDF version: [Introductory slideset to LACM.pdf](docs/lacm-slideset.pdf).
 
 ### Phased Approach
 

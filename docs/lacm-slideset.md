@@ -364,3 +364,737 @@
     * **Data-Driven Operations:** From daily tasks to long-term vision, decisions are better informed.
     * **You're not just using AI; you're co-managing your work *with* AI, leveraging the Team Intelligence Platform.**
 * **Slide 27 Prompt:** A handshake between a human hand (🤝) and an abstract AI hand, symbolizing successful collaboration and partnership, with a background of organized data and upward-trending graphs encompassing short to long-term perspectives, consistent color palette.
+
+---------------------------------------
+Simplified Daily Cycle as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph LR;
+  subgraph "Daily Cycle Activities (Simplified)"
+    direction LR
+    I3["Plan Inputs (Goals, Weekly Preview, Task List & Available Time)"]
+    I1["Analysis Inputs (Manual News & Strategy & Market Docs)"]
+    R1("LACM DailyNewsAnalysis")
+    I2["Log Inputs (Manual Log & Prev Day's Plan)"]
+    R2("LACM DailyLogGenerator")
+    R3("LACM DailyPlanGenerator")
+  end
+
+  %% Flow between rituals with aggregated documents
+  I1 --> R1
+  R1 --> R2
+  I2 --> R2
+  R1 --> R3
+  R2 --> R3
+  I3 --> R3
+
+  %% Cycle continuity: today's plan becomes part of next day's log inputs
+  R3 -.-> I2
+
+  %% Styling (matches original document)
+  classDef ritual         fill:#f9d,stroke:#333,stroke-width:2px,color:#333;
+  classDef document       fill:#ccf,stroke:#333,stroke-width:1px,color:#333;
+
+  class I1,I2,I3 document;
+  class R1,R2,R3 ritual;
+```
+
+---------------------------------------
+Detailed Daily Cycle as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph TD;
+    %% === Nodes Definition ===
+
+    %% Inputs for Daily News Analysis (Slide 14)
+    ManNewsIn["ManualNewsInput_YYYY-MM-DD"]
+    FD_Strategy["Strategy_Current"]
+    FD_Competitors["Competitors_Current"]
+    FD_TargetMarkets["TargetMarkets_Current"]
+
+    %% Ritual 1: Daily News Analysis
+    R_NewsAnalysis("LACM DailyNewsAnalysis")
+
+    %% Output of Daily News Analysis
+    Out_NewsAnalysis["DailyNewsAnalysis_YYYY-MM-DD_..."]
+
+    %% Inputs for Daily Log Generator (Slide 15)
+    ManLogInput["DailyLogInput_..._YYYY-MM-DD"]
+    Prev_DailyPlan["DailyPlan_YYYY-MM-DD-1 (Previous Day)"]
+    %% Out_NewsAnalysis also feeds into R_LogGenerator
+
+    %% Ritual 2: Daily Log Generator
+    R_LogGenerator("LACM DailyLogGenerator")
+
+    %% Output of Daily Log Generator
+    Out_DailyLog["DailyLog_YYYY-MM-DD_..."]
+
+    %% Inputs for Daily Plan Generator (Slide 16)
+    %% Out_NewsAnalysis and Out_DailyLog feed into R_PlanGenerator
+    %% FD_Strategy also feeds into R_PlanGenerator
+    FD_GoalsQuarter["Goals_Quarter_..."]
+    FD_WeeklyPlanPreview["KW[CurrentWeek]_WeeklyPlanPreview_..."]
+    FD_TaskList["TaskList_Current (Ensure Updated)"]
+    FD_AvailableTime["AvailableTime_Current (Ensure Updated)"]
+
+    %% Ritual 3: Daily Plan Generator
+    R_PlanGenerator("LACM DailyPlanGenerator")
+
+    %% Output of Daily Plan Generator
+    Out_DailyPlan["DailyPlan_YYYY-MM-DD_..."]
+
+    %% For showing cycle continuity
+    Next_R_LogGenerator("LACM DailyLogGenerator (Next Day)")
+
+
+    %% === Edge Definition (Connections) ===
+
+    %% Connections for LACM DailyNewsAnalysis (Ritual 1)
+    ManNewsIn --> R_NewsAnalysis;
+    FD_Strategy --> R_NewsAnalysis;
+    FD_Competitors --> R_NewsAnalysis;
+    FD_TargetMarkets --> R_NewsAnalysis;
+    R_NewsAnalysis -- "Analyzes inputs" --> Out_NewsAnalysis;
+
+    %% Connections for LACM DailyLogGenerator (Ritual 2)
+    ManLogInput --> R_LogGenerator;
+    Prev_DailyPlan --> R_LogGenerator;
+    Out_NewsAnalysis -- "Input for Log" --> R_LogGenerator;
+    R_LogGenerator -- "Structures log" --> Out_DailyLog;
+
+    %% Connections for LACM DailyPlanGenerator (Ritual 3)
+    Out_NewsAnalysis -- "Input for Plan" --> R_PlanGenerator;
+    Out_DailyLog -- "Input for Plan" --> R_PlanGenerator;
+    FD_Strategy -- "Strategic Guide" --> R_PlanGenerator;
+    FD_GoalsQuarter --> R_PlanGenerator;
+    FD_WeeklyPlanPreview --> R_PlanGenerator;
+    FD_TaskList --> R_PlanGenerator;
+    FD_AvailableTime --> R_PlanGenerator;
+    R_PlanGenerator -- "Drafts plan" --> Out_DailyPlan;
+
+    %% Cycle Continuity
+    Out_DailyPlan -- "Becomes Previous Day's Plan" --> Next_R_LogGenerator;
+
+    %% === Subgraph for Visual Grouping ===
+    subgraph Daily Cycle Activities
+        direction LR
+        R_NewsAnalysis
+        R_LogGenerator
+        R_PlanGenerator
+    end
+
+    %% === Styling ===
+    classDef ritual fill:#f9d,stroke:#333,stroke-width:2px,color:#333;
+    classDef document fill:#ccf,stroke:#333,stroke-width:1px,color:#333;
+    classDef manualInput fill:#dfd,stroke:#333,stroke-width:1px,color:#333;
+    classDef foundationalDoc fill:#cff,stroke:#333,stroke-width:1px,color:#333;
+    classDef cycleContinuity fill:#eee,stroke:#666,stroke-width:1px,color:#666,stroke-dasharray: 5 5;
+
+    class R_NewsAnalysis,R_LogGenerator,R_PlanGenerator ritual;
+    class Out_NewsAnalysis,Out_DailyLog,Out_DailyPlan,Prev_DailyPlan document;
+    class ManNewsIn,ManLogInput manualInput;
+    class FD_Strategy,FD_Competitors,FD_TargetMarkets,FD_GoalsQuarter,FD_WeeklyPlanPreview,FD_TaskList,FD_AvailableTime foundationalDoc;
+    class Next_R_LogGenerator cycleContinuity;
+```
+
+---------------------------------------
+Detailed Weekly Cycle as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph TD;
+    %% === Nodes Definition ===
+
+    %% Inputs from Daily Cycle & Foundational Docs for Weekly Analysis (Slide 18)
+    FromDaily_NewsAnalyses["DailyNewsAnalysis_YYYY-MM-DD_... (Past 7 Days from Daily Cycle)"]
+    FD_Strategy["Strategy_Current"]
+
+    %% Ritual 1: Weekly Analysis
+    R_WklyAnalysis("LACM WeeklyAnalysis")
+
+    %% Output of Weekly Analysis
+    Out_WklyAnalysis["KW[CurrentWeek]_WeeklyAnalysis_YYYY-MM-DD"]
+
+    %% Inputs from Daily Cycle & Previous Weekly Cycle for Weekly Retro Prep (Slide 19)
+    FromDaily_Logs["DailyLog_YYYY-MM-DD_... (Past 7 Days from Daily Cycle)"]
+    Prev_WklyPlanPreview["KW[CurrentWeek-1]_WeeklyPlanPreview_... (From Previous Weekly Cycle)"]
+    FD_Processes_In["Processes_Internal (Input)"]
+
+    %% Ritual 2a: Weekly Retro Prep (AI)
+    R_WklyRetroPrep("LACM WeeklyRetroPrep (AI Prep)")
+
+    %% Output of AI Retro Prep
+    Out_RetroPrepDoc["KW[CurrentWeek]_RetroPreparation_..."]
+
+    %% Human Action part of Retro (Slide 19)
+    Human_RetroDiscussion("Team Retro Discussion & Updates (Human Action)")
+
+    %% Outputs from Human Retro Discussion
+    Out_WklyRetroSummary["KW[CurrentWeek]_WeeklyRetroSummary_YYYY-MM-DD"]
+    Updated_Processes["Processes_Internal (Updated)"]
+    ToDaily_TaskList["TaskList_Current (Updated for Daily & Weekly Planning)"]
+
+    %% Inputs for Weekly Plan Preview Generator (Slide 20)
+    %% Out_WklyAnalysis, Out_WklyRetroSummary, FD_Strategy already defined
+    %% ToDaily_TaskList is also an input here
+    FD_GoalsQuarter["Goals_Quarter_..."]
+
+    %% Ritual 3: Weekly Plan Preview Generator
+    R_WklyPlanGenerator("LACM WeeklyPlanPreviewGenerator")
+
+    %% Output of Weekly Plan Preview Generator
+    ToDaily_WklyPlanPreview["KW[NextWeek]_WeeklyPlanPreview_YYYY-MM-DD"]
+
+    %% For showing Weekly cycle continuity
+    Next_WklyRetroPrep_Placeholder("LACM WeeklyRetroPrep (Next Week's Cycle)")
+
+
+    %% === Edge Definition (Connections) ===
+
+    %% Connections for LACM WeeklyAnalysis (Ritual 1)
+    FromDaily_NewsAnalyses --> R_WklyAnalysis;
+    FD_Strategy --> R_WklyAnalysis;
+    R_WklyAnalysis -- "Synthesizes Trends" --> Out_WklyAnalysis;
+
+    %% Connections for LACM WeeklyRetroPrep (Ritual 2a - AI)
+    FromDaily_Logs --> R_WklyRetroPrep;
+    Prev_WklyPlanPreview --> R_WklyRetroPrep;
+    FD_Processes_In --> R_WklyRetroPrep;
+    R_WklyRetroPrep -- "Generates Prep Data" --> Out_RetroPrepDoc;
+
+    %% Connections for Human Retro Discussion (Human Action part of Ritual 2)
+    Out_RetroPrepDoc --> Human_RetroDiscussion;
+    Human_RetroDiscussion -- "Creates Summary" --> Out_WklyRetroSummary;
+    Human_RetroDiscussion -- "Updates Process Doc" --> Updated_Processes;
+    Human_RetroDiscussion -- "Updates Task List" --> ToDaily_TaskList;
+
+    %% Connections for LACM WeeklyPlanPreviewGenerator (Ritual 3)
+    Out_WklyAnalysis --> R_WklyPlanGenerator;
+    Out_WklyRetroSummary --> R_WklyPlanGenerator;
+    FD_Strategy -- "Strategic Guide" --> R_WklyPlanGenerator;
+    FD_GoalsQuarter --> R_WklyPlanGenerator;
+    ToDaily_TaskList -- "Uses Updated Tasks" --> R_WklyPlanGenerator;
+    R_WklyPlanGenerator -- "Drafts Next Week's Plan" --> ToDaily_WklyPlanPreview;
+
+    %% Cycle Continuity
+    ToDaily_WklyPlanPreview -- "Input for Next Week's Daily Cycle" --> ToDaily_WklyPlanPreview;
+    ToDaily_WklyPlanPreview -- "Becomes Previous Week's Plan" --> Next_WklyRetroPrep_Placeholder;
+
+
+    %% === Subgraph for Visual Grouping ===
+    subgraph Weekly Cycle Activities
+        direction LR
+        R_WklyAnalysis
+        R_WklyRetroPrep
+        Human_RetroDiscussion
+        R_WklyPlanGenerator
+    end
+
+    %% === Styling ===
+    classDef ritual fill:#f9d,stroke:#333,stroke-width:2px,color:#333;
+    classDef document fill:#ccf,stroke:#333,stroke-width:1px,color:#333;
+    classDef foundationalDoc fill:#cff,stroke:#333,stroke-width:1px,color:#333;
+    classDef humanAction fill:#ffd,stroke:#333,stroke-width:2px,color:#333;
+    classDef fromDaily fill:#e6ffe6,stroke:#006400,stroke-width:1.5px,color:#004d00;
+    classDef toDaily fill:#ffe6e6,stroke:#8b0000,stroke-width:1.5px,color:#800000;
+    classDef cycleContinuity fill:#eee,stroke:#666,stroke-width:1px,color:#666,stroke-dasharray: 5 5;
+
+    class R_WklyAnalysis,R_WklyRetroPrep,R_WklyPlanGenerator ritual;
+    class Human_RetroDiscussion humanAction;
+    class Out_WklyAnalysis,Out_RetroPrepDoc,Out_WklyRetroSummary,Updated_Processes,Prev_WklyPlanPreview document;
+    class FD_Strategy,FD_Processes_In,FD_GoalsQuarter foundationalDoc;
+    class FromDaily_NewsAnalyses,FromDaily_Logs fromDaily;
+    class ToDaily_TaskList,ToDaily_WklyPlanPreview toDaily;
+    class Next_WklyRetroPrep_Placeholder cycleContinuity;
+```
+
+---------------------------------------
+Simplified Monthly Cycle as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph TD;
+    %% === Nodes Definition ===
+
+    %% Inputs for Monthly Analysis & Strategy Check (Slide 21)
+    WeeklyAnalyses["WeeklyAnalysis_YYYY-MM (Past 4 Weeks)"]
+    FD_Strategy["Strategy_Current"]
+    FD_GoalsQuarter["Goals_Quarter_Current"]
+
+    %% Ritual 1: Monthly Analysis & Strategy Check
+    R_MonthlyAnalysis("LACM MonthlyAnalysisStrategyCheck")
+
+    %% Output of Monthly Analysis
+    Out_MonthlyAnalysis["YYYY-MM_MonthlyAnalysisStrategyCheck"]
+
+    %% Inputs for Context Condensation (Slide 22)
+    OlderDocs["TIP Documents >60 Days Old"]
+
+    %% Ritual 2: Context Condensation
+    R_ContextCondensation("LACM ContextCondensation")
+
+    %% Output of Context Condensation
+    Out_CondensedContext["CondensedContext_[Period]_[Date]"]
+
+    %% Inputs for Monthly Process Retro Prep (Slide 23)
+    WeeklyRetroSummaries["WeeklyRetroSummary_YYYY-MM (Past 4 Weeks)"]
+    Prev_Process["Processes_Internal (Current)"]
+
+    %% Ritual 3: Monthly Process Retro Prep
+    R_MonthlyProcessRetro("LACM MonthlyProcessRetroPrep")
+
+    %% Output of AI Prep for Process Retro
+    Out_ProcessPrep["YYYY-MM_ProcessRetroPreparation"]
+
+    %% Human Action: Process Review & Update
+    Human_ProcessRetro("Team Process Review & Update")
+
+    %% Output of Human Process Review
+    Updated_Processes["Processes_Internal (Updated)"]
+
+    %% === Edge Definitions ===
+
+    WeeklyAnalyses       --> R_MonthlyAnalysis
+    FD_Strategy          --> R_MonthlyAnalysis
+    FD_GoalsQuarter      --> R_MonthlyAnalysis
+    R_MonthlyAnalysis    --> Out_MonthlyAnalysis
+
+    OlderDocs            --> R_ContextCondensation
+    R_ContextCondensation--> Out_CondensedContext
+
+    WeeklyRetroSummaries --> R_MonthlyProcessRetro
+    Prev_Process         --> R_MonthlyProcessRetro
+    R_MonthlyProcessRetro--> Out_ProcessPrep
+
+    Out_ProcessPrep      --> Human_ProcessRetro
+    Human_ProcessRetro   --> Updated_Processes
+
+    %% === Styling ===
+
+    classDef ritual         fill:#f9d,stroke:#333,stroke-width:2px,color:#333;
+    classDef document       fill:#ccf,stroke:#333,stroke-width:1px,color:#333;
+    classDef foundationalDoc fill:#cff,stroke:#333,stroke-width:1px,color:#333;
+    classDef externalDoc    fill:#e6ffe6,stroke:#006400,stroke-width:1.5px,color:#004d00;
+    classDef humanAction    fill:#ffd,stroke:#333,stroke-width:2px,color:#333;
+
+    class R_MonthlyAnalysis,R_ContextCondensation,R_MonthlyProcessRetro ritual;
+    class Out_MonthlyAnalysis,Out_CondensedContext,Out_ProcessPrep,Updated_Processes document;
+    class FD_Strategy,FD_GoalsQuarter foundationalDoc;
+    class WeeklyAnalyses,OlderDocs,WeeklyRetroSummaries externalDoc;
+    class Human_ProcessRetro humanAction;
+```
+
+---------------------------------------
+Detailed Monthly Cycle as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph TD;
+
+    %% === INPUT DOCUMENT NODES ===
+
+    %% Inputs from Weekly Cycle
+    In_WklyAnalyses["Aggregated Weekly Analyses (KW*_WeeklyAnalysis_*) (From Weekly Cycle)"]
+    In_WklyRetroSummaries["Aggregated Weekly Retro Summaries (KW*_WeeklyRetroSummary_*) (From Weekly Cycle)"]
+
+    %% Foundational Documents (as Inputs)
+    FD_Strategy_M["Strategy_Current Document (Foundational)"]
+    FD_Goals_M["Goals_Quarter_Current Document (Foundational / From Quarterly)"]
+    FD_Processes_M_In["Processes_Internal Document (Input) (Foundational)"]
+
+    %% Archival/System Data (Input)
+    In_OlderDocs["Older TIP Documents (e.g., Daily Logs, Weekly Analyses >60 days) (Archival/System Data)"]
+
+    %% === MONTHLY CYCLE RITUALS & INTERMEDIATE/OUTPUT DOCUMENTS ===
+    subgraph Monthly Cycle Activities
+        direction TB;
+
+        %% Ritual 1: Monthly Analysis & Strategy Check (Slide 21)
+        R_M_StratCheck("(M1) LACM MonthlyAnalysisStrategyCheck (AI Action: Synthesizes weekly trends, evaluates progress)")
+            In_WklyAnalyses --> R_M_StratCheck;
+            FD_Strategy_M --> R_M_StratCheck;
+            FD_Goals_M --> R_M_StratCheck;
+        Out_M_StratCheckDoc["YYYY-MM_MonthlyAnalysisStrategyCheck (Output to Quarterly Cycle)"]
+            R_M_StratCheck -- "Generates Analysis & Strategy Check" --> Out_M_StratCheckDoc;
+
+        %% Ritual 2: Context Size Management (Slide 22)
+        R_M_CtxCondense("(M2) LACM ContextCondensation (AI Action: Summarizes older data; Human Action: Reviews summary, decides on archiving/deleting)")
+            In_OlderDocs --> R_M_CtxCondense;
+        Out_M_CondenseDoc["CondensedContext_[Period]_[Date] (Archival Output)"]
+            R_M_CtxCondense -- "Generates Condensed Context Summary" --> Out_M_CondenseDoc;
+
+        %% Ritual 3: Process Retrospective & Update (Slide 23)
+        R_M_ProcRetroPrep("(M3a) LACM MonthlyProcessRetroPrep (AI Action: Generates summary of process feedback)")
+            In_WklyRetroSummaries --> R_M_ProcRetroPrep;
+            FD_Processes_M_In --> R_M_ProcRetroPrep;
+        Out_M_ProcRetroPrepDoc["YYYY-MM_ProcessRetroPreparation (AI-Generated Prep Document)"]
+            R_M_ProcRetroPrep -- "Generates Process Retro Prep Doc" --> Out_M_ProcRetroPrepDoc;
+
+        H_M_ProcReview("(M3b) Team Process Review & Update (Human Action: Reviews AI prep, discusses issues, agrees on improvements)")
+            Out_M_ProcRetroPrepDoc --> H_M_ProcReview;
+        FD_Processes_M_Out["Processes_Internal Document (Updated) (Feedback to Foundational Document)"]
+            H_M_ProcReview -- "Updates with Agreed Improvements" --> FD_Processes_M_Out;
+
+    end
+
+    %% === EXTERNAL OUTPUTS / FEEDBACK LOOPS ===
+    %% Connection to Quarterly Cycle
+    To_Quarterly["`Input to Quarterly Cycle (e.g., LACM QuarterlyReviewPrep)`"]
+    Out_M_StratCheckDoc -.-> To_Quarterly;
+
+    %% Feedback Loop for Processes Document - representing the updated state of the foundational doc
+    FD_Processes_Updated_Ref["`Processes_Internal (Reflects Monthly Updates)`"]
+    FD_Processes_M_Out ==> FD_Processes_Updated_Ref;
+
+
+    %% === STYLING (adapted from your Weekly Cycle example) ===
+    classDef ritual fill:#f9d,stroke:#333,stroke-width:2px,color:#333;
+    classDef document fill:#ccf,stroke:#333,stroke-width:1px,color:#333;
+    classDef foundationalDoc fill:#cff,stroke:#333,stroke-width:1px,color:#333;
+    classDef humanAction fill:#ffd,stroke:#333,stroke-width:2px,color:#333;
+    classDef fromWeekly fill:#e6ffe6,stroke:#006400,stroke-width:1.5px,color:#004d00; %% Inputs from Weekly cycle
+    classDef toQuarterly fill:#ffe6e6,stroke:#8b0000,stroke-width:1.5px,color:#800000; %% Outputs to Quarterly cycle
+    %% classDef cycleContinuity fill:#eee,stroke:#666,stroke-width:1px,color:#666,stroke-dasharray: 5 5; %% Not used in this specific diagram
+
+    %% Applying classes
+    class R_M_StratCheck,R_M_CtxCondense,R_M_ProcRetroPrep ritual;
+    class H_M_ProcReview humanAction;
+
+    class In_WklyAnalyses,In_WklyRetroSummaries fromWeekly;
+    class FD_Strategy_M,FD_Goals_M,FD_Processes_M_In,FD_Processes_Updated_Ref foundationalDoc;
+    class In_OlderDocs document;
+
+    class Out_M_StratCheckDoc,Out_M_CondenseDoc,Out_M_ProcRetroPrepDoc,FD_Processes_M_Out document;
+
+    class To_Quarterly toQuarterly;
+```
+
+---------------------------------------
+Simplified Cycle Interactions as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph LR;
+
+  %% === Cycle Blocks ===
+  subgraph AnnualCycle["STRATEGIC: Annual Cycle"]
+    direction TB
+    A1("A1: Annual Strategy Review & Planning")
+  end
+
+  subgraph QuarterlyCycle["STRATEGIC: Quarterly Cycle"]
+    direction TB
+    Q1("Q1: Quarterly Review & Goal Setting")
+  end
+
+  subgraph MonthlyCycle["STRATEGIC: Monthly Cycle"]
+    direction TB
+    M1("M1: Monthly Analysis & Strategy Check")
+    M3("M3: Monthly Process Retro & Update")
+  end
+
+  subgraph WeeklyCycle["TACTICAL: Weekly Cycle"]
+    direction TB
+    W1("W1–2–3: Weekly Analysis, Retro & Plan")
+  end
+
+  subgraph DailyCycle["OPERATIONAL: Daily Cycle"]
+    direction TB
+    D1("D1–2–3: Daily News, Log & Plan")
+  end
+
+  class AnnualCycle,QuarterlyCycle,MonthlyCycle,WeeklyCycle,DailyCycle cycleBlock;
+
+  %% === Inter-Cycle Data Nodes ===
+  dailyToWeekly("Daily Outputs")
+  weeklyToDaily("Weekly Guidance")
+  weeklyToMQY("Weekly Outputs")
+  monthlyToWeekly("Processes Updated")
+  quarterlyToWeekly("Goals Updated")
+  annualToWeekly("Strategy Updated")
+  monthlyToMQY("Strategy Updated")
+
+  class dailyToWeekly,weeklyToDaily,weeklyToMQY,monthlyToWeekly,quarterlyToWeekly,annualToWeekly,monthlyToMQY interCycleDoc;
+
+  %% === Connections: Upward Flows ===
+  D1 --> dailyToWeekly --> W1
+  W1 --> weeklyToMQY --> M1
+  W1 --> weeklyToMQY --> Q1
+  W1 --> weeklyToMQY --> A1
+  M1 --> monthlyToMQY --> Q1
+
+  %% === Connections: Downward & Lateral Flows ===
+  W1 --> weeklyToDaily --> D1
+  M3 --> monthlyToWeekly --> W1
+  Q1 --> quarterlyToWeekly --> W1
+  A1 --> annualToWeekly --> W1
+```
+
+---------------------------------------
+Detailed Cycle Interactions as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+flowchart LR
+
+  %% === Cycle Blocks ===
+  subgraph AnnualCycle["STRATEGIC: Annual Cycle"]
+    direction TB
+    A1("A1: Annual Strategy Review\n& Long-Term Planning")
+  end
+
+  subgraph QuarterlyCycle["STRATEGIC: Quarterly Cycle"]
+    direction TB
+    Q1("Q1: Quarterly Review\n& Goal Setting")
+    Q2("Q2: Innovation Management\n(Idea Generation & Evaluation)")
+  end
+
+  subgraph MonthlyCycle["STRATEGIC: Monthly Cycle"]
+    direction TB
+    M1("M1: Monthly Analysis\n& Strategy Check")
+    M3("M3: Monthly Process\nRetro & Update")
+  end
+
+  subgraph WeeklyCycle["TACTICAL: Weekly Cycle"]
+    direction TB
+    W1("W1: Weekly Analysis,\nRetrospective & Planning")
+  end
+
+  subgraph DailyCycle["OPERATIONAL: Daily Cycle"]
+    direction TB
+    D1("D1: Daily News Analysis,\nLog & Planning")
+  end
+
+  class AnnualCycle,QuarterlyCycle,MonthlyCycle,WeeklyCycle,DailyCycle cycleBlock
+
+
+  %% === Data Clusters ===
+
+  subgraph StrategyDocs["Strategy"]
+    direction LR
+    S_Annual("Annual Strategy Doc")
+    S_Quarter("Quarterly Strategy Adjustments")
+    S_Month("Monthly Strategy Check")
+  end
+
+  subgraph GoalsDocs["Goals"]
+    direction LR
+    G_Quarter("Quarterly Goals")
+  end
+
+  subgraph ProcessDocs["Processes"]
+    direction LR
+    P_Updated("Updated Processes")
+  end
+
+  subgraph Insights["Analysis Insights"]
+    direction LR
+    I_Daily("Daily News Insights")
+    I_Weekly("Weekly Trends Insights")
+    I_Monthly("Monthly Trends Insights")
+  end
+
+  subgraph Plans["Plans & Roadmaps"]
+    direction LR
+    L_Daily("Daily Plan")
+    L_Weekly("Weekly Plan Preview")
+  end
+
+  subgraph Innovation["Innovation"]
+    direction LR
+    N_Ideas("Prioritized Innovation\nInitiatives")
+  end
+
+  subgraph Context["Condensed Context"]
+    direction LR
+    C_Condensed("Historical Context\nSummary")
+  end
+
+  class StrategyDocs,GoalsDocs,ProcessDocs,Insights,Plans,Innovation,Context cluster
+
+
+  %% === Inter-Cycle Flows ===
+
+  %% Annual -> Strategy & Goals & Processes & Weekly & Daily
+  A1 --> S_Annual
+  A1 --> W1
+  A1 --> D1
+  A1 --> Q1
+
+  S_Annual --> Q1
+  S_Annual --> W1
+  S_Annual --> D1
+
+  %% Quarterly -> Strategy, Goals, Innovation, Weekly & Monthly & Daily
+  Q1 --> G_Quarter
+  Q1 --> S_Quarter
+  Q1 --> Q2
+  Q1 --> W1
+  Q1 --> D1
+  Q1 --> M1
+
+  G_Quarter --> M1
+  G_Quarter --> W1
+  G_Quarter --> D1
+
+  S_Quarter --> M1
+  S_Quarter --> W1
+
+  Q2 --> N_Ideas
+  N_Ideas --> W1
+
+  %% Monthly -> Strategy, Processes, Insights, Weekly & Quarterly
+  M1 --> S_Month
+  M1 --> I_Monthly
+  M1 --> Q1
+
+  S_Month --> Q1
+
+  M3 --> P_Updated
+  P_Updated --> W1
+
+  %% Weekly -> Plans, Insights, Daily & Monthly & Quarterly & Annual
+  W1 --> L_Weekly
+  W1 --> I_Weekly
+  W1 --> M1
+  W1 --> A1
+  W1 --> Q1
+
+  L_Weekly --> D1
+  I_Weekly --> M1
+  I_Weekly --> Q1
+
+  %% Daily -> Plans, Insights & Weekly
+  D1 --> L_Daily
+  D1 --> I_Daily
+  D1 --> W1
+
+  L_Daily --> W1
+  I_Daily --> W1
+
+  %% Context Condensation (ad-hoc, feeds nothing upstream)
+  %% (You can link C_Condensed if desired)
+  M1 --> C_Condensed
+  C_Condensed -.-> A1
+  C_Condensed -.-> Q1
+  C_Condensed -.-> M1
+
+  %% === Styling ===
+  classDef cycleBlock fill:#f0f8ff,stroke:#4682b4,stroke-width:2px,color:#333,font-weight:bold
+  classDef cluster fill:#e0ffff,stroke:#008b8b,stroke-width:1.5px,color:#333
+```
+
+---------------------------------------
+Complete Cycle as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph TD;
+    %% === Foundational/External Document Nodes ===
+    FD_Strategy["<b>Strategy Current Document</b><br>(Updated Annually/Quarterly)"];
+    FD_Goals["<b>Quarterly Goals Document (OKRs)</b><br>(Updated Quarterly)"];
+    FD_Processes["<b>Internal Processes Document</b><br>(Updated Monthly/Weekly)"];
+    FD_CompetitorsTM["Competitors & Target Markets Data<br>(External/Foundational)"];
+    FD_OtherInputs["Manual Inputs (News, Daily Logs)<br>Available Time, Initial Task List<br>Older Docs, Customer Feedback, etc.<br>(External/Operational)"];
+
+    %% === Inter-Cycle Data Flow Nodes ===
+    node_DailyOutputsToWeekly["Output: Aggregated Daily Data<br>(News Analysis, Logs)"];
+    node_WeeklyGuidanceToDaily["Feedback/Input: Weekly Guidance<br>(Updated Task List, Weekly Plan Preview)"];
+    node_WeeklyOutputsToMQY["Output: Aggregated Weekly Data<br>(Analyses, Retro Summaries)"];
+
+    %% === DAILY CYCLE =======================================================
+    subgraph DailyCycle["OPERATIONAL: Daily Cycle"]
+        direction LR;
+        R_D_NewsAnalysis["(D1) Daily News Analysis"];
+        R_D_LogGenerator["(D2) Daily Log Generator"];
+        R_D_PlanGenerator["(D3) Daily Plan Generator"];
+    end
+
+    %% Inputs to Daily Cycle Rituals
+    FD_Strategy-.->R_D_NewsAnalysis;
+    FD_Strategy-.->R_D_PlanGenerator;
+    FD_CompetitorsTM-->R_D_NewsAnalysis;
+    FD_OtherInputs-->|Manual News|R_D_NewsAnalysis;
+    FD_OtherInputs-->|Manual Daily Logs|R_D_LogGenerator;
+    FD_OtherInputs-->|Available Time, Initial Tasks|R_D_PlanGenerator;
+    FD_Goals-.->R_D_PlanGenerator;
+    node_WeeklyGuidanceToDaily-->|Feeds Daily Planning|R_D_PlanGenerator;
+
+    %% Outputs from Daily Cycle Rituals
+    R_D_NewsAnalysis-->|Daily News Output|node_DailyOutputsToWeekly;
+    R_D_LogGenerator-->|Daily Log Output|node_DailyOutputsToWeekly;
+
+    %% === WEEKLY CYCLE ======================================================
+    subgraph WeeklyCycle["TACTICAL: Weekly Cycle"]
+        direction LR;
+        R_W_Analysis["(W1) Weekly Analysis"];
+        R_W_Retro["(W2) Weekly Retro & Updates<br>(Incl. Task List & Process Update)"];
+        R_W_PlanPreview["(W3) Weekly Plan Preview"];
+    end
+
+    %% Connection from Daily to Weekly
+    node_DailyOutputsToWeekly===>R_W_Analysis;
+    node_DailyOutputsToWeekly===>R_W_Retro;
+
+    %% Other Inputs to Weekly Cycle Rituals
+    FD_Strategy-.->R_W_Analysis;
+    FD_Strategy-.->R_W_PlanPreview;
+    FD_Processes-.->R_W_Retro;
+    FD_Goals-.->R_W_PlanPreview;
+
+    %% Outputs from Weekly Cycle Rituals
+    R_W_Retro-->|Updated Task List|node_WeeklyGuidanceToDaily;
+    R_W_PlanPreview-->|Weekly Plan Preview Doc|node_WeeklyGuidanceToDaily;
+    R_W_Analysis-->|Weekly Analysis Output|node_WeeklyOutputsToMQY;
+    R_W_Retro-->|Weekly Retro Summary & Process Ideas|node_WeeklyOutputsToMQY;
+    R_W_Retro-.->|Updates Processes Directly|FD_Processes;
+
+    %% === MONTHLY / QUARTERLY / YEARLY CYCLE ===============================
+    subgraph MQYCycle["STRATEGIC: Monthly / Quarterly / Yearly Cycles"]
+        direction TB;
+        R_M_AnalysisStrategy["(M1) Monthly Analysis & Strategy Check"];
+        R_M_ContextCondense["(M2) Monthly Context Condensation"];
+        R_M_ProcessRetro["(M3) Monthly Process Retro & Update"];
+        R_Q_ReviewGoals["(Q1) Quarterly Review & Goal Setting (OKRs)"];
+        R_Q_Innovation["(Q2) Quarterly Innovation Management"];
+        R_A_StrategyPlanning["(A1) Annual Strategy Review & Planning"];
+    end
+
+    %% Connection from Weekly to M/Q/Y
+    node_WeeklyOutputsToMQY===>R_M_AnalysisStrategy;
+    node_WeeklyOutputsToMQY===>R_M_ProcessRetro;
+    node_WeeklyOutputsToMQY===>R_Q_ReviewGoals;
+
+    %% Other Inputs to M/Q/Y Cycle Rituals
+    FD_Strategy-->R_M_AnalysisStrategy;
+    FD_Strategy-->R_Q_ReviewGoals;
+    FD_Strategy-->R_Q_Innovation;
+    FD_Strategy-->R_A_StrategyPlanning;
+    FD_Goals-->R_M_AnalysisStrategy;
+    FD_Goals-->R_Q_ReviewGoals;
+    FD_Processes-->R_M_ProcessRetro;
+    FD_OtherInputs-->|Older Docs for Condensation|R_M_ContextCondense;
+    FD_OtherInputs-->|Feedback/Ideas for Innovation|R_Q_Innovation;
+    FD_CompetitorsTM-->R_Q_Innovation;
+
+    %% Strategic Feedback Loops updating Foundational Docs
+    R_A_StrategyPlanning-->|"Updates Strategy (Annual Feedback Loop)"|FD_Strategy;
+    R_Q_ReviewGoals-->|"Sets/Updates Goals (Quarterly Feedback Loop)"|FD_Goals;
+    R_M_ProcessRetro-->|"Refines Processes (Monthly Feedback Loop)"|FD_Processes;
+
+    %% === Styling ===
+    classDef cycleBlock fill:#f0f8ff,stroke:#4682b4,stroke-width:2px,color:#333,font-weight:bold;
+    class DailyCycle,WeeklyCycle,MQYCycle cycleBlock;
+    classDef foundationalDoc fill:#fffacd,stroke:#b8860b,stroke-width:2px,color:#333,font-weight:bold;
+    class FD_Strategy,FD_Goals,FD_Processes foundationalDoc;
+    classDef externalDoc fill:#faf0e6,stroke:#8fbc8f,stroke-width:1.5px,color:#333;
+    class FD_CompetitorsTM,FD_OtherInputs externalDoc;
+    classDef interCycleDoc fill:#e0ffff,stroke:#008b8b,stroke-width:1.5px,color:#333;
+    class node_DailyOutputsToWeekly,node_WeeklyGuidanceToDaily,node_WeeklyOutputsToMQY interCycleDoc;
+    classDef ritualInBlock fill:#ffffff,stroke:#b0c4de,stroke-width:1px,color:#333;
+    class R_D_NewsAnalysis,R_D_LogGenerator,R_D_PlanGenerator ritualInBlock;
+    class R_W_Analysis,R_W_Retro,R_W_PlanPreview ritualInBlock;
+    class R_M_AnalysisStrategy,R_M_ContextCondense,R_M_ProcessRetro,R_Q_ReviewGoals,R_Q_Innovation,R_A_StrategyPlanning ritualInBlock;
+```
