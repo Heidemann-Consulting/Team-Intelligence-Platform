@@ -75,7 +75,7 @@ combin with:
 
 * ✅ Add info to readme regarding differences between LACM and the 3 phases: LACM is an easy to use lower barrier of entry process, the 3 phases aim at organizational transformation on a multi-team (and possibly multi-project) level.
 
-* Add the corresponding prompt as a preview (in a scrollable textbox) of what the workflows do to each workflow box to the ExecuteWorkflowPage - between the info about "INPUT DOCUMENT SELECTORS" and the info about "OUTPUT NAME TEMPLATE".
+* ✅ Add the corresponding prompt as a preview (in a scrollable textbox) of what the workflows do to each workflow box to the ExecuteWorkflowPage - between the info about "INPUT DOCUMENT SELECTORS" and the info about "OUTPUT NAME TEMPLATE".
 
 * Add „An empty template“ to the list of templates
 * Also add „A generic workflow“ that has * as Input-Selector and a generic prompt like „You are a helpful AI assistant, have a look at the following:“

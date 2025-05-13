@@ -1,12 +1,14 @@
 // File: ulacm_frontend/src/pages/team/ExecuteWorkflowPage.tsx
 // Purpose: Page for Teams to list and execute available (Admin-created) Workflows.
 // Updated: Modified to pass additionalAiInput to triggerWorkflowExecution.
+// Updated: Added prompt preview in a scrollable textbox.
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { FolderGit2, Play, AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, ListTree, TextCursorInput } from 'lucide-react';
+import { FolderGit2, Play, AlertTriangle, RefreshCw, ChevronLeft, ChevronRight, Search as SearchIcon, Info, ListTree, TextCursorInput, Eye } from 'lucide-react'; // Added Eye
 import toast from 'react-hot-toast';
+// import { marked } from 'marked'; // Added for Markdown preview
 
-import { ContentItemListed, ContentItemType, PaginatedResponse, RunWorkflowResponse } from '@/types/api';
+import { ContentItemListed, ContentItemType, PaginatedResponse, RunWorkflowResponse, ContentItemDetail } from '@/types/api'; // Added ContentItemDetail
 import contentService, { RunWorkflowPayload } from '@/services/contentService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import RunWorkflowModal from '@/components/content/RunWorkflowModal';
@@ -35,9 +37,12 @@ const ExecuteWorkflowPage: React.FC = () => {
   const [contentQueryInput, setContentQueryInput] = useState('');
   const [debouncedContentQuery, setDebouncedContentQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-
-
   const navigate = useNavigate();
+
+  // State for prompt previews
+  const [workflowPromptPreviews, setWorkflowPromptPreviews] = useState<Record<string, string | null>>({});
+  const [loadingPreviewFor, setLoadingPreviewFor] = useState<string | null>(null);
+
 
   useEffect(() => {
     setIsTyping(true);
@@ -48,6 +53,34 @@ const ExecuteWorkflowPage: React.FC = () => {
     }, 500);
     return () => clearTimeout(handler);
   }, [contentQueryInput]);
+
+  const fetchWorkflowPrompt = useCallback(async (workflowId: string) => {
+    setLoadingPreviewFor(workflowId);
+    try {
+      const details: ContentItemDetail = await contentService.getItemDetails(workflowId);
+      // Assuming the prompt is within the markdown_content of the workflow's current version
+      // The workflow definition itself is parsed by the backend during execution.
+      // For preview, we might need to extract the 'prompt:' part from the markdown content.
+      // This is a simplified approach; a more robust one would parse the YAML-like structure.
+      let promptContent = "Prompt not found in details.";
+      if (details.markdown_content) {
+        const match = details.markdown_content.match(/prompt:\s*\|?\s*([\s\S]*)/i);
+        if (match && match[1]) {
+          promptContent = match[1].trim();
+        } else {
+          // Fallback if direct 'prompt:' not found, maybe show whole content or a part of it
+          promptContent = details.markdown_content;
+        }
+      }
+      setWorkflowPromptPreviews(prev => ({ ...prev, [workflowId]: promptContent }));
+    } catch (err) {
+      console.error(`Failed to fetch details for workflow ${workflowId} for prompt preview:`, err);
+      setWorkflowPromptPreviews(prev => ({ ...prev, [workflowId]: "Could not load prompt preview." }));
+    } finally {
+      setLoadingPreviewFor(null);
+    }
+  }, []);
+
 
   const fetchWorkflows = useCallback(async (offset = 0) => {
     setIsLoading(true);
@@ -70,15 +103,20 @@ const ExecuteWorkflowPage: React.FC = () => {
       const data: PaginatedResponse<ContentItemListed> = await contentService.getItems(params);
       setWorkflows(data.items);
       setPagination(prev => ({ ...prev, offset, total_count: data.total_count }));
+      // Fetch prompts for newly loaded workflows if not already fetched
+      data.items.forEach(wf => {
+        if (!workflowPromptPreviews[wf.item_id]) {
+          fetchWorkflowPrompt(wf.item_id);
+        }
+      });
     } catch (err: any) {
       console.error("Failed to fetch workflows:", err);
-      const errorMessage = err.message ||
-        'Failed to load available workflows.';
+      const errorMessage = err.message || 'Failed to load available workflows.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.limit, debouncedContentQuery]);
+  }, [pagination.limit, debouncedContentQuery, fetchWorkflowPrompt, workflowPromptPreviews]);
 
   useEffect(() => {
     fetchWorkflows(pagination.offset);
@@ -118,15 +156,8 @@ const ExecuteWorkflowPage: React.FC = () => {
       setWorkflowToGetInputsFor(workflow);
       setShowSelectInputsModal(true);
     } else {
-      // If no selectors, prompt if user wants to add additional AI input directly
-      // For simplicity, we can make SelectInputDocumentsModal handle this:
-      // if selectors are empty, it mainly shows the additional_ai_input field.
-      // Or, we can directly call triggerWorkflowExecution and ask for additional input here,
-      // but using the modal is more consistent.
-      // Let's assume if no selectors, the modal will still be used for consistency for adding additional AI input
-      setWorkflowToGetInputsFor(workflow); // Still set it to pass to modal
+      setWorkflowToGetInputsFor(workflow);
       setShowSelectInputsModal(true);
-      // triggerWorkflowExecution(workflow); // Old behavior
     }
   };
 
@@ -157,8 +188,18 @@ const ExecuteWorkflowPage: React.FC = () => {
 
   const totalPages = Math.ceil(pagination.total_count / pagination.limit);
   const currentPage = Math.floor(pagination.offset / pagination.limit) + 1;
-
   const displayableWorkflows = workflows;
+
+  const renderPromptPreviewHTML = (promptText: string | null): { __html: string } => {
+    if (!promptText) return { __html: "<p class='text-ulacm-gray-400 italic text-xs'>No prompt preview available.</p>" };
+    try {
+      // Basic display, not full Markdown parsing as prompt might not be Markdown
+      return { __html: `<pre class="whitespace-pre-wrap text-xs">${promptText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>` };
+    } catch (parseError) {
+      console.error("Error rendering prompt preview:", parseError);
+      return { __html: "<p class='text-red-500 font-semibold text-xs'>Error rendering prompt preview.</p>" };
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -269,6 +310,24 @@ const ExecuteWorkflowPage: React.FC = () => {
                             </p>
                         </div>
                     )}
+
+                    {/* Prompt Preview Textbox */}
+                    <div className="mb-3">
+                        <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
+                          <Eye size={14} className="mr-1.5 text-ulacm-gray-400"/> Workflow Prompt Preview
+                        </h4>
+                        <div className="text-sm text-ulacm-gray-700 bg-ulacm-gray-50 p-2.5 rounded-md border border-ulacm-gray-200 shadow-sm max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-ulacm-gray-300 scrollbar-track-ulacm-gray-100">
+                          {loadingPreviewFor === wf.item_id ? (
+                            <div className="flex items-center justify-center text-xs text-ulacm-gray-500">
+                              <LoadingSpinner size="sm" className="mr-1.5" /> Loading preview...
+                            </div>
+                          ) : (
+                            <div dangerouslySetInnerHTML={renderPromptPreviewHTML(workflowPromptPreviews[wf.item_id] || "Click 'Run Workflow' to see full details or if prompt is complex.")} />
+                          )}
+                        </div>
+                    </div>
+
+
                     {wf.workflow_output_name_template && (
                        <div className="mb-4">
                         <h4 className="text-xs font-semibold text-ulacm-gray-500 uppercase tracking-wider mb-1.5 flex items-center">
