@@ -26,11 +26,11 @@ All workflow **names, glob‑patterns and output filenames** match those referen
 
 ```yaml
 inputDocumentSelectors:
-  - "Prompt_Packet_????-??-??"
-  - "North_Star_Charter"
-  - "Working_Backlog_Current"
-  - "Daily_Digest"
-  - "Decision_Log"
+  - "Prompt_Packet*"
+  - "North_Star_Charter*"
+  - "Working_Backlog_Current*"
+  - "Daily_Digest*"
+  - "Decision_Log*"
 inputDateSelector: "between_{{CurrentDate}}_{{CurrentDate}}"
 outputName: "LLM_Draft_{{CurrentDate}}"
 prompt: |
@@ -59,8 +59,8 @@ prompt: |
 
 ```yaml
 inputDocumentSelectors:
-  - "LLM_Draft_????-??-??"
-  - "Prompt_Packet_????-??-??"
+  - "LLM_Draft*"
+  - "Prompt_Packet*"
 inputDateSelector: "between_{{CurrentDate}}_{{CurrentDate}}"
 outputName: "LLM_Refined_{{CurrentDate}}"
 prompt: |
@@ -83,7 +83,7 @@ prompt: |
 
 ```yaml
 inputDocumentSelectors:
-  - "LLM_Refined_????-??-??"
+  - "LLM_Refined*"
 outputName: "Digest_{{CurrentDate}}"
 prompt: |
   You are the **Daily Digest Writer**.
@@ -106,9 +106,9 @@ prompt: |
 
 ```yaml
 inputDocumentSelectors:
-  - "Working_Backlog_Current"
-  - "North_Star_Charter"
-  - "Daily_Digest"
+  - "Working_Backlog*"
+  - "North_Star_Charter*"
+  - "Daily_Digest*"
 inputDateSelector: "olderThanDays 7"
 outputName: "Backlog_Reprioritization_{{CurrentDate}}"
 prompt: |
@@ -131,8 +131,8 @@ prompt: |
 
 ```yaml
 inputDocumentSelectors:
-  - "Decision_Log"
-  - "LLM_Refined_*"
+  - "Decision_Logv"
+  - "LLM_Refined*"
 inputDateSelector: "olderThanDays 7"
 outputName: "Retro_Insights_Week_{{Year}}-W{{WeekNumber}}"
 prompt: |
@@ -158,9 +158,9 @@ prompt: |
 
 ```yaml
 inputDocumentSelectors:
-  - "Decision_Log"
-  - "Daily_Digest"
-  - "LLM_Refined_*"
+  - "Decision_Log*"
+  - "Daily_Digest*"
+  - "LLM_Refined*"
 inputDateSelector: "olderThanDays 30"
 outputName: "Metrics_Snapshot_{{Year}}-{{Month}}"
 prompt: |
@@ -181,8 +181,8 @@ prompt: |
 
 ```yaml
 inputDocumentSelectors:
-  - "Daily_Digest"
-  - "Decision_Log"
+  - "Daily_Digest*"
+  - "Decision_Log*"
 inputDateSelector: "olderThanDays 30"
 outputName: "Condensed_Context_{{Year}}-{{Month}}"
 prompt: |
@@ -209,10 +209,10 @@ prompt: |
 
 ```yaml
 inputDocumentSelectors:
-  - "North_Star_Charter"
-  - "Metrics_Snapshot_*"
-  - "Working_Backlog_Current"
-  - "Condensed_Context_*"
+  - "North_Star_Charter*"
+  - "Metrics_Snapshot*"
+  - "Working_Backlog*"
+  - "Condensed_Context*"
 inputDateSelector: "olderThanDays 90"
 outputName: "Strategy_Review_{{Year}}-Q{{Quarter}}"
 prompt: |

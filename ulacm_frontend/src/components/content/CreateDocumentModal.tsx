@@ -75,7 +75,7 @@ null>(null);
   const generateDefaultDocumentName = (templateName: string | undefined): string => {
     if (!templateName) return '';
     let name = templateName;
-    const prefixesToStrip = ["LACM ", "Phase 1 ", "Phase 2 ", "Phase 3 "];
+    const prefixesToStrip = ["A_Lean_Loop_", "LACM ", "Phase 1 ", "Phase 2 ", "Phase 3 "];
     prefixesToStrip.forEach(prefix => {
         if (name.startsWith(prefix)) {
             name = name.substring(prefix.length);

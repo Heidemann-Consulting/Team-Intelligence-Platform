@@ -169,6 +169,302 @@ BEGIN
 END $$;
 
 --
+-- Inserting A_Lean_Loop_ Templates
+--
+
+-- Template: A_Lean_Loop_North_Star_Charter
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_North_Star_Charter', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# North-Star Charter\n<-- 1-page evergreen mission & 3-year objectives -->\n\n## Mission\n-\n\n## 3-Year Objectives & KPIs\n| Objective | KPI | Target by <YYYY-MM> |\n|-----------|-----|---------------------|\n|\n\n## Success Metrics Definition\n- **Value Created:**\n- **Quality Bar:**\n- **Velocity Target:**\n\n## Last Charter Review\n<YYYY-MM-DD> — summary of changes',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Working_Backlog
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Working_Backlog', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Working Backlog  (rolling 12 weeks)\n<-- Ordered so top = next work item -->\n\n| Rank | Deliverable | Owner | Due | Status | Notes |\n|------|-------------|-------|-----|--------|-------|\n| 1 |  |  |  | ☐ To Do |  |',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Decision_Log
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Decision_Log', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Decision Log\n<-- When a consequential choice is made, add one row -->\n\n| When (UTC) | What we decided | Why | Next Action | Link(s) |\n|------------|-----------------|-----|-------------|---------|\n|            |                 |     |             |         |',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Prompt_Packet
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Prompt_Packet', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Prompt Packet {{CurrentDate}}\n<-- Filled daily by the Coordinator -->\n\n## Goal of the Day\n-\n\n## New Facts / Resources\n-\n\n## Questions Requiring Reasoning\n1.\n\n## Desired Output Format\nMarkdown bullets, ≤300 tokens\n\n## Capacity / Constraints (optional)\n| Person | Available hrs today | Key skills / notes |\n|--------|--------------------|--------------------|',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Daily_Digest
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Daily_Digest', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Daily Digest\n\n<-- Coordinator pastes the 150-token summary produced by the Digest Compressor.\nDelete entries older than 14 days to keep the context small. -->\n\n## {{CurrentDate}}\n…',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Prompt_Library
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Prompt_Library', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Prompt Library\n<-- Keep only prompts that scored ≥4/5 usefulness -->\n\n| Tag | Prompt Snippet | Use Case | Last Success Date |\n|-----|---------------|----------|-------------------|',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Resource_Vault
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Resource_Vault', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Resource Vault\n<-- Curated links, datasets, style guides, credentials, etc. -->\n\n## Docs & Specs\n-\n\n## Data Sources\n-\n\n## Style Guides / Reference\n-',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Capacity_Snapshot
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Capacity_Snapshot', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Capacity Snapshot {{CurrentDate}}\n\n| Person | Available hrs today | Key skills / notes |\n|--------|--------------------|--------------------|',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Metrics_Dashboard
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Metrics_Dashboard', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Lean-Loop KPI Dashboard\n\n| Week | Human minutes / deliverable | Accuracy (sample 5-pt) | NASA-TLX | Prompt reuse % |\n|------|----------------------------|------------------------|----------|----------------|\n|      |                            |                        |          |                |',
+    1, admin_team_id, NOW());
+END $$;
+
+-- Template: A_Lean_Loop_Lean_Loop_Guide
+DO $$
+DECLARE
+    template_item_id uuid := public.uuid_generate_v4();
+    template_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (template_item_id, admin_team_id, 'TEMPLATE', 'A_Lean_Loop_Lean_Loop_Guide', true, template_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (template_version_id, template_item_id,
+E'# Lean-Loop Guide (Quick Reference)\n\n## Daily at a Glance\n1. Coordinator fills Prompt Packet (≤5 min).\n2. Run **Generate LLM Draft** workflow.\n3. Contributors comment 👍/👎 (async).\n4. Run **Incorporate Comments** workflow.\n5. Coordinator compresses into Daily Digest.\n\n## Weekly at a Glance\n- Monday Kick-off (15 min sync).\n- Friday Retro (LLM-led, 10 min async).\n\n## Artefact Locations\n- Charter: `North_Star_Charter`\n- Backlog: `Working_Backlog_Current`\n- Decision Log: `Decision_Log`\n- Digest: `Daily_Digest`\n- Prompt Library: `Prompt_Library`',
+    1, admin_team_id, NOW());
+END $$;
+
+--
+-- End of A_Lean_Loop_ Templates
+--
+
+--
+-- Inserting A_Lean_Loop_ Workflows
+--
+
+-- Workflow: A_Lean_Loop_Generate_LLM_Draft
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "Prompt_Packet*"\n  - "North_Star_Charter*"\n  - "Working_Backlog_Current*"\n  - "Daily_Digest*"\n  - "Decision_Log*"\ninputDateSelector: "between_{{CurrentDate}}_{{CurrentDate}}"\noutputName: "LLM_Draft_{{CurrentDate}}"\nprompt: |\n  You are the **LLM Facilitator** for our Lean-Loop team.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Goals\n  • Answer all items under **Questions Requiring Reasoning**.\n  • Propose **Next-Best-Steps** ranked by ROI per human-hour.\n\n  ### Expected Sections\n  1. **Draft** – coherent answer.\n  2. **Risks** – bullet list of potential pitfalls.\n  3. **Clarifying Questions** – what you still need.\n  4. **👍-Points / 👎-Points** – self-critique.\n  5. **Next-Best-Steps** – top 3 actions with 1-line rationales.\n\n  ### Output Format\n  Markdown only, ≤600 tokens.\n  Prefix any uncertain statement with `(LOW-CONF)`.';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Generate_LLM_Draft', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+-- Workflow: A_Lean_Loop_Incorporate_Comments
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "LLM_Draft*"\n  - "Prompt_Packet*"\ninputDateSelector: "between_{{CurrentDate}}_{{CurrentDate}}"\noutputName: "LLM_Refined_{{CurrentDate}}"\nprompt: |\n  You are the **Reviser** responsible for integrating human feedback.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Instructions\n  1. Accept all inline 👍 comments and apply suggested edits.\n  2. Ignore 👎 sections unless replacement text is provided.\n  3. Compress the **Draft** section by ≈20 % while preserving meaning and bullet structure.\n  4. Retain **Risks**, **Clarifying Questions**, and **Next-Best-Steps**.\n\n  ### Output Format\n  Markdown, ≤480 tokens.';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Incorporate_Comments', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+-- Workflow: A_Lean_Loop_Digest_Compressor
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "LLM_Refined*"\noutputName: "Digest_{{CurrentDate}}"\nprompt: |\n  You are the **Daily Digest Writer**.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Task\n  Summarise the key insights, decisions and action items in **≤150 tokens**.\n\n  ### Output Format\n  Exactly three bullets followed by a **Next Action** line.';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Digest_Compressor', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+-- Workflow: A_Lean_Loop_Weekly_Kickoff
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "Working_Backlog*"\n  - "North_Star_Charter*"\n  - "Daily_Digest*"\ninputDateSelector: "olderThanDays 7"\noutputName: "Backlog_Reprioritization_{{CurrentDate}}"\nprompt: |\n  You are the **Planning Analyst** preparing today’s Kick-off.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Objectives\n  • Re-rank the backlog for the coming week.\n  • Estimate human vs LLM effort.\n  • Surface scope-creep risks.\n\n  ### Output Format\n  Sections – **Proposed Backlog** (ranked table), **Rationale**, **Risks**.\n  Limit to ≤550 tokens.';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Weekly_Kickoff', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+-- Workflow: A_Lean_Loop_Retro_Analyzer
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "Decision_Log*"\n  - "LLM_Refined*"\ninputDateSelector: "olderThanDays 7"\noutputName: "Retro_Insights_Week_{{Year}}-W{{WeekNumber}}"\nprompt: |\n  You are the **Process Analyst**.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Tasks\n  1. Extract recurring **success** and **failure** patterns.\n  2. Recommend the two highest-ROI **process tweaks** (≤50 words each).\n  3. Cite concrete examples (link-style).\n\n  ### Output Format\n  Sections – **Patterns** / **Recommendations**.';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Retro_Analyzer', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+-- Workflow: A_Lean_Loop_Metrics_Snapshot
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "Decision_Log*"\n  - "Daily_Digest*"\n  - "LLM_Refined*"\ninputDateSelector: "olderThanDays 30"\noutputName: "Metrics_Snapshot_{{Year}}-{{Month}}"\nprompt: |\n  You are the **Metrics Auditor**.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Tasks\n  • Compute: Human-minutes per deliverable, Accuracy (sample 10), NASA-TLX average, Prompt reuse %.\n  • Provide one-paragraph commentary.\n\n  ### Output Format\n  Markdown table of the four metrics followed by commentary. ≤400 tokens.';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Metrics_Snapshot', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+-- Workflow: A_Lean_Loop_Context_Condensor
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "Daily_Digest*"\n  - "Decision_Log*"\ninputDateSelector: "olderThanDays 30"\noutputName: "Condensed_Context_{{Year}}-{{Month}}"\nprompt: |\n  You are the **Context Librarian**.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Goal\n  Produce a concise summary ≤1 500 tokens that preserves:\n  • Key decisions, reasons, outcomes.\n  • Enduring lessons learned.\n  • Links to artefacts still required.\n\n  ### Output Format\n  Sections – **Decisions**, **Lessons Learned**, **Archived Links**.';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Context_Condensor', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+-- Workflow: A_Lean_Loop_Quarterly_Strategy_Review
+DO $$
+DECLARE
+    workflow_item_id uuid := public.uuid_generate_v4();
+    workflow_version_id uuid := public.uuid_generate_v4();
+    admin_team_id uuid := '04a9a4ec-18d8-4cfd-bead-d0ef99199e17'; -- ULACM System Administrators team_id
+    workflow_content text := E'inputDocumentSelectors:\n  - "North_Star_Charter*"\n  - "Metrics_Snapshot*"\n  - "Working_Backlog*"\n  - "Condensed_Context*"\ninputDateSelector: "olderThanDays 90"\noutputName: "Strategy_Review_{{Year}}-Q{{Quarter}}"\nprompt: |\n  You are the **Strategy Review Facilitator**.\n\n  ### Context\n  <<<{{DocumentContext}}>>>\n\n  ### Tasks\n  1. Evaluate KPI trajectory vs 3-year objectives.\n  2. Identify ≤3 strategic gaps or opportunities.\n  3. Draft updated **OKRs** for the next quarter.\n  4. Suggest backlog deletions or de-prioritisations.\n\n  ### Output Format\n  – **Executive Summary** (≤120 words)\n  – **Proposed OKRs** (table)\n  – **Backlog Changes** (bullets)';
+BEGIN
+    INSERT INTO public.content_items (item_id, team_id, item_type, name, is_globally_visible, current_version_id, created_at, updated_at)
+    VALUES (workflow_item_id, admin_team_id, 'WORKFLOW', 'A_Lean_Loop_Quarterly_Strategy_Review', true, workflow_version_id, NOW(), NOW());
+
+    INSERT INTO public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at)
+    VALUES (workflow_version_id, workflow_item_id, workflow_content, 1, admin_team_id, NOW());
+END $$;
+
+--
+-- End of A_Lean_Loop_ Workflows
+--
+
+--
 -- Inserting Phase 1 Templates
 --
 
