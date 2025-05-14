@@ -21,9 +21,10 @@
   - [Rituals and Practices](#rituals-and-practices)
   - [Key Concepts](#key-concepts)
     - [AI Co-Management](#ai-co-management)
-    - [Process Variant A: Lean-Loop LLM Facilitator](#process-variant-a-lean-loop-llm-facilitator)
-    - [Process Variant B: Lean AI-Co-Management](#process-variant-b-lean-ai-co-management)
-    - [Process Variant C: Phased Approach](#process-variant-c-phased-approach)
+    - [Process Variants Overview](#process-variants-overview)
+    - [Process Variant: Lean-Loop LLM Facilitator](#process-variant-lean-loop-llm-facilitator)
+    - [Process Variant: Lean AI-Co-Management](#process-variant-lean-ai-co-management)
+    - [Process Variant: Phased Approach](#process-variant-phased-approach)
       - [Phase 1: The Cognitive Foundation](#phase-1-the-cognitive-foundation)
       - [Phase 2: The Collaborative Acceleration](#phase-2-the-collaborative-acceleration)
       - [Phase 3: The Transformative Intelligence](#phase-3-the-transformative-intelligence)
@@ -81,7 +82,15 @@ Six core principles distinguish this approach:
 5. **Continuous Learning and Improvement**
 6. **Balance of Autonomy and Oversight**
 
-### Process Variant A: Lean-Loop LLM Facilitator
+### Process Variants Overview
+
+| Process Variant             | Short Description & Unique Features                                                                                                                                                                                             | Strengths                                                                                                                                                                                                                           | Weaknesses                                                                                                                                                                                                                               | Estimated Avg. Daily Time / Team Member |
+| :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------- |
+| **Lean-Loop LLM Facilitator (Lean-Loop)** | A minimal-overhead workflow designed for small teams (1-9 people) or individuals, turning an LLM into a shared strategic aide . <br> Unique for its daily cycle: Prepare Prompt Packet -> Generate & Self-Check -> Triage -> Refine -> Commit & Compress . Emphasizes cognitive-science-driven prompt patterns and tight artifact discipline for rapid, compounding value . | Very low daily time commitment, making it easy to adopt and maintain for small, agile teams or individuals seeking quick AI leverage . <br>Focuses on rapid daily iteration and immediate application of AI as a strategic aide. | May be too lightweight for larger teams or complex projects requiring deep, multi-layered context management or advanced AI integration for strategic decision-making. <br>Less emphasis on broader organizational transformation compared to the 3-Phases . | 10-15 minutes                           |
+| **Lean AI Co-Management (LACM)** | A simplified process for individuals and individual teams, optimized for quick onboarding and achieving daily wins with AI . <br> Unique for its structured daily routines: Daily News & Environment Analysis, Daily Review & Context Capture, Daily Planning, and Continuous Documentation & Context Curation . Aims to transform AI into an active collaborator . | Lower barrier to entry than the full 3-Phase approach , making it suitable for teams new to structured AI collaboration. <br>More structured daily rituals than Lean-Loop, fostering consistent context building and AI-assisted planning for quick, visible benefits . | May not achieve the full "breakthrough performance" or drive deep "organizational transformation" envisioned by the 3-Phase approach . <br>Less focus on advanced cross-team intelligence or systemic, multi-level retrospectives compared to the 3-Phase model. | 20-30 minutes                           |
+| **3 Phases as 1 Process (Phased Approach)** | The most comprehensive and transformative approach, aimed at achieving team-level breakthrough performance and organizational transformation, potentially across multiple teams and projects . <br>Unique for its successive implementation of three phases: 1. The Cognitive Foundation (knowledge capture), 2. The Collaborative Acceleration (enhanced decision-making/planning), 3. The Transformative Intelligence (advanced human-AI collaboration) . Features advanced rituals like Networked Context Management, AI-Driven Decision Frameworks, and Cross-Team Intelligence . | Highest potential for significant, long-term impact on team and organizational performance, innovation, and knowledge management . <br>Systematically builds deep, interconnected organizational knowledge and advanced human-AI collaboration capabilities . <br>Phased approach allows for structured ramp-up and managing complexity over time . | Highest time commitment and complexity, requiring significant organizational discipline and buy-in . <br>Longer time to realize the full spectrum of benefits across all three phases. <br>Could be overly intensive for very small teams or projects with simpler needs. | 30-45 minutes                           |
+
+### Process Variant: Lean-Loop LLM Facilitator
 
 Lean-Loop LLM Facilitator is the easiest way to start with the Team Intelligence Platform.
 
@@ -91,11 +100,11 @@ You can find the process description here: [Lean‑Loop LLM Facilitator – Ritu
 
 There is also content for a slideset that can be used to introduce and teach Lean-Loop: [Lean-Loop Slideset](docs/lean-loop-slideset.md).
 
-### Process Variant B: Lean AI-Co-Management
+### Process Variant: Lean AI-Co-Management
 
-Lean AI-Co-Management (LACM) is a simplified version of the process meant for individuals and individual teams.
+Lean AI-Co-Management (LACM) is a simplified version of the full process meant for individuals and individual teams.
 
-It is optimized with simple processes which allow for quick onboarding and quick daily wins.
+It is optimized with simplified processes which allow for quick onboarding and quick daily wins.
 
 You can find the process description here: [Lean AI-Co-Management Process](docs/lacm-rituals-and-practices.md).
 
@@ -103,7 +112,7 @@ There is also content for a slideset that can be used to introduce and teach LAC
 
 There is also a PDF version: [Introductory slideset to LACM.pdf](docs/lacm-slideset.pdf).
 
-### Process Variant C: Phased Approach
+### Process Variant: Phased Approach
 
 The phased approach is a complete version of the process that is aimed at team level breakthrough performance and organizational transformation.
 
