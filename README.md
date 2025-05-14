@@ -21,8 +21,9 @@
   - [Rituals and Practices](#rituals-and-practices)
   - [Key Concepts](#key-concepts)
     - [AI Co-Management](#ai-co-management)
-    - [Lean AI-Co-Management](#lean-ai-co-management)
-    - [Phased Approach](#phased-approach)
+    - [Process Variant A: Lean-Loop LLM Facilitator](#process-variant-a-lean-loop-llm-facilitator)
+    - [Process Variant B: Lean AI-Co-Management](#process-variant-b-lean-ai-co-management)
+    - [Process Variant C: Phased Approach](#process-variant-c-phased-approach)
       - [Phase 1: The Cognitive Foundation](#phase-1-the-cognitive-foundation)
       - [Phase 2: The Collaborative Acceleration](#phase-2-the-collaborative-acceleration)
       - [Phase 3: The Transformative Intelligence](#phase-3-the-transformative-intelligence)
@@ -80,7 +81,17 @@ Six core principles distinguish this approach:
 5. **Continuous Learning and Improvement**
 6. **Balance of Autonomy and Oversight**
 
-### Lean AI-Co-Management
+### Process Variant A: Lean-Loop LLM Facilitator
+
+Lean-Loop LLM Facilitator is the easiest way to start with the Team Intelligence Platform.
+
+Its processes have been optimized towards maximum Return on Invest regarding the time spent with TIP.
+
+You can find the process description here: [Lean‑Loop LLM Facilitator – Rituals & Practices](docs/lean-loop-rituals-and-practices.md).
+
+There is also content for a slideset that can be used to introduce and teach Lean-Loop: [Lean-Loop Slideset](docs/lean-loop-slideset.md).
+
+### Process Variant B: Lean AI-Co-Management
 
 Lean AI-Co-Management (LACM) is a simplified version of the process meant for individuals and individual teams.
 
@@ -92,7 +103,7 @@ There is also content for a slideset that can be used to introduce and teach LAC
 
 There is also a PDF version: [Introductory slideset to LACM.pdf](docs/lacm-slideset.pdf).
 
-### Phased Approach
+### Process Variant C: Phased Approach
 
 The phased approach is a complete version of the process that is aimed at team level breakthrough performance and organizational transformation.
 
