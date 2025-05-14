@@ -500,6 +500,39 @@ graph TD;
 ```
 
 ---------------------------------------
+Simplified Weekly Cycle as a Mermaid JS diagram:
+---------------------------------------
+
+```mermaid
+graph LR
+    %% Node Definitions
+    A["Analysis Inputs<br>(Weekly Data + Strategy & Goals)"]
+    B(LACM WeeklyAnalysis)
+    C(LACM WeeklyRetro)
+    D["Retro Inputs<br>(Weekly Analysis Results + Process Updates)"]
+    E(LACM WeeklyPlan)
+    F["Plan Inputs<br>(Goals, Quarterly Preview,<br>Task List & Available Time)"]
+
+    %% Connections
+    A --> B
+    D --> C
+    C --> E
+    F --> E
+    E -.-> D
+    B --> E
+
+    %% Styling
+    style A fill:#d8cff7,stroke:#333,stroke-width:2px
+    style B fill:#f8b3e4,stroke:#333,stroke-width:2px,rx:10,ry:10
+    style C fill:#f8b3e4,stroke:#333,stroke-width:2px,rx:10,ry:10
+    style D fill:#d8cff7,stroke:#333,stroke-width:2px
+    style E fill:#f8b3e4,stroke:#333,stroke-width:2px,rx:10,ry:10,stroke-dasharray: 5 5,rx:10,ry:10
+    style F fill:#d8cff7,stroke:#333,stroke-width:2px
+
+    %% Class definitions could also be used for styling groups, but individual styling is more precise here.
+```
+
+---------------------------------------
 Detailed Weekly Cycle as a Mermaid JS diagram:
 ---------------------------------------
 
