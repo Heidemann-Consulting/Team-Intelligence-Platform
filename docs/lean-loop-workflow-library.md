@@ -31,7 +31,7 @@ inputDocumentSelectors:
   - "Working_Backlog_Current*"
   - "Daily_Digest*"
   - "Decision_Log*"
-inputDateSelector: "between_{{CurrentDate}}_{{CurrentDate}}"
+inputDateSelector: null
 outputName: "LLM_Draft_{{CurrentDate}}"
 prompt: |
   You are the **LLM Facilitator** for our Lean‑Loop team.
@@ -61,7 +61,7 @@ prompt: |
 inputDocumentSelectors:
   - "LLM_Draft*"
   - "Prompt_Packet*"
-inputDateSelector: "between_{{CurrentDate}}_{{CurrentDate}}"
+inputDateSelector: null
 outputName: "LLM_Refined_{{CurrentDate}}"
 prompt: |
   You are the **Reviser** responsible for integrating human feedback.
