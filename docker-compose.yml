@@ -1,0 +1,103 @@
+# File: docker-compose.yml
+# Purpose: Defines and orchestrates the ULACM multi-container application.
+# Based on SRS Section 6.4.
+# Added OLLAMA_MODEL and OLLAMA_TEMPERATURE examples.
+# Updated for HTTPS: frontend on 443, backend on 8443 (example ports)
+# Simplified backend command to run only HTTPS Uvicorn instance.
+
+services:
+  frontend:
+    build:
+      context: ./ulacm_frontend
+      dockerfile: Dockerfile
+    container_name: ulacm_frontend
+    ports:
+      # - "${FRONTEND_PORT:-4000}:80" # Keep HTTP for potential redirect
+      # - "${FRONTEND_HTTPS_PORT:-4043}:443" # HTTPS port
+      - "${FRONTEND_HTTPS_PORT:-4000}:443" # Direct HTTPS port access
+    depends_on:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - ./ulacm_frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+      # Mount SSL certificates for frontend (Nginx)
+      # Ensure these files exist, e.g., ./certs/frontend/cert.pem and ./certs/frontend/key.pem
+      - ./certs/frontend/cert.pem:/etc/nginx/ssl/cert.pem:ro
+      - ./certs/frontend/key.pem:/etc/nginx/ssl/key.pem:ro
+    networks:
+      - ulacm_network
+
+  backend:
+    build:
+      context: ./ulacm_backend
+      dockerfile: Dockerfile
+    container_name: ulacm_backend
+    env_file:
+      - ./ulacm_backend/.env
+    # Command to run Uvicorn with SSL. This overrides CMD in Dockerfile.
+    # Ensure ./certs/backend/cert.pem and ./certs/backend/key.pem exist.
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8443
+             --ssl-keyfile /certs/key.pem --ssl-certfile /certs/cert.pem
+    ports:
+      # - "${BACKEND_PORT:-8000}:8000" # Optional: remove if only HTTPS is desired for backend
+      - "${BACKEND_HTTPS_PORT:-8443}:8443" # HTTPS port
+    volumes:
+      - ./ulacm_backend/.env:/app/.env
+      # Mount SSL certificates for backend (Uvicorn)
+      # Ensure these files exist, e.g., ./certs/backend/cert.pem and ./certs/backend/key.pem
+      - ./certs/backend/cert.pem:/certs/cert.pem:ro
+      - ./certs/backend/key.pem:/certs/key.pem:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      # ollama: # Optional dependency
+      #   condition: service_started
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ulacm_network
+
+  db:
+    image: postgres:15-alpine
+    container_name: ulacm_db
+    env_file:
+      - ./ulacm_backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./ulacm_backend/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ulacm_user} -d ${POSTGRES_DB:-ulacm_db}"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - ulacm_network
+
+  # Optional Ollama Service
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ulacm_ollama
+  #   ports:
+  #     - "${OLLAMA_HOST_PORT:-11434}:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   tty: true
+  #   restart: unless-stopped
+  #   networks:
+  #     - ulacm_network
+
+volumes:
+  postgres_data:
+    driver: local
+  # ollama_data:
+  #   driver: local
+
+networks:
+  ulacm_network:
+    driver: bridge

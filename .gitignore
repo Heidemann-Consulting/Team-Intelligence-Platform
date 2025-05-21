@@ -1,0 +1,91 @@
+# .gitignore (Likely same as PoC)
+
+# Environment variables
+.env
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Python virtual environment
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Database files (if using local SQLite for testing/dev)
+*.db
+*.sqlite3
+test_temp.db
+
+# Node.js dependencies and build artifacts
+node_modules/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# TypeScript / Build Output
+dist/
+build/
+main.js
+main.js.map
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Docker secrets (if used)
+docker-secrets/
+
+# Log files
+logs/
+*.log
+
+# Alembic specific
+alembic/versions/*.bak
+
+# Local Backup-Script
+backup.sh
+
+# Obsidian Vault Data
+.obsidian/
+*.bak
+
+# Release Artifacts
+release/
+*.node # Native node modules if built locally
+*.zip
+
+# Daemon Executables (if packaged locally)
+vector-daemon
+vector-daemon-*
+
+# Coverage
+coverage
+.nyc_output
+
+# Old documentation
+docs/ULACM_*.*
+docs/*.txt
+docs/*.key
+
+# Database dumps
+backup_ulacm.sql
+specific_tables_data.sql
+
+# Certificates
+
+certs/*
