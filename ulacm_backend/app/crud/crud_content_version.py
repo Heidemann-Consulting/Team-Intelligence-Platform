@@ -69,6 +69,7 @@ class CRUDContentVersion(
             "version_number": next_version_number,
             "saved_by_team_id": saved_by_team_id,
             "content_vector": generate_embedding(version_in.markdown_content),
+            "vector": generate_embedding(version_in.markdown_content),
         }
         new_version = self.model(**db_obj_data)
         db.add(new_version)

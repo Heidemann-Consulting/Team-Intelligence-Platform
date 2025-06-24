@@ -48,6 +48,7 @@ class ContentVersion(Base):
     # This column is populated by a database trigger with the tsvector of markdown_content.
     content_tsv = Column(TSVECTOR, nullable=True)
     content_vector = Column(Vector(384), nullable=True)
+    vector = Column(Vector(384), nullable=True)
 
     saved_by_team_id = Column(
         UUID(as_uuid=True),

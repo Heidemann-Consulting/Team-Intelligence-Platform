@@ -22,6 +22,9 @@ SET row_security = off;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
+-- Install pgvector extension for vector similarity search
+CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;
+
 
 --
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner:
@@ -110,7 +113,8 @@ CREATE TABLE public.content_versions (
     saved_by_team_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     content_tsv tsvector,
-    content_vector vector(384)
+    content_vector vector(384),
+    vector vector(384)
 );
 
 
