@@ -5,3 +5,4 @@ from app.db.base_class import Base # noqa
 from .team import Team # noqa
 from .content_item import ContentItem # noqa
 from .content_version import ContentVersion # noqa
+from .document_chunk import DocumentChunk # noqa

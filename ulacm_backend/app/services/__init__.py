@@ -8,6 +8,7 @@ from .workflow_parser import (
     WorkflowParsingError,
 )
 from .embedding_service import generate_embedding
+from .retrieval_service import retrieve_top_k_chunks, get_relevant_snippets
 from . import (
     workflow_service,
 )  # Imports the module itself to access its functions/classes
