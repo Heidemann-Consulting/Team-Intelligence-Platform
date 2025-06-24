@@ -100,96 +100,29 @@ async def _select_input_documents(
     executing_team_id: PyUUID,
     current_time: datetime.datetime,
     workflow_item_name_for_log: str,
-    explicit_input_document_ids: Optional[List[PyUUID]] = None
-) -> List[ContentItem]:
-    # Selects input documents for a workflow.
-    log.debug(f"Selecting input documents for workflow '{workflow_item_name_for_log}' for team {executing_team_id}.")
-    log.debug(f"Workflow Selectors: '{definition.inputDocumentSelectors}', Date filter: '{definition.inputDateSelector}', Explicit IDs: {explicit_input_document_ids}")
+    explicit_input_document_ids: Optional[List[PyUUID]] = None,
+    additional_ai_input: Optional[str] = None,
+) -> List[str]:
+    """Retrieve relevant text snippets for a workflow using the retrieval service."""
+    log.debug(
+        f"Retrieving snippets for workflow '{workflow_item_name_for_log}' for team {executing_team_id}."
+    )
 
-    selected_documents_map: Dict[PyUUID, ContentItem] = {}
-    docs_to_filter: List[ContentItem] = []
+    query_text = definition.prompt
+    if additional_ai_input:
+        query_text += f"\n{additional_ai_input}"
 
-    candidate_docs_fetched = False
-    if explicit_input_document_ids is not None:
-        candidate_docs_fetched = True
-        if not explicit_input_document_ids:
-            log.info(f"Workflow '{workflow_item_name_for_log}' received an empty list of explicit document IDs. No documents selected by user.")
-            return []
-
-        log.debug(f"Using explicitly provided document IDs: {explicit_input_document_ids} for workflow '{workflow_item_name_for_log}'")
-        stmt_explicit = (
-            select(ContentItem)
-            .where(ContentItem.item_id.in_(explicit_input_document_ids))
-            .where(ContentItem.item_type == ContentItemTypeEnum.DOCUMENT)
-            .options(
-                 joinedload(ContentItem.current_version).joinedload(ContentVersion.saving_team),
-                joinedload(ContentItem.owner_team)
-            )
+    try:
+        snippets = await get_relevant_snippets(db, query_text, top_k=5)
+        log.info(
+            f"Retrieved {len(snippets)} snippets for workflow '{workflow_item_name_for_log}'."
         )
-        result_explicit = await db.execute(stmt_explicit)
-        docs_to_filter = result_explicit.scalars().unique().all()
-        log.debug(f"Fetched {len(docs_to_filter)} documents based on explicit IDs for workflow '{workflow_item_name_for_log}'.")
-
-    else:
-        candidate_docs_fetched = True
-        log.debug(f"No explicit IDs provided. Using workflow selectors to find all possible documents for workflow '{workflow_item_name_for_log}'.")
-        stmt_implicit = (
-            select(ContentItem)
-            .where(ContentItem.item_type == ContentItemTypeEnum.DOCUMENT)
-            .where(
-                or_(
-                    ContentItem.team_id == executing_team_id,
-                    and_(
-                         ContentItem.is_globally_visible == True,
-                    )
-                )
-            )
-            .options(
-                joinedload(ContentItem.current_version).joinedload(ContentVersion.saving_team),
-                joinedload(ContentItem.owner_team)
-            )
+        return snippets
+    except Exception as exc:  # pragma: no cover - retrieval errors are logged
+        log.error(
+            f"Error retrieving snippets for workflow '{workflow_item_name_for_log}': {exc}"
         )
-        result_implicit = await db.execute(stmt_implicit)
-        docs_to_filter = result_implicit.scalars().unique().all()
-        log.debug(f"Fetched {len(docs_to_filter)} potentially accessible documents for team {executing_team_id} to filter by workflow selectors.")
-
-    if not candidate_docs_fetched and not definition.inputDocumentSelectors:
-        log.info(f"Workflow '{workflow_item_name_for_log}' has no input selectors and no explicit documents were provided. Proceeding without document inputs.")
         return []
-
-    for doc in docs_to_filter:
-        is_accessible = (
-            doc.team_id == executing_team_id or
-            (doc.is_globally_visible and doc.team_id != settings.ADMIN_SYSTEM_TEAM_ID) or
-            (doc.is_globally_visible and doc.team_id == settings.ADMIN_SYSTEM_TEAM_ID)
-        )
-        if not is_accessible:
-            log.debug(f"Document {doc.item_id} ('{doc.name}') is not accessible to team {executing_team_id}. Skipping.")
-            continue
-
-        if not doc.current_version:
-            log.debug(f"Document {doc.item_id} ('{doc.name}') has no current version. Skipping.")
-            continue
-
-        if definition.inputDocumentSelectors:
-            matches_name_selector = any(
-                _match_glob_pattern(doc.name, selector_pattern)
-                for selector_pattern in definition.inputDocumentSelectors
-            )
-            if not matches_name_selector:
-                log.debug(f"Document {doc.item_id} ('{doc.name}') does not match any workflow name selector: {definition.inputDocumentSelectors}. Skipping.")
-                continue
-
-        if not _filter_by_date_selector(doc.current_version.created_at, definition.inputDateSelector, current_time):
-            log.debug(f"Document {doc.item_id} ('{doc.name}') does not match workflow date selector: '{definition.inputDateSelector}'. Version date: {doc.current_version.created_at}. Skipping.")
-            continue
-
-        selected_documents_map[doc.item_id] = doc
-
-    final_selected_doc_count = len(selected_documents_map)
-    log.info(f"For workflow '{workflow_item_name_for_log}', {final_selected_doc_count} documents remain after all filters.")
-
-    return sorted(list(selected_documents_map.values()), key=lambda d: d.name)
 
 def _construct_prompt(
     definition: ValidatedWorkflowDefinition,
@@ -340,13 +273,20 @@ async def execute_workflow_streaming(
         definition = WorkflowDefinitionParser.parse_and_validate(workflow_definition_str)
         if not definition.processWorkFlowName: definition.processWorkFlowName = actual_process_workflow_name
 
-        selected_input_docs: List[ContentItem] = []
+        retrieved_snippets: List[str] = []
         if explicit_current_document_content is None:
-            selected_input_docs = await _select_input_documents(
-                db, definition, executing_team_id, current_time, actual_process_workflow_name, explicit_input_document_ids
+            retrieved_snippets = await _select_input_documents(
+                db=db,
+                definition=definition,
+                executing_team_id=executing_team_id,
+                current_time=current_time,
+                workflow_item_name_for_log=actual_process_workflow_name,
+                explicit_input_document_ids=explicit_input_document_ids,
+                additional_ai_input=explicit_additional_ai_input,
             )
-        input_docs_content_list = [doc.current_version.markdown_content for doc in selected_input_docs if doc.current_version]
-        input_doc_names_list = [doc.name for doc in selected_input_docs]
+
+        input_docs_content_list = retrieved_snippets
+        input_doc_names_list = [f"Snippet_{i+1}" for i in range(len(retrieved_snippets))]
 
         final_prompt = _construct_prompt(
             definition, input_docs_content_list, input_doc_names_list, current_time,
