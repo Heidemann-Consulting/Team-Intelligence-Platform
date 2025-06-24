@@ -299,6 +299,9 @@ All components (Frontend, Backend API, PostgreSQL) are containerized using Docke
 * **FR-SRCH-002:** Search by item name (partial/full) and full-text content. Filters for item type and creation date (after/before).
 * **FR-SRCH-003:** Results are filtered by team ownership or global visibility.
 * **FR-SRCH-004:** Results display item name, type, and a content snippet (if from FTS).
+* **FR-SRCH-005:** The search feature SHALL also provide semantic results using
+  an embedding-based retrieval mechanism. Queries are embedded and compared
+  against stored document vectors to surface relevant snippets.
 
 ### 4.7 Process Workflow Definition and Execution
 
@@ -451,7 +454,20 @@ All components (Frontend, Backend API, PostgreSQL) are containerized using Docke
 * `saved_by_team_id` (UUID, FK to Teams, ON DELETE SET NULL): Team that saved this version (user team or ADMIN_SYSTEM_TEAM_ID).
 * `created_at` (Timestamp)
 * `content_tsv` (TSVECTOR): For full-text search, populated by DB trigger.
+* `content_vector` (VECTOR): Embedding of the full content for semantic search.
+* `vector` (VECTOR): Reserved for future embedding experimentation.
 * Unique constraint on (`item_id`, `version_number`).
+
+**DocumentChunks (`document_chunks` table):**
+
+* `chunk_id` (UUID, PK)
+* `version_id` (UUID, FK to ContentVersions, ON DELETE CASCADE)
+* `chunk_index` (Integer)
+* `chunk_text` (Text)
+* `embedding` (VECTOR): Embedding vector for the chunk text used in retrieval.
+
+The PostgreSQL service MUST enable the `pgvector` extension so these vector
+columns can store and compare embeddings.
 
 ### 6.2 Data Retention and Deletion
 
@@ -460,6 +476,13 @@ Deleting a team results in the hard deletion of the Team record and, due to `ON 
 If a team is deleted, ContentVersion records where `saved_by_team_id` pointed to the deleted team will have this foreign key set to NULL, due to `ON DELETE SET NULL`.
 
 Deleting an individual ContentItem (Document, Template, or Workflow) results in a hard delete of the item and all its associated ContentVersion records due to the `ON DELETE CASCADE` on `content_versions.item_id`.
+
+### 6.3 Setup Considerations
+
+* When deploying with Docker Compose, the PostgreSQL container executes
+  `init_db.sql` on first run. This script enables the `vector` (pgvector)
+  extension required for embedding-based retrieval. If you run against an
+  external database, ensure this extension is installed.
 
 ## 7. Future Considerations (Post-Initial Release Optional)
 
