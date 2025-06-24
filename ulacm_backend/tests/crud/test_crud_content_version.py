@@ -130,6 +130,7 @@ async def test_create_new_version_first(mock_db_session):
     assert added_obj.markdown_content == version_data.markdown_content
     assert added_obj.version_number == 1  # Should be 1 for initial version
     assert added_obj.content_vector == [0.1, 0.2]
+    assert added_obj.vector == [0.1, 0.2]
 
     # Check DB flush call (to get version_id before update)
     mock_db_session.flush.assert_awaited_once()
@@ -214,6 +215,7 @@ async def test_create_new_version_subsequent(mock_db_session):
     assert isinstance(added_obj, ContentVersion)
     assert added_obj.version_number == current_max_version + 1  # Should be incremented
     assert added_obj.content_vector == [0.3, 0.4]
+    assert added_obj.vector == [0.3, 0.4]
 
     # Check DB flush call
     mock_db_session.flush.assert_awaited_once()
