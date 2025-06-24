@@ -109,7 +109,8 @@ CREATE TABLE public.content_versions (
     version_number integer NOT NULL,
     saved_by_team_id uuid NOT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    content_tsv tsvector
+    content_tsv tsvector,
+    content_vector vector(384)
 );
 
 
@@ -2668,7 +2669,16 @@ COPY public.content_items (item_id, team_id, item_type, name, is_globally_visibl
 -- Data for Name: content_versions; Type: TABLE DATA; Schema: public; Owner: ulacm_user
 --
 -- The COPY statement for content_versions is populated by the DO $$ blocks above for each template/workflow.
-COPY public.content_versions (version_id, item_id, markdown_content, version_number, saved_by_team_id, created_at, content_tsv) FROM stdin;
+COPY public.content_versions (
+    version_id,
+    item_id,
+    markdown_content,
+    version_number,
+    saved_by_team_id,
+    created_at,
+    content_tsv,
+    content_vector
+) FROM stdin;
 \.
 
 
