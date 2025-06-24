@@ -472,6 +472,10 @@ This section details the functional requirements of the Team Intelligence Platfo
 * **FR-SRCH-004**: Search results SHALL be displayed in a clear, paginated list. Each result item SHALL display at least the Item Name, Item Type, and a content snippet (if from FTS and applicable).
     * *Verification*: UI inspection of search results format, pagination test.
     * *Source*: PRD 4.6.
+* **FR-SRCH-005**: The search implementation SHALL embed query text and compare
+  it against stored embeddings to return semantically relevant snippets.
+    * *Verification*: Unit test of embedding generation and retrieval logic.
+    * *Source*: PRD 4.6, 6.1.
 
 ### 3.7 Process Workflow Definition and Execution
 
@@ -910,7 +914,7 @@ The `docker-compose.yml` file defines the services, networks, volumes, and envir
 This section details the data storage strategy, conceptual data model, and detailed data dictionary for the Team Intelligence Platform (TIP).
 
 ### 7.1 Data Storage
-All application data, including team accounts, Documents, Templates, Process Workflows, and their versions, SHALL be stored in a PostgreSQL relational database, as per FR-SYS-004. The database schema is designed to support the functional requirements, including versioning, ownership, sharing, and full-text search.
+All application data, including team accounts, Documents, Templates, Process Workflows, and their versions, SHALL be stored in a PostgreSQL relational database, as per FR-SYS-004. The database schema is designed to support the functional requirements, including versioning, ownership, sharing, full-text search, and embedding-based retrieval. The `vector` extension (`pgvector`) is enabled during initialization to store embedding vectors.
 
 ### 7.2 Conceptual Data Model (ERD)
 
@@ -1026,7 +1030,9 @@ Stores the actual Markdown content for each version of each content item.
 | `item_id`           | `UUID`                     | `NOT NULL`, `REFERENCES content_items(item_id) ON DELETE CASCADE` | Foreign key referencing the `content_items` table this version belongs to. FR-CM-008 (cascade). |
 | `markdown_content`  | `TEXT`                     | `NOT NULL`                                   | The full Markdown content of this version.                                       |
 | `version_number`    | `INTEGER`                  | `NOT NULL`                                   | Sequential version number for this item (e.g., 1, 2, 3...). FR-VER-003. |
-| `content_tsv`       | `TSVECTOR`                 | `NULL`                                       | Stores the `tsvector` of `markdown_content` for FTS, populated by a DB trigger. |
+| `content_tsv`       | `TSVECTOR`                 | `NULL`                  | Stores the `tsvector` of `markdown_content` for FTS, populated by a DB trigger. |
+| `content_vector`    | `VECTOR(384)`              | `NULL`                  | Embedding of the entire content for semantic retrieval. |
+| `vector`            | `VECTOR(384)`              | `NULL`                  | Reserved column for future embedding experiments. |
 | `saved_by_team_id`  | `UUID`                     | `NOT NULL`, `REFERENCES teams(team_id) ON DELETE SET NULL` | Foreign key referencing the `teams` table, indicating the team that saved this version (can be `ADMIN_SYSTEM_TEAM_ID`). FR-VER-003. `ON DELETE SET NULL` allows team deletion without orphaning versions if that team only acted as a saver. |
 | `created_at`        | `TIMESTAMP WITH TIME ZONE` | `NOT NULL`, `DEFAULT CURRENT_TIMESTAMP`    | Timestamp of when this version was created (i.e., when it was saved). FR-VER-003. |
 |                     |                            | `CONSTRAINT uq_item_version_number UNIQUE (item_id, version_number)` | Ensures version number is unique per item. |
@@ -1044,6 +1050,22 @@ Stores the actual Markdown content for each version of each content item.
 
 **Initial Data:**
 * The `teams` table will be initialized with a record for `ADMIN_SYSTEM_TEAM_ID` ('04a9a4ec-18d8-4cfd-bead-d0ef99199e17') as per `init_db.sql`.
+
+#### 7.3.4 `document_chunks` Table
+Stores smaller segments of content for semantic retrieval.
+*Source*: Backend Model `ulacm_backend/app/db/models/document_chunk.py`
+
+| Column Name   | Data Type     | Constraints | Description |
+| :------------ | :------------ | :---------- | :---------- |
+| `chunk_id`    | `UUID`        | `PRIMARY KEY`, `DEFAULT uuid_generate_v4()` | Unique identifier for the chunk. |
+| `version_id`  | `UUID`        | `NOT NULL`, `REFERENCES content_versions(version_id) ON DELETE CASCADE` | The version this chunk belongs to. |
+| `chunk_index` | `INTEGER`     | `NOT NULL` | Order of the chunk within the document. |
+| `chunk_text`  | `TEXT`        | `NOT NULL` | Raw text for the chunk. |
+| `embedding`   | `VECTOR(384)` | `NOT NULL` | Embedding vector used for similarity search. |
+
+**Indexes:**
+* Primary Key on `chunk_id`.
+* Foreign Key index on `version_id`.
 
 ## 8. API Design (RESTful)
 
@@ -1608,12 +1630,13 @@ This section provides a more detailed look into the design of key backend and fr
 
 #### 11.1.6 Search Module
 * **Location**: `ulacm_backend/app/crud/crud_search.py`, `ulacm_backend/app/api/v1/endpoints/search.py`
-* **Purpose**: Provides full-text search functionality across content items.
+* **Purpose**: Provides full-text and semantic search functionality across content items.
 * **Key Functions (`crud_search.py`)**:
     * `search_content_items_complex(...) -> Tuple[List[Tuple[ContentItemModel, Optional[str]]], int]`:
         * Constructs dynamic SQL queries using SQLAlchemy.
         * Filters by `team_id` (owner) OR `is_globally_visible = TRUE`, and by `item_type` and date filters if provided.
         * Uses PostgreSQL FTS functions (`to_tsvector`, `plainto_tsquery`, `ts_rank_cd`, `ts_headline`) on `ContentVersion.content_tsv` (for content) and `ContentItem.name`.
+        * If a query string is provided, also generates an embedding and retrieves the most similar document chunks using pgvector.
         * Returns a list of `ContentItemModel` objects and their corresponding search snippets, along with the total count.
 * **API Layer (`search.py`)**: Exposes the `/search` endpoint.
 * **Interactions**:
