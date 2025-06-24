@@ -218,59 +218,23 @@ def test_match_glob_pattern(name, pattern, expected):
 # *** FIX: Added asyncio mark ***
 @pytest.mark.asyncio
 @freeze_time(FROZEN_TIME_STR)
-async def test_select_input_documents(mock_db_session, sample_validated_definition, sample_input_doc):
-    """Test selecting input documents based on definition criteria."""
-    test_team_id = PyUUID("11111111-1111-1111-1111-111111111111")
-    test_team_id_str_no_hyphen = str(test_team_id).replace('-', '') # For WHERE clause check
-    # Create another doc that matches pattern but fails date filter
-    old_version = create_test_content_version(
-        item_id_str="cccccccc-2222-2222-2222-222222222222",
-        created_at=FROZEN_TIME_DT - timedelta(days=10) # Older than 7 days
-    )
-    old_doc = create_test_content_item(
-        item_id_str="cccccccc-2222-2222-2222-222222222222",
-        name="Input_Doc_Old", current_version=old_version
-    )
-    # Create a doc that doesn't match name pattern
-    wrong_name_doc = create_test_content_item(name="Wrong_Name")
-    # Create a doc owned by another team but globally visible (should be included)
-    global_version = create_test_content_version(item_id_str="dddddddd-3333-3333-3333-333333333333", created_at=FROZEN_TIME_DT - timedelta(days=1))
-    global_doc = create_test_content_item(
-        item_id_str="dddddddd-3333-3333-3333-333333333333",
-        team_id_str="99999999-9999-9999-9999-999999999999",
-        name="Input_Doc_Global", is_globally_visible=True, current_version=global_version
-    )
+async def test_select_input_documents(mock_db_session, sample_validated_definition):
+    """Test retrieval of snippets using the retrieval service."""
+    with patch(
+        "app.services.workflow_service.get_relevant_snippets",
+        AsyncMock(return_value=["snippet 1", "snippet 2"]),
+    ) as mock_retrieve:
+        snippets = await _select_input_documents(
+            db=mock_db_session,
+            definition=sample_validated_definition,
+            executing_team_id=PyUUID("11111111-1111-1111-1111-111111111111"),
+            current_time=FROZEN_TIME_DT,
+            workflow_item_name_for_log="wf",
+            additional_ai_input="user text",
+        )
 
-
-    # Mock DB execute to return all potential docs
-    all_docs = [sample_input_doc, old_doc, wrong_name_doc, global_doc]
-    # Correct Mock: Execute returns a mock result obj, and sync methods work on it
-    mock_result = MagicMock()
-    mock_result.scalars.return_value.unique.return_value.all.return_value = all_docs
-    mock_db_session.execute = AsyncMock(return_value=mock_result)
-
-    selected_docs = await _select_input_documents(
-        db=mock_db_session,
-        definition=sample_validated_definition,
-        executing_team_id=test_team_id,
-        current_time=FROZEN_TIME_DT
-    )
-
-    # Assert only sample_input_doc and global_doc are selected
-    assert len(selected_docs) == 2
-    selected_ids = {doc.item_id for doc in selected_docs}
-    assert sample_input_doc.item_id in selected_ids
-    assert global_doc.item_id in selected_ids
-    assert old_doc.item_id not in selected_ids # Failed date filter
-    assert wrong_name_doc.item_id not in selected_ids # Failed name filter
-
-    # Check the DB query filters correctly (visibility)
-    mock_db_session.execute.assert_awaited_once() # Ensure execute was awaited
-    call_args, _ = mock_db_session.execute.call_args
-    query_str = str(call_args[0].compile(compile_kwargs={"literal_binds": True}))
-    # *** FIX: Correct UUID comparison (hyphenless) ***
-    assert f"(content_items.team_id = '{test_team_id_str_no_hyphen}' OR content_items.is_globally_visible = true)" in query_str.replace('\n','')
-    assert "content_items.item_type = 'Document'" in query_str
+    mock_retrieve.assert_awaited_once()
+    assert snippets == ["snippet 1", "snippet 2"]
 
 # *** FIX: Removed asyncio mark (decorator) ***
 @freeze_time(FROZEN_TIME_STR)
@@ -407,7 +371,7 @@ async def test_execute_workflow_success(
 
     # Configure mocks
     mock_parse.return_value = sample_validated_definition
-    mock_select_inputs.return_value = [sample_input_doc]
+    mock_select_inputs.return_value = [sample_input_doc.current_version.markdown_content]
     mock_ollama_generate.return_value = llm_response
     mock_ensure_unique.return_value = expected_output_name
     # Mock version creation to return a mock version object
@@ -436,15 +400,20 @@ async def test_execute_workflow_success(
 
     # Assertions
     mock_parse.assert_called_once_with(sample_workflow_item.current_version.markdown_content)
-    mock_select_inputs.assert_awaited_once_with(mock_db_session, sample_validated_definition, test_team_id, FROZEN_TIME_DT)
+    mock_select_inputs.assert_awaited_once_with(
+        mock_db_session,
+        sample_validated_definition,
+        test_team_id,
+        FROZEN_TIME_DT,
+        additional_ai_input=None,
+    )
     mock_ollama_generate.assert_awaited_once()
     generate_kwargs = mock_ollama_generate.call_args.kwargs
     assert generate_kwargs['model'] == sample_validated_definition.model
     assert sample_input_doc.current_version.markdown_content in generate_kwargs['prompt']
-    assert sample_input_doc.name in generate_kwargs['prompt']
     assert generate_kwargs['temperature'] == sample_validated_definition.temperature
 
-    expected_raw_name = _generate_output_name(sample_validated_definition, [sample_input_doc.name], FROZEN_TIME_DT)
+    expected_raw_name = _generate_output_name(sample_validated_definition, ["Snippet_1"], FROZEN_TIME_DT)
     mock_ensure_unique.assert_awaited_once_with(mock_db_session, expected_raw_name, test_team_id)
 
     mock_db_session.add.assert_called_once()
