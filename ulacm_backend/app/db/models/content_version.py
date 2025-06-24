@@ -72,6 +72,12 @@ class ContentVersion(Base):
         "Team", back_populates="saved_versions", foreign_keys=[saved_by_team_id]
     )
 
+    chunks = relationship(
+        "DocumentChunk",
+        back_populates="version",
+        cascade="all, delete-orphan",
+    )
+
     # Constraints
     __table_args__ = (
         UniqueConstraint("item_id", "version_number", name="uq_item_version_number"),

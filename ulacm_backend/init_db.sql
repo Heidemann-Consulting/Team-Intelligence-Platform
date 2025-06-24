@@ -117,6 +117,24 @@ CREATE TABLE public.content_versions (
     vector vector(384)
 );
 
+--
+-- Name: document_chunks; Type: TABLE; Schema: public; Owner: ulacm_user
+--
+
+CREATE TABLE public.document_chunks (
+    chunk_id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    version_id uuid NOT NULL,
+    chunk_index integer NOT NULL,
+    chunk_text text NOT NULL,
+    embedding vector(384)
+);
+
+ALTER TABLE public.document_chunks OWNER TO ulacm_user;
+
+ALTER TABLE public.document_chunks
+    ADD CONSTRAINT fk_document_chunks_version FOREIGN KEY (version_id)
+        REFERENCES public.content_versions(version_id) ON DELETE CASCADE;
+
 
 ALTER TABLE public.content_versions OWNER TO ulacm_user;
 
