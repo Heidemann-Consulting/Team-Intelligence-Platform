@@ -40,6 +40,8 @@ PyYAML = "^6.0.1"
 
 # Rate Limiting
 slowapi = "^0.1.9"
+sentence-transformers = "^4.1.0"
+pgvector = "^0.4.1"
 
 
 [tool.poetry.group.dev.dependencies]
